@@ -72,4 +72,10 @@ public class UserService(
 
         return ServiceResult<UserLoginResponseDto>.SuccessResultAsync(response, "Login successful");
     }
+
+    public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
+    {
+        var users = await userRepository.GetAllAsync();
+        return users.Select(u => new UserDto(u.Id, u.Username, u.Email, u.CreateAt));
+    }
 }

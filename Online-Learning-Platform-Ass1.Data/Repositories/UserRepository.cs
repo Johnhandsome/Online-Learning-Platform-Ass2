@@ -21,4 +21,8 @@ public class UserRepository(OnlineLearningContext context) : IUserRepository
     public async Task AddAsync(User user) => await context.Users.AddAsync(user);
 
     public async Task<int> SaveChangesAsync() => await context.SaveChangesAsync();
+
+    public async Task<IEnumerable<User>> GetAllAsync() => await context.Users
+        .AsNoTracking()
+        .ToListAsync();
 }

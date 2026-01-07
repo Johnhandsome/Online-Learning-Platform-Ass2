@@ -9,4 +9,5 @@ public interface IUserRepository
     Task<User?> GetByIdAsync(Guid id);
     Task AddAsync(User user);
     Task<int> SaveChangesAsync();
+    Task<IEnumerable<User>> GetAllAsync();
 }
