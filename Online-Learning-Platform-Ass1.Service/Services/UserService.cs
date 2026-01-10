@@ -7,7 +7,8 @@ using Online_Learning_Platform_Ass1.Service.Utils;
 
 namespace Online_Learning_Platform_Ass1.Service.Services;
 
-public class UserService(
+public class UserService
+(
     IUserRepository userRepository,
     IValidator<UserRegisterDto> registerValidator,
     IValidator<UserLoginDto> loginValidator
@@ -19,16 +20,16 @@ public class UserService(
         if (!validationResult.IsValid)
         {
             var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
-            return ServiceResult<Guid>.FailureResultAsync(errors);
+            return ServiceResult<Guid>.FailureResult(errors);
         }
 
-        var existingUser = await userRepository.GetByUsernameAsync(dto.Username);
-        if (existingUser != null) return ServiceResult<Guid>.FailureResultAsync("Username already exists");
+        if (await userRepository.GetByUsernameAsync(dto.Username) is not null)
+            return ServiceResult<Guid>.FailureResult("Username already exists");
 
-        var existingEmail = await userRepository.GetByEmailAsync(dto.Email);
-        if (existingEmail != null) return ServiceResult<Guid>.FailureResultAsync("Email already registered");
+        if (await userRepository.GetByEmailAsync(dto.Email) is not null)
+            return ServiceResult<Guid>.FailureResult("Email already registered");
 
-        var passwordHash = PasswordUtils.HashPasswordAsync(dto.Password);
+        var passwordHash = PasswordUtils.HashPassword(dto.Password);
 
         var user = new User
         {
@@ -44,33 +45,39 @@ public class UserService(
             await userRepository.AddAsync(user);
             await userRepository.SaveChangesAsync();
 
-            return ServiceResult<Guid>.SuccessResultAsync(user.Id, "User registered successfully");
+            return ServiceResult<Guid>.SuccessResult(user.Id, "User registered successfully");
         }
         catch (Exception ex)
         {
-            return ServiceResult<Guid>.FailureResultAsync($"An error occurred during registration: {ex.Message}");
+            return ServiceResult<Guid>.FailureResult($"An error occurred: {ex.Message}");
         }
     }
-
 
     public async Task<ServiceResult<UserLoginResponseDto>> LoginAsync(UserLoginDto dto)
     {
         var validationResult = await loginValidator.ValidateAsync(dto);
         if (!validationResult.IsValid)
         {
-            var errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList();
-            return ServiceResult<UserLoginResponseDto>.FailureResultAsync(errors);
+            return ServiceResult<UserLoginResponseDto>.FailureResult(
+                [.. validationResult.Errors.Select(e => e.ErrorMessage)]
+            );
         }
 
-        var user = await userRepository.GetByUsernameAsync(dto.UsernameOrEmail);
-        user ??= await userRepository.GetByEmailAsync(dto.UsernameOrEmail);
+        var user = await userRepository.GetByUsernameAsync(dto.UsernameOrEmail)
+                   ?? await userRepository.GetByEmailAsync(dto.UsernameOrEmail);
 
-        if (user is null || !PasswordUtils.VerifyPasswordAsync(dto.Password, user.PasswordHash))
-            return ServiceResult<UserLoginResponseDto>.FailureResultAsync("Invalid username/email or password");
+        if (user is null || !PasswordUtils.VerifyPassword(dto.Password, user.PasswordHash))
+            return ServiceResult<UserLoginResponseDto>.FailureResult("Invalid username/email or password");
 
-        var response = new UserLoginResponseDto(user.Id, user.Username, user.Email, user.Role?.Name, user.CreateAt);
+        var response = new UserLoginResponseDto(
+            user.Id,
+            user.Username,
+            user.Email,
+            user.Role?.Name ?? "User",
+            user.CreateAt
+        );
 
-        return ServiceResult<UserLoginResponseDto>.SuccessResultAsync(response, "Login successful");
+        return ServiceResult<UserLoginResponseDto>.SuccessResult(response, "Login successful");
     }
 
     public async Task<IEnumerable<UserDto>> GetAllUsersAsync()

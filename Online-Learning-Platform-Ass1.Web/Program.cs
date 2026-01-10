@@ -5,11 +5,26 @@ using Online_Learning_Platform_Ass1.Service.DTOs.User;
 using Online_Learning_Platform_Ass1.Service.Services;
 using Online_Learning_Platform_Ass1.Service.Services.Interfaces;
 using Online_Learning_Platform_Ass1.Service.Validators.User;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddControllersWithViews();
+
+// Add Authentication
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/User/Login";
+        options.LogoutPath = "/User/Logout";
+        options.AccessDeniedPath = "/User/Login";
+        options.ExpireTimeSpan = TimeSpan.FromDays(7);
+        options.SlidingExpiration = true;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.Strict;
+    });
 
 // Add FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<UserRegisterDtoValidator>();
@@ -38,6 +53,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

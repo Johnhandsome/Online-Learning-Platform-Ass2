@@ -2,7 +2,7 @@ namespace Online_Learning_Platform_Ass1.Service.Utils;
 
 public static class PasswordUtils
 {
-    public static string HashPasswordAsync(string password)
+    public static string HashPassword(string password)
     {
         if (password is null)
             throw new ArgumentNullException(nameof(password), "Password cannot be null");
@@ -12,7 +12,7 @@ public static class PasswordUtils
             : BCrypt.Net.BCrypt.HashPassword(password, 12);
     }
 
-    public static bool VerifyPasswordAsync(string password, string hash)
+    public static bool VerifyPassword(string password, string hash)
     {
         if (password is null)
             throw new ArgumentNullException(nameof(password), "Password cannot be null");

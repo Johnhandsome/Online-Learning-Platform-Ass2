@@ -1,3 +1,7 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Online_Learning_Platform_Ass1.Service.DTOs.User;
 using Online_Learning_Platform_Ass1.Service.Services.Interfaces;
 
@@ -18,10 +22,30 @@ public class UserController(IUserService userService) : Controller
 
         var result = await userService.LoginAsync(userLoginDto);
 
-        if (result.Success)
+        if (result.Success && result.Data is not null)
         {
+            var claims = new List<Claim>
+            {
+                new(ClaimTypes.NameIdentifier, result.Data.Id.ToString()),
+                new(ClaimTypes.Name, result.Data.Username),
+                new(ClaimTypes.Email, result.Data.Email),
+                new(ClaimTypes.Role, result.Data.Role ?? "User")
+            };
+
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
+            };
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity),
+                authProperties);
+
             TempData["SuccessMessage"] = "Login successful!";
-            return RedirectToAction(nameof(List));
+            return RedirectToAction("Index", "Home");
         }
 
         ModelState.AddModelError(string.Empty, result.Message ?? "Login failed");
@@ -53,15 +77,17 @@ public class UserController(IUserService userService) : Controller
 
     // GET: User/Logout
     [HttpGet]
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE1006:Naming Styles", Justification = "<Pending>")]
-    public IActionResult Logout()
+    [Authorize]
+    public async Task<IActionResult> Logout()
     {
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         TempData["SuccessMessage"] = "You have been logged out";
         return RedirectToAction("Index", "Home");
     }
 
     // GET: User/List
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> List()
     {
         var users = await userService.GetAllUsersAsync();
