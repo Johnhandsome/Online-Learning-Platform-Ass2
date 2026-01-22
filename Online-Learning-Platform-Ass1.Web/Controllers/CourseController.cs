@@ -1,7 +1,10 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Online_Learning_Platform_Ass1.Service.DTOs.Course;
+using Online_Learning_Platform_Ass1.Service.DTOs.Lesson;
 using Online_Learning_Platform_Ass1.Service.DTOs.Order;
+using Online_Learning_Platform_Ass1.Service.Services;
 using Online_Learning_Platform_Ass1.Service.Services.Interfaces;
 
 namespace Online_Learning_Platform_Ass1.Data.Controllers;
@@ -9,7 +12,8 @@ namespace Online_Learning_Platform_Ass1.Data.Controllers;
 [Authorize]
 public class CourseController(
     ICourseService courseService,
-    IOrderService orderService) : Controller
+    IOrderService orderService,
+    IAiLessonService aiLessonService) : Controller
 {
     [AllowAnonymous]
     public async Task<IActionResult> Details(Guid id)
@@ -70,4 +74,63 @@ public class CourseController(
         var courses = await courseService.GetEnrolledCoursesAsync(userId);
         return View(courses);
     }
+
+    public async Task<IActionResult> Learn(Guid enrollmentId, Guid? lessonId)
+    {
+        var vm = await courseService.GetCourseLearnAsync(enrollmentId);
+        if (vm == null) return NotFound();
+
+        vm.CurrentLesson = lessonId == null
+            ? vm.Modules.FirstOrDefault()?.Lessons.FirstOrDefault()
+            : vm.Modules.SelectMany(m => m.Lessons)
+                .FirstOrDefault(l => l.Id == lessonId);
+
+        foreach (var lesson in vm.Modules.SelectMany(m => m.Lessons))
+            lesson.IsCurrent = vm.CurrentLesson?.Id == lesson.Id;
+
+        return View(vm);
+    }
+
+    public async Task<IActionResult> List()
+    {
+        Guid? currentUserId = null;
+
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var uid))
+        {
+            currentUserId = uid;
+        }
+
+        if (currentUserId == null)
+        {
+            return RedirectToAction("Login", "User");
+
+        }
+        var enrolledCourses = await courseService.GetEnrolledCoursesAsync(currentUserId.Value);
+        return View(enrolledCourses);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> AiSummary([FromBody] AiSummaryRequest req)
+    {
+        var result = await aiLessonService.GenerateSummaryAsync(
+            req.EnrollmentId, req.LessonId
+        );
+
+        return Ok(result);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> AiAsk([FromBody] AiAskRequest req)
+    {
+        var result = await aiLessonService.AskAsync(
+            req.EnrollmentId,
+            req.LessonId,
+            req.Question
+        );
+
+        return Ok(result);
+    }
+
 }

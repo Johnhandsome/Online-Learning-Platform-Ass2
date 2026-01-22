@@ -7,6 +7,15 @@ namespace Online_Learning_Platform_Ass1.Data.Repositories;
 
 public class EnrollmentRepository(OnlineLearningContext context) : IEnrollmentRepository
 {
+    public async Task<Enrollment?> GetByIdAsync(Guid enrollmentId)
+    {
+        return await context.Enrollments
+            .Include(e => e.Course)
+                .ThenInclude(c => c.Modules)
+                    .ThenInclude(m => m.Lessons)
+            .FirstOrDefaultAsync(e => e.Id == enrollmentId);
+    }
+
     public async Task<IEnumerable<Enrollment>> GetStudentEnrollmentsAsync(Guid userId)
     {
         return await context.Enrollments

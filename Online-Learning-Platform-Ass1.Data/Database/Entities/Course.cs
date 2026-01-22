@@ -39,7 +39,7 @@ public class Course
     [Required]
     [MaxLength(50)]
     [Column("status")]
-    public string Status { get; set; } = "draft"; // draft, published, archived
+    public string Status { get; set; } = "published"; // draft, published, archived
 
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

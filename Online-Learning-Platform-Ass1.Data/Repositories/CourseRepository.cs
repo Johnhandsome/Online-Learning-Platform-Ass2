@@ -48,19 +48,20 @@ public class CourseRepository(OnlineLearningContext context) : ICourseRepository
             .OrderByDescending(c => c.CreatedAt)
             .ToListAsync();
     }
-    
+
     public async Task<IEnumerable<Course>> GetFeaturableCoursesAsync(int count)
     {
         // Simple logic for "featured": just take top N latest active courses
         return await context.Courses
-            .AsNoTracking()
-            .Where(c => c.Status == "active") 
-            .OrderByDescending(c => c.CreatedAt)
-            .Take(count)
-            .Include(c => c.Instructor)
-            .Include(c => c.Category)
-            .ToListAsync();
+         .AsNoTracking()
+         .Include(c => c.Instructor)
+         .Include(c => c.Category)
+         .Where(c => c.Status == "published")
+         .OrderByDescending(c => c.CreatedAt)
+         .Take(count)
+         .ToListAsync();
+
     }
-    
+
     public async Task<int> SaveChangesAsync() => await context.SaveChangesAsync();
 }

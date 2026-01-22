@@ -91,6 +91,7 @@ public class CourseService(
         return enrollments.Select(e => new CourseViewModel
         {
             Id = e.Course.Id,
+            EnrollmentId = e.Id,
             Title = e.Course.Title,
             Description = e.Course.Description,
             Price = e.Course.Price,
@@ -98,5 +99,37 @@ public class CourseService(
             InstructorName = e.Course.Instructor?.Username ?? "Unknown",
             CategoryName = e.Course.Category?.Name ?? "General"
         });
+    }
+
+    public async Task<CourseLearnViewModel?> GetCourseLearnAsync(Guid enrollmentId)
+    {
+        var enrollment = await enrollmentRepository.GetByIdAsync(enrollmentId);
+        if (enrollment == null) return null;
+
+        var modules = enrollment.Course.Modules
+            .OrderBy(m => m.OrderIndex)
+            .Select(m => new ModuleViewModel
+            {
+                Id = m.Id,
+                Title = m.Title,
+                Lessons = m.Lessons
+                    .OrderBy(l => l.OrderIndex)
+                    .Select(l => new LessonViewModel
+                    {
+                        Id = l.Id,
+                        Title = l.Title,
+                        Duration = l.Duration ?? 0,
+                        VideoUrl = l.Type == "video" ? l.ContentUrl : null,
+                        Content = l.Type == "text" ? l.ContentUrl : null
+                    })
+            });
+
+        return new CourseLearnViewModel
+        {
+            Id = enrollment.Course.Id,
+            EnrollmentId = enrollment.Id,
+            Title = enrollment.Course.Title,
+            Modules = modules
+        };
     }
 }

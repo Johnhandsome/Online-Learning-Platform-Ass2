@@ -3,6 +3,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Online_Learning_Platform_Ass1.Data.Database.Entities;
 
+public enum AiSummaryStatus
+{
+    None = 0,
+    Pending = 1,
+    Completed = 2,
+    Failed = 3
+}
+
 [Table("Lesson_Progress")]
 public class LessonProgress
 {
@@ -24,6 +32,14 @@ public class LessonProgress
 
     [Column("is_completed")]
     public bool IsCompleted { get; set; }
+
+    [Column("transcript")]
+    public string? Transcript { get; set; }
+    [Column("ai_summary")]
+    public string? AiSummary { get; set; }
+    [Column("ai_summary_status")]
+    public AiSummaryStatus AiSummaryStatus { get; set; } = AiSummaryStatus.None;
+
 
     [Column("last_watched_position")]
     public int? LastWatchedPosition { get; set; } // in seconds maybe

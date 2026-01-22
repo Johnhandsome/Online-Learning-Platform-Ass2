@@ -10,4 +10,6 @@ public interface ICourseService
     Task<CourseDetailViewModel?> GetCourseDetailsAsync(Guid id, Guid? userId = null);
     Task<IEnumerable<CourseViewModel>> GetEnrolledCoursesAsync(Guid userId);
     Task<IEnumerable<CategoryViewModel>> GetAllCategoriesAsync();
+    Task<CourseLearnViewModel?> GetCourseLearnAsync(Guid enrollmentId);
+
 }
