@@ -23,6 +23,10 @@ public class OnlineLearningContext(DbContextOptions<OnlineLearningContext> optio
     public DbSet<LearningPath> LearningPaths { get; set; }
     public DbSet<PathCourse> PathCourses { get; set; }
     public DbSet<Blog> Blogs { get; set; }
+    public DbSet<AssessmentQuestion> AssessmentQuestions { get; set; }
+    public DbSet<AssessmentOption> AssessmentOptions { get; set; }
+    public DbSet<UserAssessment> UserAssessments { get; set; }
+    public DbSet<UserAnswer> UserAnswers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

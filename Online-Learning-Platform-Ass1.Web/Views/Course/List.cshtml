@@ -4,37 +4,69 @@
 	ViewData["Title"] = "Danh sách khóa học";
 }
 
-<h2 class="mb-4">Danh sách khóa học</h2>
+<div class="container mt-5 mb-5">
+	<div class="mb-5 scroll-reveal">
+		<h1 class="display-5 fw-bold text-gradient mb-2">Danh sách khóa học</h1>
+		<p class="text-muted lead">Khám phá các khóa học của bạn</p>
+	</div>
 
-@if (!Model.Any())
-{
-	<p>Chưa có khóa học nào.</p>
-}
-else
-{
-	<div class="row">
-		@foreach (var course in Model)
-		{
-			<div class="col-md-4 mb-4">
-				<div class="card h-100 shadow-sm">
-					<img src="@course.ImageUrl"
-						 class="card-img-top"
-						 style="height:180px; object-fit:cover;" />
+	@if (!Model.Any())
+	{
+		<div class="text-center py-5 scroll-reveal">
+			<div class="mb-4">
+				<i class="bi bi-inbox" style="font-size: 5rem; color: var(--gray-300);"></i>
+			</div>
+			<h2 class="text-muted mb-3">Chưa có khóa học nào.</h2>
+			<p class="lead text-muted mb-4">Hãy bắt đầu hành trình học tập của bạn!</p>
+			<a asp-controller="Home" asp-action="Index" class="btn btn-gradient btn-modern btn-lg">
+				<i class="bi bi-search me-2"></i>Khám phá khóa học
+			</a>
+		</div>
+	}
+	else
+	{
+		<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+			@foreach (var course in Model)
+			{
+				<div class="col scroll-reveal">
+					<div class="card card-modern h-100 course-card">
+						@if (!string.IsNullOrEmpty(course.ImageUrl))
+						{
+							<div class="course-image-wrapper">
+								<img src="@course.ImageUrl" class="card-img-top" alt="@course.Title" />
+							</div>
+						}
+						else
+						{
+							<div class="course-image-wrapper" style="background: var(--gradient-primary);">
+								<div class="d-flex align-items-center justify-content-center h-100">
+									<i class="bi bi-book text-white" style="font-size: 3rem; opacity: 0.3;"></i>
+								</div>
+							</div>
+						}
 
-					<div class="card-body d-flex flex-column">
-						<h5 class="card-title">@course.Title</h5>
-						<p class="text-muted mb-2">@course.InstructorName</p>
-						<p class="card-text flex-grow-1">
-							@course.Description
-						</p>
-						<a href="@Url.Action("Learn", "Course",new { enrollmentId = course.EnrollmentId})" 
-						   class="btn btn-primary mt-auto">
-							Vào học
-						</a>
-
+						<div class="card-body d-flex flex-column">
+							<div class="mb-2">
+								<span class="badge badge-gradient-primary">@course.CategoryName</span>
+							</div>
+							<h5 class="card-title fw-bold mb-2">@course.Title</h5>
+							<div class="d-flex align-items-center text-muted mb-3">
+								<i class="bi bi-person-circle me-2"></i>
+								<small>@course.InstructorName</small>
+							</div>
+							<p class="card-text text-muted flex-grow-1">
+								@course.Description
+							</p>
+							<div class="mt-auto">
+								<a href="@Url.Action("Learn", "Course", new { enrollmentId = course.EnrollmentId})" 
+								   class="btn btn-gradient btn-modern w-100">
+									<i class="bi bi-play-circle-fill me-2"></i>Vào học
+								</a>
+							</div>
+						</div>
 					</div>
 				</div>
-			</div>
-		}
-	</div>
-}
+			}
+		</div>
+	}
+</div>

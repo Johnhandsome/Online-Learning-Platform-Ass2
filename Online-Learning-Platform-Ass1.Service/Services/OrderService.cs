@@ -98,6 +98,21 @@ public class OrderService(
         };
     }
 
+    public async Task<OrderViewModel?> GetOrderByIdAsync(Guid orderId)
+    {
+        var order = await orderRepository.GetByIdAsync(orderId);
+        if (order == null) return null;
+
+        return new OrderViewModel
+        {
+            OrderId = order.Id,
+            CourseId = order.CourseId ?? Guid.Empty,
+            CourseTitle = order.Course?.Title ?? order.Path?.Title ?? "Unknown",
+            Amount = order.TotalAmount,
+            Status = order.Status
+        };
+    }
+
     public async Task<bool> ProcessPaymentAsync(Guid orderId)
     {
         var order = await orderRepository.GetByIdAsync(orderId);

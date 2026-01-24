@@ -6,15 +6,15 @@
 
 <div class="row">
     <!-- Sidebar -->
-    <div class="col-md-3 mb-4">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-white">
-                <h5 class="mb-0">Categories</h5>
+    <div class="col-lg-3 col-md-4 mb-4">
+        <div class="card-modern category-sidebar scroll-reveal-left">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0"><i class="bi bi-grid-3x3-gap-fill"></i> Categories</h5>
             </div>
             <div class="list-group list-group-flush">
                 <a asp-action="Index" 
                    class="list-group-item list-group-item-action @(Model.SelectedCategoryId == null ? "active" : "")">
-                   All Categories
+                   <i class="bi bi-collection"></i> All Categories
                 </a>
                 @foreach (var cat in Model.Categories)
                 {
@@ -22,7 +22,7 @@
                        asp-route-categoryId="@cat.Id" 
                        asp-route-searchTerm="@Model.SearchTerm"
                        class="list-group-item list-group-item-action @(Model.SelectedCategoryId == cat.Id ? "active" : "")">
-                        @cat.Name
+                        <i class="bi bi-tag"></i> @cat.Name
                     </a>
                 }
             </div>
@@ -30,115 +30,177 @@
     </div>
 
     <!-- Main Content -->
-    <div class="col-md-9">
-        <div class="text-center mb-5">
-            <h1 class="display-4">Welcome to Online Learning</h1>
-            <p>Explore our courses and comprehensive learning paths.</p>
+    <div class="col-lg-9 col-md-8">
+        <!-- Hero Section -->
+        <div class="text-center mb-5 scroll-reveal">
+            <h1 class="display-4 fw-bold text-gradient mb-3">Welcome to LearnHub</h1>
+            <p class="lead text-muted mb-4">Explore our courses and comprehensive learning paths tailored for you.</p>
             
             <!-- Search Bar -->
-            <form method="get" asp-action="Index" class="mt-4">
+            <form method="get" asp-action="Index" class="search-bar-modern mb-4">
                 <input type="hidden" name="categoryId" value="@Model.SelectedCategoryId" />
-                <div class="input-group mb-3 w-75 mx-auto">
+                <div class="input-group">
                     <input type="text" class="form-control form-control-lg" placeholder="Search for courses..." 
                            name="searchTerm" value="@Model.SearchTerm">
-                    <button class="btn btn-primary" type="submit">Search</button>
+                    <button class="btn btn-gradient btn-modern" type="submit">
+                        <i class="bi bi-search"></i> Search
+                    </button>
                     @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.SelectedCategoryId.HasValue)
                     {
-                         <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+                         <a asp-action="Index" class="btn btn-outline-secondary btn-modern">
+                             <i class="bi bi-x-circle"></i> Clear
+                         </a>
                     }
                 </div>
             </form>
+            
+            <!-- Assessment Call-to-Action -->
+            <div class="alert alert-success-modern border-0 shadow-sm animate-fade-in" role="alert">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div class="text-start">
+                        <h5 class="alert-heading mb-1">
+                            <i class="bi bi-clipboard-check-fill"></i> Not sure what to learn?
+                        </h5>
+                        <p class="mb-0">Take our assessment to get personalized course recommendations!</p>
+                    </div>
+                    <a asp-controller="Assessment" asp-action="Start" class="btn btn-success btn-modern">
+                        Start Assessment <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
         </div>
 
         <!-- Featured Courses Section -->
-        <h3 class="mb-4">
-            @if(!string.IsNullOrEmpty(Model.SearchTerm) || Model.SelectedCategoryId.HasValue)
-            {
-                <span>Result Courses</span>
-            }
-            else
-            {
-                <span>Featured Courses <small class="text-muted fs-6">Individual topics</small></span>
-            } 
-        </h3>
+        <div class="section-header scroll-reveal">
+            <h3 class="section-title">
+                @if(!string.IsNullOrEmpty(Model.SearchTerm) || Model.SelectedCategoryId.HasValue)
+                {
+                    <span><i class="bi bi-search"></i> Search Results</span>
+                }
+                else
+                {
+                    <span><i class="bi bi-star-fill"></i> Featured Courses</span>
+                } 
+            </h3>
+            <p class="section-subtitle">Individual topics to master specific skills</p>
+        </div>
+        
         <div class="row mb-5">
     @if (Model.FeaturedCourses != null && Model.FeaturedCourses.Any())
     {
+        int delay = 0;
         @foreach (var course in Model.FeaturedCourses)
         {
-            <div class="col-md-4 mb-4">
-                <div class="card h-100 shadow-sm border-0"> 
-                    @if (!string.IsNullOrEmpty(course.ImageUrl))
-                    {
-                        <img src="@course.ImageUrl" class="card-img-top" alt="@course.Title" style="height: 180px; object-fit: cover;">
-                    }
-                    else
-                    {
-                         <div class="bg-light text-secondary d-flex align-items-center justify-content-center" style="height: 180px;">
-                            <i class="bi bi-journal-album fs-1"></i>
-                        </div>
-                    }
-                    <div class="card-body">
-                        <h5 class="card-title text-truncate">@course.Title</h5>
-                         <h6 class="card-subtitle mb-2 text-muted">@course.CategoryName</h6>
-                        <p class="card-text text-truncate">@course.Description</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="badge bg-primary">@course.Price.ToString("C")</span>
-                            <small class="text-muted">@course.InstructorName</small>
-                        </div>
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card course-card card-hover-lift scroll-reveal animation-delay-@(delay)00">
+                    <div class="course-card-image">
+                        @if (!string.IsNullOrEmpty(course.ImageUrl))
+                        {
+                            <img src="@course.ImageUrl" class="card-img-top" alt="@course.Title">
+                        }
+                        else
+                        {
+                            <div class="bg-gradient-primary text-white d-flex align-items-center justify-content-center h-100">
+                                <i class="bi bi-journal-album" style="font-size: 4rem;"></i>
+                            </div>
+                        }
+                        <span class="course-card-badge">@course.Price.ToString("C")</span>
                     </div>
-                    <div class="card-footer bg-transparent border-top-0">
-                        <a asp-controller="Course" asp-action="Details" asp-route-id="@course.Id" class="btn btn-outline-primary w-100">View Details</a>
+                    <div class="card-body d-flex flex-column">
+                        <div class="mb-2">
+                            <span class="badge badge-modern badge-primary">@course.CategoryName</span>
+                        </div>
+                        <h5 class="card-title fw-bold mb-2">@course.Title</h5>
+                        <p class="card-text text-muted small mb-3" style="min-height: 40px;">@course.Description</p>
+                        <div class="mt-auto">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="bi bi-person-circle text-muted me-2"></i>
+                                <small class="text-muted">@course.InstructorName</small>
+                            </div>
+                            <a asp-controller="Course" asp-action="Details" asp-route-id="@course.Id" 
+                               class="btn btn-gradient btn-modern w-100">
+                                <i class="bi bi-eye"></i> View Details
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
+            delay = (delay + 1) % 5;
         }
     }
     else
     {
-        <div class="col-12 text-center">
-            <p class="text-muted">No courses available.</p>
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-inbox" style="font-size: 4rem; color: var(--gray-400);"></i>
+            <p class="text-muted mt-3">No courses available.</p>
         </div>
     }
 </div>
 
 <!-- Featured Learning Paths Section -->
-<h3 class="mb-4">Learning Paths <small class="text-muted fs-6">Bundle & Save</small></h3>
+<div class="section-header scroll-reveal">
+    <h3 class="section-title">
+        <i class="bi bi-signpost-split-fill"></i> Learning Paths
+    </h3>
+    <p class="section-subtitle">Structured bundles to achieve your learning goals</p>
+</div>
+
 <div class="row">
     @if (Model.FeaturedPaths != null && Model.FeaturedPaths.Any())
     {
+        int pathDelay = 0;
         @foreach (var path in Model.FeaturedPaths)
         {
-            <div class="col-md-6 mb-4">
-                <div class="card h-100 shadow-sm border-primary">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="my-1"><i class="bi bi-signpost-split"></i> @path.Title</h5>
+            <div class="col-lg-6 mb-4">
+                <div class="card card-modern card-hover-lift scroll-reveal animation-delay-@(pathDelay)00" style="border-left: 4px solid var(--primary-500);">
+                    <div class="card-header bg-gradient-primary text-white">
+                        <h5 class="my-1 fw-bold">
+                            <i class="bi bi-signpost-split"></i> @path.Title
+                        </h5>
                     </div>
                     <div class="card-body">
-                        <p class="card-text">@path.Description</p>
-                        <ul class="list-group list-group-flush mb-3">
-                            @foreach(var course in path.Courses.Take(3))
-                            {
-                                <li class="list-group-item bg-transparent py-1 border-0"><i class="bi bi-check2-circle text-success"></i> @course.Title</li>
-                            }
-                             @if(path.Courses.Count() > 3)
-                            {
-                                <li class="list-group-item bg-transparent py-1 border-0 fst-italic text-muted">...and @(path.Courses.Count() - 3) more</li>
-                            }
-                        </ul>
+                        <p class="card-text mb-3">@path.Description</p>
+                        <div class="mb-3">
+                            <h6 class="text-muted small mb-2">
+                                <i class="bi bi-list-check"></i> Included Courses:
+                            </h6>
+                            <ul class="list-unstyled">
+                                @foreach(var course in path.Courses.Take(3))
+                                {
+                                    <li class="mb-2">
+                                        <i class="bi bi-check2-circle text-success"></i> 
+                                        <span class="ms-1">@course.Title</span>
+                                    </li>
+                                }
+                                @if(path.Courses.Count() > 3)
+                                {
+                                    <li class="text-muted fst-italic">
+                                        <i class="bi bi-three-dots"></i> and @(path.Courses.Count() - 3) more courses
+                                    </li>
+                                }
+                            </ul>
+                        </div>
                         <div class="d-flex justify-content-between align-items-center">
-                             <h4 class="text-primary mb-0">@path.Price.ToString("C")</h4>
-                             <a asp-controller="LearningPath" asp-action="Details" asp-route-id="@path.Id" class="btn btn-primary">View Path</a>
+                            <div>
+                                <h4 class="text-gradient mb-0 fw-bold">@path.Price.ToString("C")</h4>
+                                <small class="text-muted">Complete bundle</small>
+                            </div>
+                            <a asp-controller="LearningPath" asp-action="Details" asp-route-id="@path.Id" 
+                               class="btn btn-gradient btn-modern">
+                                <i class="bi bi-arrow-right-circle"></i> View Path
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
+            pathDelay = (pathDelay + 2) % 5;
         }
     }
     else
     {
-        <div class="col-12 text-center">
-            <p class="text-muted">No learning paths available.</p>
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-signpost-2" style="font-size: 4rem; color: var(--gray-400);"></i>
+            <p class="text-muted mt-3">No learning paths available.</p>
         </div>
     }
 </div>

@@ -6,118 +6,99 @@
 }
 
 <div id="learn-root"
-	 class="row"
+	 class="row g-0"
 	 data-enrollment-id="@Model.EnrollmentId">
 
-	<!-- left -->
-	<div class="col-md-8 border-end" style="min-height: 100vh;">
-		<h3 class="mt-3">@Model.Title</h3>
+	<!-- Left - Main Content -->
+	<div class="col-md-8 border-end" style="min-height: 100vh; background: var(--gray-50);">
+		<div class="p-4">
+			<h3 class="fw-bold mb-4">@Model.Title</h3>
 
-		@if (Model.CurrentLesson == null)
-		{
-			<p class="text-muted mt-4">
-				Chọn một bài học ở bên phải để bắt đầu.
-			</p>
-		}
-		else
-		{
-			<div class="lesson-content mt-4">
-
-				@if (!string.IsNullOrEmpty(Model.CurrentLesson.VideoUrl))
-				{
-					<div class="mb-4">
-						<video controls width="100%">
-							<source src="@Model.CurrentLesson.VideoUrl" type="video/mp4" />
-						</video>
-					</div>
-				}
-
-				<h4>@Model.CurrentLesson.Title</h4>
-
-				<div class="mt-3">
-					@Html.Raw(Model.CurrentLesson.Content)
+			@if (Model.CurrentLesson == null)
+			{
+				<div class="text-center py-5">
+					<i class="bi bi-play-circle" style="font-size: 5rem; color: var(--gray-300);"></i>
+					<p class="text-muted mt-4 lead">
+						Chọn một bài học ở bên phải để bắt đầu.
+					</p>
 				</div>
+			}
+			else
+			{
+				<div class="lesson-content">
 
-				<div class="text-muted mt-4">
-					Thời lượng: @Model.CurrentLesson.Duration phút
-				</div>
-
-				@if (!string.IsNullOrEmpty(Model.CurrentLesson.VideoUrl))
-{
-				  <!-- AI SUPPORT -->
-				  <div class="card mt-4">
-					  <div class="card-body">
-						  <h6>AI hỗ trợ bài học</h6>
-
-						  <button class="btn btn-sm btn-outline-primary mb-3"
-								  id="btn-summary"
-								  data-lesson-id="@Model.CurrentLesson.Id"
-								  @(Model.CurrentLesson.AiSummaryStatus == AiSummaryStatus.Processing ? "disabled" : "")>
-							  Tóm tắt bằng AI
-						  </button>
-
-						  <div id="ai-summary" class="mb-3 text-muted">
-							  @if (Model.CurrentLesson.AiSummaryStatus == AiSummaryStatus.Processing)
-							  {
-								  <span>Đợi xíu, AI đang tóm tắt bài này...</span>
-							  }
-							  else if (Model.CurrentLesson.AiSummaryStatus == AiSummaryStatus.Done)
-							  {
-								  @Html.Raw(Model.CurrentLesson.AiSummary)
-							  }
-						  </div>
-
-						  <div class="input-group">
-							  <input type="text"
-									 id="ai-question"
-									 class="form-control"
-									 placeholder="Hỏi AI về video này..." />
-
-							  <button class="btn btn-outline-secondary"
-									  id="btn-ask"
-									  data-lesson-id="@Model.CurrentLesson.Id">
-								  Hỏi
-							  </button>
-						  </div>
-
-						  <div id="ai-answer" class="mt-3"></div>
-					  </div>
-				  </div>
-			  }
-
-			</div>
-		}
-	</div>
-
-	<!-- right -->
-	<div class="col-md-4 bg-light" style="min-height: 100vh;">
-		<h5 class="mt-3">Nội dung khóa học</h5>
-
-		@foreach (var module in Model.Modules)
-		{
-			<div class="mt-3">
-				<strong>@module.Title</strong>
-
-				<ul class="list-group list-group-flush mt-2">
-					@foreach (var lesson in module.Lessons)
+					@if (!string.IsNullOrEmpty(Model.CurrentLesson.VideoUrl))
 					{
-						<li class="list-group-item @(lesson.IsCurrent ? "active" : "")">
-							<a class="text-decoration-none @(lesson.IsCurrent ? "text-white" : "")"
-							   href="@Url.Action("Learn", "Course",
-								   new {
-									   enrollmentId = Model.EnrollmentId,
-									   lessonId = lesson.Id
-								   })">
-								@lesson.Title
-							</a>
-						</li>
+						<div class="mb-4 position-relative" style="border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-lg);">
+							<video controls width="100%" style="display: block; background: #000;">
+								<source src="@Model.CurrentLesson.VideoUrl" type="video/mp4" />
+							</video>
+						</div>
 					}
-				</ul>
-			</div>
-		}
-	</div>
-</div>
 
-@section Scripts {
-	<script src="~/js/ai-lesson.js"></script>
-}
+					<div class="card card-modern shadow-sm mb-4">
+						<div class="card-body p-4">
+							<h4 class="fw-bold mb-3">@Model.CurrentLesson.Title</h4>
+
+							<div class="lesson-text mt-3">
+								@Html.Raw(Model.CurrentLesson.Content)
+							</div>
+
+							<div class="d-flex align-items-center text-muted mt-4 pt-3 border-top">
+								<i class="bi bi-clock me-2"></i>
+								<span>Thời lượng: <strong>@Model.CurrentLesson.Duration phút</strong></span>
+							</div>
+						</div>
+					</div>
+
+					@if (!string.IsNullOrEmpty(Model.CurrentLesson.VideoUrl))
+					{
+						<!-- AI SUPPORT -->
+						<div class="card card-modern shadow-sm">
+							<div class="card-header" style="background: var(--gradient-primary); color: white;">
+								<h6 class="mb-0">
+									<i class="bi bi-robot me-2"></i>AI Hỗ trợ bài học
+								</h6>
+							</div>
+							<div class="card-body p-4">
+								<button class="btn btn-modern btn-sm mb-3"
+										id="btn-summary"
+										data-lesson-id="@Model.CurrentLesson.Id"
+										@(Model.CurrentLesson.AiSummaryStatus == AiSummaryStatus.Processing ? "disabled" : "")>
+									<i class="bi bi-stars me-2"></i>Tóm tắt bằng AI
+								</button>
+
+								<div id="ai-summary" class="mb-3">
+									@if (Model.CurrentLesson.AiSummaryStatus == AiSummaryStatus.Processing)
+									{
+										<div class="alert alert-info-modern">
+											<i class="bi bi-hourglass-split"></i>
+											<div>Đợi xíu, AI đang tóm tắt bài này...</div>
+										</div>
+									}
+									else if (Model.CurrentLesson.AiSummaryStatus == AiSummaryStatus.Done)
+									{
+										<div class="alert alert-success-modern">
+											@Html.Raw(Model.CurrentLesson.AiSummary)
+										</div>
+									}
+								</div>
+
+								<div class="divider"></div>
+
+								<div class="input-group mt-3">
+									<input type="text"
+										   id="ai-question"
+										   class="form-control form-control-lg"
+										   placeholder="Hỏi AI về video này..." />
+
+									<button class="btn btn-gradient btn-modern"
+											id="btn-ask"
+											data-lesson-id="@Model.CurrentLesson.Id">
+										<i class="bi bi-send-fill"></i>
+									</button>
+								</div>
+
+								<div id="ai-answer" class="mt-3"></div>
+							</div>
+						</div>

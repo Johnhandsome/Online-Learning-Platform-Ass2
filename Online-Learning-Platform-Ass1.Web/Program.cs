@@ -52,6 +52,8 @@ builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ILessonRepository, LessonRepository>();
 builder.Services.AddScoped<ILessonProgressRepository, LessonProgressRepository>();
+builder.Services.AddScoped<IAssessmentQuestionRepository, AssessmentQuestionRepository>();
+builder.Services.AddScoped<IUserAssessmentRepository, UserAssessmentRepository>();
 
 // Add services
 builder.Services.AddScoped<IUserService, UserService>();
@@ -60,6 +62,8 @@ builder.Services.AddScoped<ILearningPathService, LearningPathService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IVnPayService, VnPayService>();
 builder.Services.AddScoped<ILessonProgressService, LessonProgressService>();
+builder.Services.AddScoped<IAssessmentService, AssessmentService>();
+builder.Services.AddScoped<ILearningPathRecommendationService, LearningPathRecommendationService>();
 
 builder.Services.AddHttpClient<IAiLessonService, AiLessonService>();
 builder.Services.AddHttpClient<ITranscriptService, TranscriptService>(client =>

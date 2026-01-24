@@ -1,17 +1,25 @@
 using Online_Learning_Platform_Ass1.Data.Database.Entities;
 using Online_Learning_Platform_Ass1.Data.Repositories.Interfaces;
+using Online_Learning_Platform_Ass1.Service.DTOs.Lesson;
 using Online_Learning_Platform_Ass1.Service.Services.Interfaces;
 
 namespace Online_Learning_Platform_Ass1.Service.Services;
+
 public class LessonProgressService(ILessonProgressRepository lessonProgressRepository) : ILessonProgressService
 {
     private readonly ILessonProgressRepository _lessonProgressRepository = lessonProgressRepository;
 
-    public Task<LessonProgress?> GetAsync(Guid enrollmentId, Guid lessonId)
-        => _lessonProgressRepository.GetAsync(enrollmentId, lessonId);
+    public async Task<LessonProgressDto?> GetAsync(Guid enrollmentId, Guid lessonId)
+    {
+        var progress = await _lessonProgressRepository.GetAsync(enrollmentId, lessonId);
+        return progress == null ? null : MapToDto(progress);
+    }
 
-    public Task<IEnumerable<LessonProgress>> GetByEnrollmentAsync(Guid enrollmentId)
-        => _lessonProgressRepository.GetByEnrollmentAsync(enrollmentId);
+    public async Task<IEnumerable<LessonProgressDto>> GetByEnrollmentAsync(Guid enrollmentId)
+    {
+        var progressList = await _lessonProgressRepository.GetByEnrollmentAsync(enrollmentId);
+        return progressList.Select(MapToDto);
+    }
 
     public async Task UpdateProgressAsync(
         Guid enrollmentId,
@@ -39,5 +47,20 @@ public class LessonProgressService(ILessonProgressRepository lessonProgressRepos
         }
 
         await _lessonProgressRepository.UpsertAsync(progress);
+    }
+
+    private static LessonProgressDto MapToDto(LessonProgress entity)
+    {
+        return new LessonProgressDto
+        {
+            Id = entity.Id,
+            EnrollmentId = entity.EnrollmentId,
+            LessonId = entity.LessonId,
+            IsCompleted = entity.IsCompleted,
+            LastWatchedPosition = entity.LastWatchedPosition,
+            Transcript = entity.Transcript,
+            AiSummary = entity.AiSummary,
+            AiSummaryStatus = entity.AiSummaryStatus.ToString()
+        };
     }
 }

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Online_Learning_Platform_Ass1.Data.Repositories.Interfaces;
 using Online_Learning_Platform_Ass1.Service.DTOs.Payment;
 using Online_Learning_Platform_Ass1.Service.Services.Interfaces;
 using VNPAY.Extensions;
@@ -9,12 +8,11 @@ namespace Online_Learning_Platform_Ass1.Data.Controllers;
 [Authorize]
 public class PaymentController(
     IVnPayService vnPayService,
-    IOrderRepository orderRepository,
     IOrderService orderService) : Controller
 {
     public async Task<IActionResult> CreatePaymentUrl(Guid orderId)
     {
-        var order = await orderRepository.GetByIdAsync(orderId);
+        var order = await orderService.GetOrderByIdAsync(orderId);
         if (order == null)
         {
             return NotFound("Order not found");
@@ -29,8 +27,8 @@ public class PaymentController(
         // Create VnPayRequestModel
         var model = new VnPayRequestModel
         {
-            OrderId = order.Id,
-            Amount = order.TotalAmount,
+            OrderId = order.OrderId,
+            Amount = order.Amount,
             CreatedDate = DateTime.Now,
             Description = $"Payment_for_order_{order.Id}",
             FullName = (User.Identity?.Name ?? "Guest").Replace(" ", "_")

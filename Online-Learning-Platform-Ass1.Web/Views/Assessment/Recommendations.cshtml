@@ -1,0 +1,92 @@
+@model IEnumerable<Online_Learning_Platform_Ass1.Service.DTOs.Assessment.LearningPathRecommendationDto>
+
+@{
+    ViewData["Title"] = "Lộ trình học đề xuất";
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="text-center mb-5">
+                <h1>🎉 Lộ trình học được đề xuất cho bạn</h1>
+                <p class="lead text-muted">Dựa trên kết quả đánh giá, đây là những lộ trình học phù hợp nhất</p>
+            </div>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        @foreach (var recommendation in Model)
+        {
+            <div class="card shadow mb-4">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-1">@recommendation.RecommendationTitle</h3>
+                    <p class="mb-0">
+                        <i class="bi bi-info-circle me-2"></i>@recommendation.RecommendationReason
+                        <span class="badge bg-light text-dark ms-3">Trình độ: @recommendation.SkillLevel</span>
+                    </p>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @foreach (var course in recommendation.RecommendedCourses)
+                        {
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card h-100 border">
+                                    @if (!string.IsNullOrEmpty(course.ImageUrl))
+                                    {
+                                        <img src="@course.ImageUrl" class="card-img-top" alt="@course.Title" style="height: 200px; object-fit: cover;">
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
+                                            <i class="bi bi-book" style="font-size: 3rem;"></i>
+                                        </div>
+                                    }
+                                    <div class="card-body">
+                                        <h5 class="card-title">@course.Title</h5>
+                                        <p class="card-text text-muted small">
+                                            @if (course.Description != null && course.Description.Length > 100)
+                                            {
+                                                @(course.Description.Substring(0, 100) + "...")
+                                            }
+                                            else
+                                            {
+                                                @course.Description
+                                            }
+                                        </p>
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <span class="badge bg-primary">@course.CategoryName</span>
+                                            <strong class="text-success">@course.Price.ToString("N0") VNĐ</strong>
+                                        </div>
+                                        <p class="text-muted small mb-3">
+                                            <i class="bi bi-person me-1"></i>@course.InstructorName
+                                        </p>
+                                        <a asp-controller="Course" asp-action="Details" asp-route-id="@course.Id" class="btn btn-outline-primary btn-sm w-100">
+                                            Xem chi tiết
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="alert alert-warning text-center">
+            <h4>Không tìm thấy lộ trình phù hợp</h4>
+            <p>Vui lòng thử lại hoặc liên hệ với chúng tôi để được hỗ trợ.</p>
+        </div>
+    }
+
+    <div class="text-center mt-4 mb-5">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-secondary me-2">
+            <i class="bi bi-house me-2"></i>Về trang chủ
+        </a>
+        <a asp-action="Start" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-repeat me-2"></i>Làm lại đánh giá
+        </a>
+    </div>
+</div>

@@ -1,0 +1,92 @@
+@model IEnumerable<Online_Learning_Platform_Ass1.Service.DTOs.Assessment.AssessmentQuestionDto>
+
+@{
+    ViewData["Title"] = "Câu hỏi đánh giá";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">📝 Câu hỏi đánh giá</h2>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Submit" method="post">
+                        @foreach (var question in Model)
+                        {
+                            <div class="mb-5">
+                                <h5 class="mb-3">
+                                    <span class="badge bg-secondary me-2">@question.OrderIndex</span>
+                                    @question.QuestionText
+                                    @if (!string.IsNullOrEmpty(question.CategoryName))
+                                    {
+                                        <small class="text-muted ms-2">(@question.CategoryName)</small>
+                                    }
+                                </h5>
+                                <div class="ms-4">
+                                    @foreach (var option in question.Options)
+                                    {
+                                        <div class="form-check mb-3 p-3 border rounded-3 option-card" style="cursor: pointer; transition: all 0.3s;">
+                                            <input class="form-check-input" 
+                                                   type="radio" 
+                                                   name="question_@question.Id" 
+                                                   id="option_@option.Id" 
+                                                   value="@option.Id"
+                                                   required
+                                                   style="width: 20px; height: 20px; cursor: pointer;">
+                                            <label class="form-check-label ms-2" for="option_@option.Id" style="cursor: pointer; font-size: 1.05rem;">
+                                                @option.OptionText
+                                                @if (!string.IsNullOrEmpty(option.SkillLevel))
+                                                {
+                                                    <span class="badge bg-info ms-2">@option.SkillLevel</span>
+                                                }
+                                            </label>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                        
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-success btn-lg px-5">
+                                <i class="bi bi-check-circle me-2"></i>
+                                Hoàn thành đánh giá
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .option-card {
+        background-color: #f8f9fa;
+        border: 2px solid #dee2e6 !important;
+    }
+    
+    .option-card:hover {
+        background-color: #e7f3ff;
+        border-color: #0d6efd !important;
+        box-shadow: 0 2px 8px rgba(13, 110, 253, 0.2);
+        transform: translateY(-2px);
+    }
+    
+    .option-card:has(input:checked) {
+        background-color: #d1e7ff;
+        border-color: #0d6efd !important;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+    }
+    
+    .form-check-input:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+    
+    .form-check-input:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+</style>
