@@ -37,10 +37,11 @@ public class VnPayService : IVnPayService
         vnpay.AddRequestData("vnp_TmnCode", vnp_TmnCode);
         vnpay.AddRequestData("vnp_Amount", ((long)(model.Amount * 100)).ToString());
         vnpay.AddRequestData("vnp_CreateDate", DateTime.Now.ToString("yyyyMMddHHmmss"));
+        vnpay.AddRequestData("vnp_ExpireDate", DateTime.Now.AddMinutes(15).ToString("yyyyMMddHHmmss"));
         vnpay.AddRequestData("vnp_CurrCode", "VND");
         vnpay.AddRequestData("vnp_IpAddr", ipAddress);
         vnpay.AddRequestData("vnp_Locale", "vn");
-        vnpay.AddRequestData("vnp_OrderInfo", "ThanhToanDonHang");
+        vnpay.AddRequestData("vnp_OrderInfo", "Payment for order");
         vnpay.AddRequestData("vnp_OrderType", "other");
         vnpay.AddRequestData("vnp_ReturnUrl", vnp_ReturnUrl);
         vnpay.AddRequestData("vnp_TxnRef", DateTime.Now.Ticks.ToString()); 
@@ -100,8 +101,8 @@ public class VnPayService : IVnPayService
 
 public class VnPayLibrary
 {
-    private readonly SortedList<string, string> _requestData = new SortedList<string, string>(StringComparer.Ordinal);
-    private readonly SortedList<string, string> _responseData = new SortedList<string, string>(StringComparer.Ordinal);
+    private readonly SortedList<string, string> _requestData = new SortedList<string, string>(new VnPayCompare());
+    private readonly SortedList<string, string> _responseData = new SortedList<string, string>(new VnPayCompare());
 
     public void AddRequestData(string key, string value)
     {
@@ -124,33 +125,39 @@ public class VnPayLibrary
         return _responseData.TryGetValue(key, out var result) ? result : string.Empty;
     }
 
-    public string CreateRequestUrl(string baseUrl, string vnp_HashSecret)
+    public string CreateRequestUrl(string baseUrl, string vnpHashSecret)
     {
-        StringBuilder data = new StringBuilder();
-        foreach (KeyValuePair<string, string> kv in _requestData)
+        var data = new StringBuilder();
+
+        foreach (var (key, value) in _requestData.Where(kv => !string.IsNullOrEmpty(kv.Value)))
         {
-            if (data.Length > 0)
-            {
-                data.Append('&');
-            }
-            data.Append(kv.Key + "=" + Uri.EscapeDataString(kv.Value));
+            data.Append(WebUtility.UrlEncode(key) + "=" + WebUtility.UrlEncode(value) + "&");
         }
-        string queryString = data.ToString();
-        string vnp_SecureHash = Utils.HmacSHA512(vnp_HashSecret, queryString);
-        string paymentUrl = baseUrl + "?" + queryString + "&vnp_SecureHash=" + vnp_SecureHash;
+
+        var querystring = data.ToString();
+
+        baseUrl += "?" + querystring;
+        var signData = querystring;
+        if (signData.Length > 0)
+        {
+            signData = signData.Remove(data.Length - 1, 1);
+        }
+
+        var vnpSecureHash = HmacSha512(vnpHashSecret, signData);
+        baseUrl += "vnp_SecureHash=" + vnpSecureHash;
         
         Console.WriteLine("------------------------------------------");
-        Console.WriteLine($"VNPAY RAW REQUEST STRING (BEFORE HASH): {queryString}");
-        Console.WriteLine($"VNPAY SIGNATURE: {vnp_SecureHash}");
+        Console.WriteLine($"VNPAY RAW REQUEST STRING (BEFORE HASH): {signData}");
+        Console.WriteLine($"VNPAY SIGNATURE: {vnpSecureHash}");
         Console.WriteLine("------------------------------------------");
 
-        return paymentUrl;
+        return baseUrl;
     }
 
     public bool ValidateSignature(string inputHash, string secretKey)
     {
         string rspRaw = GetResponseData();
-        string myChecksum = Utils.HmacSHA512(secretKey, rspRaw);
+        string myChecksum = HmacSha512(secretKey, rspRaw);
         
         Console.WriteLine("------------------------------------------");
         Console.WriteLine($"MY CHECKSUM: {myChecksum}");
@@ -163,43 +170,57 @@ public class VnPayLibrary
 
     private string GetResponseData()
     {
-        StringBuilder data = new StringBuilder();
-        if (_responseData.ContainsKey("vnp_SecureHash"))
-        {
-            _responseData.Remove("vnp_SecureHash");
-        }
+        var data = new StringBuilder();
         if (_responseData.ContainsKey("vnp_SecureHashType"))
         {
             _responseData.Remove("vnp_SecureHashType");
         }
-        
-        foreach (KeyValuePair<string, string> kv in _responseData)
+
+        if (_responseData.ContainsKey("vnp_SecureHash"))
         {
-             if (data.Length > 0)
-            {
-                data.Append('&');
-            }
-            data.Append(kv.Key + "=" + Uri.EscapeDataString(kv.Value));
+            _responseData.Remove("vnp_SecureHash");
         }
+
+        foreach (var (key, value) in _responseData.Where(kv => !string.IsNullOrEmpty(kv.Value)))
+        {
+            data.Append(WebUtility.UrlEncode(key) + "=" + WebUtility.UrlEncode(value) + "&");
+        }
+
+        //remove last '&'
+        if (data.Length > 0)
+        {
+            data.Remove(data.Length - 1, 1);
+        }
+
         return data.ToString();
     }
-}
-
-public static class Utils
-{
-    public static string HmacSHA512(string key, string inputData)
+    
+    private string HmacSha512(string key, string inputData)
     {
         var hash = new StringBuilder();
-        byte[] keyBytes = Encoding.UTF8.GetBytes(key);
-        byte[] inputBytes = Encoding.UTF8.GetBytes(inputData);
+        var keyBytes = Encoding.UTF8.GetBytes(key);
+        var inputBytes = Encoding.UTF8.GetBytes(inputData);
         using (var hmac = new HMACSHA512(keyBytes))
         {
-            byte[] hashValue = hmac.ComputeHash(inputBytes);
+            var hashValue = hmac.ComputeHash(inputBytes);
             foreach (var theByte in hashValue)
             {
                 hash.Append(theByte.ToString("x2"));
             }
         }
+
         return hash.ToString();
+    }
+}
+
+public class VnPayCompare : IComparer<string>
+{
+    public int Compare(string? x, string? y)
+    {
+        if (x == y) return 0;
+        if (x == null) return -1;
+        if (y == null) return 1;
+        var vnpCompare = CompareInfo.GetCompareInfo("en-US");
+        return vnpCompare.Compare(x, y, CompareOptions.Ordinal);
     }
 }
