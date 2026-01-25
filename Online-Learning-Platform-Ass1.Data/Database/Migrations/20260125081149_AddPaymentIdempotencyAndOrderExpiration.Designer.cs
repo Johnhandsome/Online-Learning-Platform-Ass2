@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Online_Learning_Platform_Ass1.Data.Database;
 
@@ -11,9 +12,11 @@ using Online_Learning_Platform_Ass1.Data.Database;
 namespace Online_Learning_Platform_Ass1.Data.Migrations
 {
     [DbContext(typeof(OnlineLearningContext))]
-    partial class OnlineLearningContextModelSnapshot : ModelSnapshot
+    [Migration("20260125081149_AddPaymentIdempotencyAndOrderExpiration")]
+    partial class AddPaymentIdempotencyAndOrderExpiration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -741,10 +744,6 @@ namespace Online_Learning_Platform_Ass1.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("AssessmentCompletedAt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("assessment_completed_at");
-
                     b.Property<DateTime>("CreateAt")
                         .HasColumnType("datetime2");
 
@@ -752,10 +751,6 @@ namespace Online_Learning_Platform_Ass1.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<bool>("HasCompletedAssessment")
-                        .HasColumnType("bit")
-                        .HasColumnName("has_completed_assessment");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()

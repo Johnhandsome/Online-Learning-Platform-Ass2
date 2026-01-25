@@ -65,10 +65,41 @@ public class UserController(IUserService userService) : Controller
 
         var result = await userService.RegisterAsync(userRegisterDto);
 
-        if (result.Success)
+        if (result.Success && result.Data != Guid.Empty)
         {
-            TempData["SuccessMessage"] = "Registration successful! Please login.";
-            return RedirectToAction(nameof(Login));
+            // Auto-login the newly registered user
+            var loginDto = new UserLoginDto(
+                userRegisterDto.Username,
+                userRegisterDto.Password
+            );
+            
+            var loginResult = await userService.LoginAsync(loginDto);
+            
+            if (loginResult.Success && loginResult.Data is not null)
+            {
+                var claims = new List<Claim>
+                {
+                    new(ClaimTypes.NameIdentifier, loginResult.Data.Id.ToString()),
+                    new(ClaimTypes.Name, loginResult.Data.Username),
+                    new(ClaimTypes.Email, loginResult.Data.Email),
+                    new(ClaimTypes.Role, loginResult.Data.Role ?? "User")
+                };
+
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var authProperties = new AuthenticationProperties
+                {
+                    IsPersistent = true,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
+                };
+
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    new ClaimsPrincipal(claimsIdentity),
+                    authProperties);
+
+                TempData["WelcomeMessage"] = "Welcome! Let's personalize your learning journey.";
+                return RedirectToAction("Start", "Assessment");
+            }
         }
 
         ModelState.AddModelError(string.Empty, result.Message ?? "Registration failed");

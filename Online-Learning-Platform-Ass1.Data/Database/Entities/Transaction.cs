@@ -22,7 +22,8 @@ public class Transaction
     public string PaymentMethod { get; set; } = null!; // paypal, credit_card
 
     [Column("transaction_gate_id")]
-    public string? TransactionGateId { get; set; } // ID from payment gateway
+    [MaxLength(100)]
+    public string? TransactionGateId { get; set; } // ID from payment gateway (unique from VNPay)
 
     [Column("amount", TypeName = "decimal(18, 2)")]
     public decimal Amount { get; set; }

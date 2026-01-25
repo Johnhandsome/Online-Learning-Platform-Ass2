@@ -5,6 +5,14 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
+            @if (TempData["WelcomeMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show">
+                    <strong>🎉 @TempData["WelcomeMessage"]</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            
             <div class="card shadow">
                 <div class="card-body text-center p-5">
                     <h1 class="mb-4">🎯 Đánh giá trình độ của bạn</h1>
@@ -16,9 +24,14 @@
                         <i class="bi bi-clock me-2"></i>
                         <span>Thời gian: ~3 phút</span>
                     </div>
-                    <a asp-action="Questions" class="btn btn-primary btn-lg px-5">
-                        Bắt đầu đánh giá
-                    </a>
+                    <div class="d-flex gap-3 justify-content-center">
+                        <a asp-action="Questions" class="btn btn-primary btn-lg px-5">
+                            Bắt đầu đánh giá
+                        </a>
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                            Bỏ qua
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

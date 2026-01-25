@@ -43,5 +43,11 @@ public class Order
     [Column("created_at")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    [Column("expires_at")]
+    public DateTime? ExpiresAt { get; set; }
+
+    [Timestamp]
+    public byte[]? RowVersion { get; set; }
+
     public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
 }

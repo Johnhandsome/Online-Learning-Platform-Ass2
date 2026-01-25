@@ -9,11 +9,38 @@ namespace Online_Learning_Platform_Ass1.Web.Controllers;
 [Authorize]
 public class AssessmentController(
     IAssessmentService assessmentService,
-    ILearningPathRecommendationService recommendationService) : Controller
+    ILearningPathRecommendationService recommendationService,
+    IUserService userService) : Controller
 {
     [HttpGet]
-    public IActionResult Start()
+    public async Task<IActionResult> Start()
     {
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!string.IsNullOrEmpty(userIdString) && Guid.TryParse(userIdString, out var userId))
+        {
+            var hasCompleted = await userService.HasCompletedAssessmentAsync(userId);
+            if (hasCompleted)
+            {
+                // Check if user can retake (after 30 days)
+                var user = await userService.GetUserByIdAsync(userId);
+                if (user?.AssessmentCompletedAt != null)
+                {
+                    var daysSinceLastAssessment = (DateTime.UtcNow - user.AssessmentCompletedAt.Value).Days;
+                    
+                    if (daysSinceLastAssessment < 30)
+                    {
+                        TempData["InfoMessage"] = $"You completed the assessment {daysSinceLastAssessment} days ago. You can retake it after {30 - daysSinceLastAssessment} more days.";
+                        return RedirectToAction("Index", "Home");
+                    }
+                    else
+                    {
+                        // Allow retake
+                        TempData["InfoMessage"] = "It's been a while! Retake the assessment to get updated recommendations.";
+                    }
+                }
+            }
+        }
+        
         return View();
     }
 

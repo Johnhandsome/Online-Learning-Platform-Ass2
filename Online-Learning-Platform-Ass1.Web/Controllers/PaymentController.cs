@@ -61,21 +61,22 @@ public class PaymentController(
             // Payment success. Update order status.
             if (Guid.TryParse(response.OrderId, out var orderId))
             {
-                 // Assuming ProcessPaymentAsync inside OrderService might be doing the actual "Enroll" logic too
-                 // We reuse OrderService.ProcessPaymentAsync(orderId) which we built earlier
-                 // OR we manually update if that method assumes different flow. 
-                 // Based on previous turn, ProcessPaymentAsync changes order to "completed" and enrolls.
-                 
-                var success = await orderService.ProcessPaymentAsync(orderId);
-                if (success)
-                {
-                    return RedirectToAction("Success", "Course", new { id = orderId });
-                }
+                 // Pass VNPay transaction ID for idempotency
+                 var success = await orderService.ProcessPaymentAsync(orderId, response.TransactionId);
+                 if (success)
+                 {
+                     return RedirectToAction("Success", "Course", new { id = orderId });
+                 }
+                 else
+                 {
+                     TempData["ErrorMessage"] = "Payment was successful but enrollment failed. Please contact support.";
+                     return RedirectToAction("Index", "Home");
+                 }
             }
         }
 
         // Failure
-        TempData["Message"] = $"Payment failed or cancelled. Response Code: {response.VnPayResponseCode}";
+        TempData["ErrorMessage"] = $"Payment failed or cancelled. Error code: {response.VnPayResponseCode}";
         return RedirectToAction("Index", "Home");
     }
 }

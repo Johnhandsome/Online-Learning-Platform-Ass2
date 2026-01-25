@@ -15,6 +15,9 @@ public class UserRepository(OnlineLearningContext context) : IUserRepository
     public async Task<User?> GetByIdAsync(Guid id)
         => await Query().FirstOrDefaultAsync(u => u.Id == id);
 
+    public async Task<User?> GetByIdForUpdateAsync(Guid id)
+        => await context.Users.FirstOrDefaultAsync(u => u.Id == id); // With tracking for updates
+
     public async Task AddAsync(User user) => await context.Users.AddAsync(user);
 
     public async Task<int> SaveChangesAsync() => await context.SaveChangesAsync();

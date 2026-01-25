@@ -7,7 +7,8 @@ namespace Online_Learning_Platform_Ass1.Service.Services;
 
 public class AssessmentService(
     IAssessmentQuestionRepository questionRepository,
-    IUserAssessmentRepository assessmentRepository) : IAssessmentService
+    IUserAssessmentRepository assessmentRepository,
+    IUserService userService) : IAssessmentService
 {
     public async Task<IEnumerable<AssessmentQuestionDto>> GetAssessmentQuestionsAsync()
     {
@@ -46,6 +47,10 @@ public class AssessmentService(
         };
 
         var created = await assessmentRepository.CreateAssessmentAsync(assessment);
+        
+        // Mark user as completed assessment
+        await userService.UpdateAssessmentStatusAsync(userId, true);
+        
         return created.Id;
     }
 }

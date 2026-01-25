@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Online_Learning_Platform_Ass1.Data.Database.Entities;
 using Online_Learning_Platform_Ass1.Data.Repositories.Interfaces;
 using Online_Learning_Platform_Ass1.Service.DTOs.Order;
@@ -82,7 +83,8 @@ public class OrderService(
             PathId = dto.PathId,
             TotalAmount = amount,
             Status = "pending",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(15) // Order expires in 15 minutes
         };
 
         await orderRepository.AddAsync(order);
@@ -113,31 +115,58 @@ public class OrderService(
         };
     }
 
-    public async Task<bool> ProcessPaymentAsync(Guid orderId)
+    public async Task<bool> ProcessPaymentAsync(Guid orderId, string? transactionGateId = null)
     {
-        var order = await orderRepository.GetByIdAsync(orderId);
-        if (order == null || order.Status == "completed") return false;
-
-        // 1. Mock Payment Gateway Success
-        bool paymentSuccess = true; 
-
-        if (paymentSuccess)
+        // 1. Check for idempotency - if this transaction was already processed
+        if (!string.IsNullOrEmpty(transactionGateId))
         {
-            // 2. Create Transaction
+            var existingTransaction = await orderRepository.GetTransactionByGatewayIdAsync(transactionGateId);
+            if (existingTransaction != null)
+            {
+                // Transaction already processed - return success if it was successful
+                return existingTransaction.Status == "success";
+            }
+        }
+
+        var order = await orderRepository.GetByIdAsync(orderId);
+        if (order == null)
+        {
+            return false;
+        }
+
+        // 2. Check if order is already completed
+        if (order.Status == "completed")
+        {
+            return true; // Already processed
+        }
+
+        // 3. Check if order has expired
+        if (order.ExpiresAt.HasValue && order.ExpiresAt.Value < DateTime.UtcNow)
+        {
+            order.Status = "expired";
+            await orderRepository.SaveChangesAsync();
+            return false;
+        }
+
+        // 4. Use database transaction for atomicity
+        using var dbTransaction = await orderRepository.BeginTransactionAsync();
+        
+        try
+        {
+            // 5. Create Transaction record
             var transaction = new Transaction
             {
                 Id = Guid.NewGuid(),
                 OrderId = order.Id,
-                PaymentMethod = "Credit Card", // Mock
-                TransactionGateId = "TXN-" + Guid.NewGuid().ToString().Substring(0, 8),
+                PaymentMethod = "VNPay",
+                TransactionGateId = transactionGateId,
                 Amount = order.TotalAmount,
                 Status = "success",
                 CreatedAt = DateTime.UtcNow
             };
             await orderRepository.AddTransactionAsync(transaction);
 
-            // 3. Create Enrollment(s)
-            
+            // 6. Create Enrollment(s)
             if (order.CourseId.HasValue)
             {
                 if (!await enrollmentRepository.IsEnrolledAsync(order.UserId, order.CourseId.Value))
@@ -152,22 +181,35 @@ public class OrderService(
                 {
                     foreach (var pc in path.PathCourses)
                     {
-                         if (!await enrollmentRepository.IsEnrolledAsync(order.UserId, pc.CourseId))
-                         {
-                             await CreateEnrollment(order.UserId, pc.CourseId);
-                         }
+                        if (!await enrollmentRepository.IsEnrolledAsync(order.UserId, pc.CourseId))
+                        {
+                            await CreateEnrollment(order.UserId, pc.CourseId);
+                        }
                     }
                 }
             }
 
-            // 4. Update Order Status
+            // 7. Update Order Status
             order.Status = "completed";
             
+            // 8. Save all changes atomically
             await orderRepository.SaveChangesAsync();
+            await dbTransaction.CommitAsync();
+            
             return true;
         }
-
-        return false;
+        catch (DbUpdateConcurrencyException)
+        {
+            // Another request already processed this order
+            await dbTransaction.RollbackAsync();
+            return false;
+        }
+        catch (Exception)
+        {
+            // Rollback on any error
+            await dbTransaction.RollbackAsync();
+            throw;
+        }
     }
 
     private async Task CreateEnrollment(Guid userId, Guid courseId)

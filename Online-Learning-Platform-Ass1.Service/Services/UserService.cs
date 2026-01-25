@@ -85,4 +85,26 @@ public class UserService
         var users = await userRepository.GetAllAsync();
         return users.Select(u => new UserDto(u.Id, u.Username, u.Email, u.Role?.Name ?? "Unassigned", u.CreateAt));
     }
+
+    public async Task<bool> HasCompletedAssessmentAsync(Guid userId)
+    {
+        var user = await userRepository.GetByIdAsync(userId);
+        return user?.HasCompletedAssessment ?? false;
+    }
+
+    public async Task UpdateAssessmentStatusAsync(Guid userId, bool completed)
+    {
+        var user = await userRepository.GetByIdForUpdateAsync(userId);
+        if (user != null)
+        {
+            user.HasCompletedAssessment = completed;
+            user.AssessmentCompletedAt = completed ? DateTime.UtcNow : null;
+            await userRepository.SaveChangesAsync();
+        }
+    }
+
+    public async Task<User?> GetUserByIdAsync(Guid userId)
+    {
+        return await userRepository.GetByIdAsync(userId);
+    }
 }

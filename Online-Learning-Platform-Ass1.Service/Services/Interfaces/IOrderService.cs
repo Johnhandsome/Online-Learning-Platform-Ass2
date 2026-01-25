@@ -6,5 +6,5 @@ public interface IOrderService
 {
     Task<OrderViewModel?> CreateOrderAsync(Guid userId, CreateOrderDto dto);
     Task<OrderViewModel?> GetOrderByIdAsync(Guid orderId);
-    Task<bool> ProcessPaymentAsync(Guid orderId); // Mock payment
+    Task<bool> ProcessPaymentAsync(Guid orderId, string? transactionGateId = null);
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Online_Learning_Platform_Ass1.Data.Database;
 
@@ -11,9 +12,11 @@ using Online_Learning_Platform_Ass1.Data.Database;
 namespace Online_Learning_Platform_Ass1.Data.Migrations
 {
     [DbContext(typeof(OnlineLearningContext))]
-    partial class OnlineLearningContextModelSnapshot : ModelSnapshot
+    [Migration("20260125082652_AddAssessmentTrackingToUser")]
+    partial class AddAssessmentTrackingToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
