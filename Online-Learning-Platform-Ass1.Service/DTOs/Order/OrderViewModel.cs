@@ -13,4 +13,6 @@ public record OrderViewModel
     public string CourseTitle { get; init; } = null!;
     public decimal Amount { get; init; }
     public string Status { get; init; } = null!;
+    public DateTime? ExpiresAt { get; init; }
+    public bool IsExpired => ExpiresAt.HasValue && ExpiresAt.Value < DateTime.UtcNow;
 }

@@ -1,4 +1,3 @@
-using Online_Learning_Platform_Ass1.Data.Database.Entities;
 using Online_Learning_Platform_Ass1.Service.DTOs.User;
 using Online_Learning_Platform_Ass1.Service.Results;
 
@@ -11,5 +10,4 @@ public interface IUserService
     Task<IEnumerable<UserDto>> GetAllUsersAsync();
     Task<bool> HasCompletedAssessmentAsync(Guid userId);
     Task UpdateAssessmentStatusAsync(Guid userId, bool completed);
-    Task<User?> GetUserByIdAsync(Guid userId);
 }

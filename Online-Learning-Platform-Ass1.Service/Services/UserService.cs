@@ -102,9 +102,4 @@ public class UserService
             await userRepository.SaveChangesAsync();
         }
     }
-
-    public async Task<User?> GetUserByIdAsync(Guid userId)
-    {
-        return await userRepository.GetByIdAsync(userId);
-    }
 }

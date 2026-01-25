@@ -95,9 +95,8 @@ public class OrderController(IOrderService orderService, IVnPayService vnPayServ
             return RedirectToAction(nameof(MyOrders));
         }
 
-        // Check if order has expired
-        var orderEntity = await orderService.GetOrderEntityByIdAsync(orderId);
-        if (orderEntity != null && orderEntity.ExpiresAt.HasValue && orderEntity.ExpiresAt.Value < DateTime.UtcNow)
+        // Check if order has expired using DTO property
+        if (order.IsExpired)
         {
             TempData["ErrorMessage"] = "This order has expired. Please create a new order.";
             return RedirectToAction(nameof(MyOrders));

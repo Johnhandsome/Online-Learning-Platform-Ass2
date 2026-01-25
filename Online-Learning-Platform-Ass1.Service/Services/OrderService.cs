@@ -234,13 +234,9 @@ public class OrderService(
             CourseId = order.CourseId ?? Guid.Empty,
             CourseTitle = order.Course?.Title ?? order.LearningPath?.Title ?? "Unknown",
             Amount = order.TotalAmount,
-            Status = order.Status
+            Status = order.Status,
+            ExpiresAt = order.ExpiresAt
         };
-    }
-
-    public async Task<Order?> GetOrderEntityByIdAsync(Guid orderId)
-    {
-        return await orderRepository.GetByIdAsync(orderId);
     }
 
     public async Task<bool> ProcessPaymentAsync(Guid orderId, string? transactionGateId = null)
