@@ -13,9 +13,13 @@
             </div>
             <div class="list-group list-group-flush">
                 <a asp-action="Index" 
+                   class="list-group-item list-group-item-action @(Model.SelectedCategoryId == null && !Model.ViewAll && string.IsNullOrEmpty(Model.SearchTerm) ? "active" : "")">
+                   <i class="bi bi-star-fill"></i> Featured
+                </a>
+                <a asp-action="Index" 
                    asp-route-viewAll="true"
-                   class="list-group-item list-group-item-action @(Model.SelectedCategoryId == null ? "active" : "")">
-                   <i class="bi bi-collection"></i> All Categories
+                   class="list-group-item list-group-item-action @(Model.ViewAll ? "active" : "")">
+                   <i class="bi bi-collection"></i> All Courses
                 </a>
                 @foreach (var cat in Model.Categories)
                 {

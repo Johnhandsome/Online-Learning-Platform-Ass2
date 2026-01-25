@@ -19,7 +19,7 @@ public class HomeController(
         // - If searching: show all matching courses
         // - If filtering by category: show all courses in that category
         // - If viewAll = true: show all courses
-        // - Otherwise: show featured (top 6) courses
+        // - Otherwise: show featured (top 6) courses, fallback to all if empty
         
         if (!string.IsNullOrEmpty(searchTerm) || categoryId.HasValue || viewAll)
         {
@@ -30,6 +30,12 @@ public class HomeController(
         {
             // Default: show featured courses
             courses = await courseService.GetFeaturedCoursesAsync();
+            
+            // Fallback: if no featured courses, show all courses
+            if (!courses.Any())
+            {
+                courses = await courseService.GetAllCoursesAsync();
+            }
         }
 
         var paths = await learningPathService.GetFeaturedLearningPathsAsync();

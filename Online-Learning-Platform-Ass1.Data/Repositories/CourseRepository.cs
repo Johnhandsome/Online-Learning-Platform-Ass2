@@ -51,12 +51,12 @@ public class CourseRepository(OnlineLearningContext context) : ICourseRepository
 
     public async Task<IEnumerable<Course>> GetFeaturableCoursesAsync(int count)
     {
-        // Simple logic for "featured": just take top N latest active courses
+        // Simple logic for "featured": just take top N latest active/published courses
         return await context.Courses
          .AsNoTracking()
          .Include(c => c.Instructor)
          .Include(c => c.Category)
-         .Where(c => c.Status == "published")
+         .Where(c => c.Status == "published" || c.Status == "active")
          .OrderByDescending(c => c.CreatedAt)
          .Take(count)
          .ToListAsync();
