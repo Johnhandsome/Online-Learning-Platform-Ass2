@@ -7,7 +7,7 @@ using Online_Learning_Platform_Ass1.Service.DTOs.Order;
 using Online_Learning_Platform_Ass1.Service.Services;
 using Online_Learning_Platform_Ass1.Service.Services.Interfaces;
 
-namespace Online_Learning_Platform_Ass1.Data.Controllers;
+namespace Online_Learning_Platform_Ass1.Web.Controllers;
 
 [Authorize]
 public class CourseController(

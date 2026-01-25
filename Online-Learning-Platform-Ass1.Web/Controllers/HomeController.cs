@@ -1,11 +1,10 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using Online_Learning_Platform_Ass1.Data.Models;
 using Online_Learning_Platform_Ass1.Service.Services.Interfaces;
 using Online_Learning_Platform_Ass1.Web.Models;
 using Online_Learning_Platform_Ass1.Service.DTOs.Course;
 
-namespace Online_Learning_Platform_Ass1.Data.Controllers;
+namespace Online_Learning_Platform_Ass1.Web.Controllers;
 
 public class HomeController(
     ICourseService courseService,

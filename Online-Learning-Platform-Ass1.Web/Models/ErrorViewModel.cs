@@ -1,4 +1,4 @@
-namespace Online_Learning_Platform_Ass1.Data.Models;
+namespace Online_Learning_Platform_Ass1.Web.Models;
 
 public class ErrorViewModel
 {

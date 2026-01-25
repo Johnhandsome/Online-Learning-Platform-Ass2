@@ -2,8 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Online_Learning_Platform_Ass1.Service.DTOs.Payment;
 using Online_Learning_Platform_Ass1.Service.Services.Interfaces;
-using VNPAY.Extensions;
-namespace Online_Learning_Platform_Ass1.Data.Controllers;
+
+namespace Online_Learning_Platform_Ass1.Web.Controllers;
 
 [Authorize]
 public class PaymentController(
