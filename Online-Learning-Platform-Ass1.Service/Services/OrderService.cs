@@ -84,7 +84,7 @@ public class OrderService(
             TotalAmount = amount,
             Status = "pending",
             CreatedAt = DateTime.UtcNow,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(15) // Order expires in 15 minutes
+            ExpiresAt = DateTime.UtcNow.AddMinutes(1) // Order expires in 1 minute (for testing)
         };
 
         await orderRepository.AddAsync(order);
@@ -113,6 +113,11 @@ public class OrderService(
             Amount = order.TotalAmount,
             Status = order.Status
         };
+    }
+
+    public async Task<Order?> GetOrderEntityByIdAsync(Guid orderId)
+    {
+        return await orderRepository.GetByIdAsync(orderId);
     }
 
     public async Task<bool> ProcessPaymentAsync(Guid orderId, string? transactionGateId = null)
@@ -223,5 +228,50 @@ public class OrderService(
                 Status = "active"
             };
             await orderRepository.AddEnrollmentAsync(enrollment);
+    }
+
+    public async Task<IEnumerable<UserOrderDto>> GetUserOrdersAsync(Guid userId)
+    {
+        var orders = await orderRepository.GetUserOrdersAsync(userId);
+        var now = DateTime.UtcNow;
+
+        return orders.Select(order =>
+        {
+            var itemTitle = order.CourseId.HasValue
+                ? order.Course?.Title ?? "Unknown Course"
+                : order.LearningPath?.Title ?? "Unknown Learning Path";
+
+            var itemType = order.CourseId.HasValue ? "Course" : "Learning Path";
+
+            int? minutesRemaining = null;
+            bool canContinuePayment = false;
+
+            if (order.Status == "pending" && order.ExpiresAt.HasValue)
+            {
+                var timeRemaining = order.ExpiresAt.Value - now;
+                minutesRemaining = (int)Math.Ceiling(timeRemaining.TotalMinutes);
+                
+                // Only allow payment if order is still pending AND not expired
+                canContinuePayment = minutesRemaining > 0;
+            }
+
+            var completedTransaction = order.Transactions?
+                .FirstOrDefault(t => t.Status == "success");
+
+            return new UserOrderDto
+            {
+                OrderId = order.Id,
+                ItemTitle = itemTitle,
+                ItemType = itemType,
+                Amount = order.TotalAmount,
+                Status = order.Status,
+                CreatedAt = order.CreatedAt,
+                ExpiresAt = order.ExpiresAt,
+                MinutesRemaining = minutesRemaining,
+                CanContinuePayment = canContinuePayment,
+                PaymentMethod = completedTransaction?.PaymentMethod,
+                CompletedAt = completedTransaction?.CreatedAt
+            };
+        }).ToList();
     }
 }

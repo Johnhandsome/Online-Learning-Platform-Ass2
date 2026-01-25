@@ -22,6 +22,26 @@ public class OrderRepository(OnlineLearningContext context) : IOrderRepository
             .FirstOrDefaultAsync(t => t.TransactionGateId == gatewayId);
     }
 
+    public async Task<IEnumerable<Order>> GetExpiredPendingOrdersAsync()
+    {
+        return await context.Orders
+            .Where(o => o.Status == "pending" && 
+                        o.ExpiresAt.HasValue && 
+                        o.ExpiresAt.Value < DateTime.UtcNow)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Order>> GetUserOrdersAsync(Guid userId)
+    {
+        return await context.Orders
+            .Include(o => o.Course)
+            .Include(o => o.LearningPath)
+            .Include(o => o.Transactions)
+            .Where(o => o.UserId == userId)
+            .OrderByDescending(o => o.CreatedAt)
+            .ToListAsync();
+    }
+
     public async Task AddAsync(Order order)
     {
         await context.Orders.AddAsync(order);
