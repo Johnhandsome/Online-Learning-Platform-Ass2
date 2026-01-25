@@ -6,6 +6,7 @@ using Online_Learning_Platform_Ass1.Service.Services;
 using Online_Learning_Platform_Ass1.Service.Services.Interfaces;
 using Online_Learning_Platform_Ass1.Service.Validators.User;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Globalization;
 using Online_Learning_Platform_Ass1.Service.Hubs;
 
 
@@ -73,6 +74,9 @@ builder.Services.AddHttpClient<ITranscriptService, TranscriptService>(client =>
 });
 builder.Services.AddHttpClient<IChatbotService, ChatbotService>();
 
+var cultureInfo = new CultureInfo("vi-VN");
+CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 // Add SignalR
 builder.Services.AddSignalR();
 

@@ -142,7 +142,11 @@ public class CourseService(
                             Content = l.Type == "text" ? l.ContentUrl : null,
                             IsCompleted =
                                 progressMap.TryGetValue(l.Id, out var p)
-                                && p.IsCompleted
+                                && p.IsCompleted,
+                            LastWatchedPosition =
+                                progressMap.TryGetValue(l.Id, out var p2)
+                                    ? p2.LastWatchedPosition ?? 0
+                                    : 0
                         }).ToList()
                 }).ToList()
         };

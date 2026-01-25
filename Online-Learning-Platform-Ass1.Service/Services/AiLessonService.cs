@@ -143,7 +143,7 @@ public class AiLessonService(HttpClient httpClient, ITranscriptService transcrip
                     role = "system",
                     content =
                         "You are a Vietnamese teacher. " +
-                        "ONLY summarize the lesson using the provided transcript. " +
+                        "ONLY summarize the lesson using the provided transcript (the transcript might be unclear due to translation ai so you can fix some of the contents to match). " +
                         "Write in clear Vietnamese. " +
                         "If the transcript is unclear or empty, respond exactly: " +
                         "'Không thể tóm tắt vì nội dung không rõ ràng.'"

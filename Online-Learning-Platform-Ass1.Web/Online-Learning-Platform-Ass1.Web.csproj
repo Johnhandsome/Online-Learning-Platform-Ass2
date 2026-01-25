@@ -8,6 +8,14 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Content Remove="appsettings.Development.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="appsettings.Development.json" />
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\Online-Learning-Platform-Ass1.Service\Online-Learning-Platform-Ass1.Service.csproj" />
     </ItemGroup>
 

@@ -49,6 +49,9 @@ public record LessonViewModel
 
     public bool IsCompleted { get; set; }
 
+    public int LastWatchedPosition { get; set; }
+
+
     // AI
     public AiSummaryStatus AiSummaryStatus { get; set; }
     public string? AiSummary { get; set; }

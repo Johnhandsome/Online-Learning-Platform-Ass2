@@ -13,7 +13,8 @@ namespace Online_Learning_Platform_Ass1.Data.Controllers;
 public class CourseController(
     ICourseService courseService,
     IOrderService orderService,
-    IAiLessonService aiLessonService) : Controller
+    IAiLessonService aiLessonService,
+    ILessonProgressService lessonProgressService) : Controller
 {
     [AllowAnonymous]
     public async Task<IActionResult> Details(Guid id)
@@ -132,5 +133,37 @@ public class CourseController(
 
         return Ok(result);
     }
+
+    [HttpPost]
+    public async Task<IActionResult> UpdateVideoProgress(Guid enrollmentId, Guid lessonId, int currentTime, int duration)
+    {
+        var isCompleted = duration > 0 && currentTime >= duration - 2;
+
+        await lessonProgressService.UpdateProgressAsync(
+            enrollmentId,
+            lessonId,
+            currentTime,
+            isCompleted
+        );
+
+        return Ok();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> MarkLessonCompleted(
+    Guid enrollmentId,
+    Guid lessonId
+)
+    {
+        await lessonProgressService.UpdateProgressAsync(
+            enrollmentId,
+            lessonId,
+            watchedSeconds: 0,
+            isCompleted: true
+        );
+
+        return Ok();
+    }
+
 
 }
