@@ -4,151 +4,139 @@
     ViewData["Title"] = Model.Title;
 }
 
-<div class="container mt-4 mb-5">
-    <div class="row">
-        <!-- Main Content -->
-        <div class="col-lg-8">
-            <div class="card card-modern shadow-sm mb-4">
-                <div class="card-header bg-gradient-primary text-white">
-                    <h1 class="mb-2">@Model.Title</h1>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <p class="mb-0 lead">@Model.Description</p>
+<div class="row">
+    <!-- Main Content -->
+    <div class="col-lg-8">
+        <!-- Header -->
+        <div class="mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Home</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Browse" class="text-decoration-none">Learning Paths</a></li>
+                    <li class="breadcrumb-item active">@Model.Title</li>
+                </ol>
+            </nav>
+            
+            <span class="badge bg-primary bg-opacity-10 text-primary mb-2">
+                @Model.TotalCourses Courses
+            </span>
+            <h1 class="display-6 fw-bold mb-3">@Model.Title</h1>
+            <p class="lead text-muted">@Model.Description</p>
+        </div>
+
+        <!-- Enrollment Status -->
+        @if (Model.IsEnrolled)
+        {
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px; border-left: 4px solid #28a745 !important;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0 text-success">
+                            <i class="bi bi-check-circle-fill me-2"></i>You're Enrolled
+                        </h5>
+                        <span class="badge bg-success">@Model.ProgressPercentage% Complete</span>
                     </div>
-                </div>
-                <div class="card-body">
-                    <!-- User Progress (if enrolled) -->
-                    @if (Model.IsEnrolled)
-                    {
-                        <div class="alert alert-success-light mb-4">
-                            <h6 class="mb-3"><i class="bi bi-check-circle"></i> You are enrolled in this path</h6>
-
-                            <!-- Progress Bar -->
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="text-muted small">Learning Progress</span>
-                                    <span class="badge bg-primary">@Model.ProgressPercentage%</span>
-                                </div>
-                                <div class="progress" style="height: 28px;">
-                                    <div class="progress-bar bg-success progress-bar-striped" 
-                                         role="progressbar" 
-                                         style="width: @(Model.ProgressPercentage)%"
-                                         aria-valuenow="@Model.ProgressPercentage" 
-                                         aria-valuemin="0" 
-                                         aria-valuemax="100">
-                                        @Model.CompletedCourses / @Model.TotalCourses courses
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <small class="text-muted d-block">Started</small>
-                                    <strong>@Model.EnrolledAt?.ToString("MMM dd, yyyy")</strong>
-                                </div>
-                                @if (Model.CompletedAt.HasValue)
-                                {
-                                    <div class="col-md-6">
-                                        <small class="text-muted d-block">Completed</small>
-                                        <strong>@Model.CompletedAt.Value.ToString("MMM dd, yyyy")</strong>
-                                    </div>
-                                }
-                            </div>
-
-                            <hr />
-
-                            <div class="d-flex gap-2">
-                                <a asp-controller="LearningPath" asp-action="Progress" asp-route-pathId="@Model.Id" 
-                                   class="btn btn-primary">
-                                    <i class="bi bi-play-circle"></i> Continue Learning
-                                </a>
-                                <form asp-controller="LearningPath" asp-action="DropPath" method="post" style="display: inline;">
-                                    <input type="hidden" name="enrollmentId" value="@Model.EnrollmentId" />
-                                    <button type="submit" class="btn btn-outline-danger"
-                                            onclick="return confirm('Are you sure you want to drop this learning path?');">
-                                        <i class="bi bi-trash"></i> Drop Path
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    }
-
-                    <!-- Courses List -->
-                    <h5 class="mt-4 mb-3">
-                        <i class="bi bi-book"></i> Courses (@Model.TotalCourses)
-                    </h5>
-
-                    <div class="list-group">
-                        @{
-                            int courseIndex = 1;
-                        }
-                        @foreach (var course in Model.Courses)
-                        {
-                            <div class="list-group-item">
-                                <div class="d-flex w-100 justify-content-between align-items-start">
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1">
-                                            <span class="badge bg-secondary me-2">@courseIndex</span>
-                                            @course.Title
-                                        </h6>
-                                        <p class="mb-1 text-muted small">@course.Description</p>
-                                        <small class="text-muted">
-                                            <i class="bi bi-person"></i> @course.InstructorName
-                                            <span class="ms-2">|</span>
-                                            <i class="bi bi-tag ms-2"></i> @course.CategoryName
-                                        </small>
-                                    </div>
-                                    <strong class="text-primary ms-2">@course.Price.ToString("C")</strong>
-                                </div>
-                            </div>
-                            courseIndex++;
-                        }
+                    
+                    <div class="progress mb-3" style="height: 10px; border-radius: 5px;">
+                        <div class="progress-bar bg-success" style="width: @Model.ProgressPercentage%"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center text-muted small">
+                        <span>@Model.CompletedCourses of @Model.TotalCourses courses completed</span>
+                        <span>Started: @Model.EnrolledAt?.ToString("MMM dd, yyyy")</span>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <a asp-action="Progress" asp-route-pathId="@Model.Id" class="btn btn-success">
+                            <i class="bi bi-play-circle me-1"></i>Continue Learning
+                        </a>
                     </div>
                 </div>
             </div>
-        </div>
+        }
 
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <div class="card card-modern sticky-top shadow-sm" style="top: 20px;">
-                <div class="card-header bg-success text-white text-center">
-                    <h5 class="mb-0">Path Price</h5>
-                </div>
-                <div class="card-body text-center">
-                    <h2 class="text-success mb-3">@Model.Price.ToString("C")</h2>
-                    <p class="text-muted small mb-3">Access to all @Model.TotalCourses courses</p>
-
-                    @if (Model.IsEnrolled)
-                    {
-                        <div class="alert alert-info-light small">
-                            <i class="bi bi-check-circle"></i> You already own this path
+        <!-- Courses List -->
+        <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+            <div class="card-header bg-white border-0 p-4">
+                <h5 class="mb-0 fw-bold">
+                    <i class="bi bi-list-ol me-2 text-primary"></i>Courses in this Path
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                @{ int index = 1; }
+                @foreach (var course in Model.Courses)
+                {
+                    <div class="p-4 @(index < Model.TotalCourses ? "border-bottom" : "")">
+                        <div class="d-flex gap-3">
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold"
+                                     style="width: 40px; height: 40px;">
+                                    @index
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="fw-bold mb-1">@course.Title</h6>
+                                <p class="text-muted small mb-2">@course.Description</p>
+                                <div class="d-flex gap-3 text-muted small">
+                                    <span><i class="bi bi-person me-1"></i>@course.InstructorName</span>
+                                    <span><i class="bi bi-tag me-1"></i>@course.CategoryName</span>
+                                    <span class="fw-bold" style="color: #0056d2;">@course.Price.ToString("C")</span>
+                                </div>
+                            </div>
                         </div>
-                    }
-                    else if (User.Identity?.IsAuthenticated == true)
-                    {
-                        <form asp-action="ProcessCheckout" asp-route-id="@Model.Id" method="post">
-                            <button type="submit" class="btn btn-success w-100 mb-2">
-                                <i class="bi bi-cart-plus"></i> Buy Now
-                            </button>
-                        </form>
-                    }
-                    else
-                    {
-                        <a asp-controller="User" asp-action="Login" 
-                           asp-route-returnUrl="@Url.Action("Details", "LearningPath", new { id = Model.Id })" 
-                           class="btn btn-primary w-100 mb-2">
-                            <i class="bi bi-box-arrow-in-right"></i> Login to Purchase
-                        </a>
-                    }
+                    </div>
+                    index++;
+                }
+            </div>
+        </div>
+    </div>
 
-                    <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#courseDetail">
-                        <i class="bi bi-info-circle"></i> Details
-                    </button>
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm sticky-top" style="border-radius: 12px; top: 20px;">
+            <div class="card-body p-4">
+                <!-- Price -->
+                <div class="text-center mb-4">
+                    <div class="fs-2 fw-bold" style="color: #0056d2;">@Model.Price.ToString("C")</div>
+                    <p class="text-muted small mb-0">Full access to @Model.TotalCourses courses</p>
                 </div>
-                <div class="card-footer bg-light">
-                    <small class="text-muted d-block text-center">
-                        <i class="bi bi-shield-check"></i> Lifetime Access
-                    </small>
-                </div>
+
+                <!-- CTA -->
+                @if (Model.IsEnrolled)
+                {
+                    <div class="alert alert-success border-0 text-center mb-4">
+                        <i class="bi bi-check-circle-fill me-1"></i>You own this path
+                    </div>
+                    <a asp-action="Progress" asp-route-pathId="@Model.Id" class="btn btn-success w-100 py-3 mb-2">
+                        Continue Learning
+                    </a>
+                }
+                else if (User.Identity?.IsAuthenticated == true)
+                {
+                    <form asp-action="ProcessCheckout" method="post">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-primary w-100 py-3 mb-2" style="background: #0056d2; border: none;">
+                            Enroll Now
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <a asp-controller="User" asp-action="Login" 
+                       asp-route-returnUrl="@Url.Action("Details", "LearningPath", new { id = Model.Id })"
+                       class="btn btn-primary w-100 py-3 mb-2" style="background: #0056d2; border: none;">
+                        Login to Enroll
+                    </a>
+                }
+
+                <!-- Features -->
+                <hr class="my-4">
+                <h6 class="fw-bold mb-3">This path includes:</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>@Model.TotalCourses courses</li>
+                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Lifetime access</li>
+                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Certificate of completion</li>
+                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Learn at your own pace</li>
+                </ul>
             </div>
         </div>
     </div>
