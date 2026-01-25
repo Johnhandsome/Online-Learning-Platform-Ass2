@@ -25,11 +25,14 @@
         {
             <div class="lesson-content mt-4">
 
-                <!-- VIDEO LESSON -->
+                @* VIDEO *@
                 @if (!string.IsNullOrEmpty(Model.CurrentLesson.VideoUrl))
                 {
                     <div class="mb-4">
-                        <video id="lesson-video" controls width="100%">
+                        <video id="lesson-video"
+                               controls
+                               width="100%"
+                               data-start-time="@Model.CurrentLesson.LastWatchedPosition">
                             <source src="@Model.CurrentLesson.VideoUrl" type="video/mp4" />
                         </video>
                     </div>
@@ -45,16 +48,16 @@
                     Thời lượng: @Model.CurrentLesson.Duration phút
                 </div>
 
-                <!-- READING LESSON: MARK AS READ -->
+                @* TEXT LESSON *@
                 @if (string.IsNullOrEmpty(Model.CurrentLesson.VideoUrl))
                 {
                     <button id="btn-complete"
                             class="btn btn-success mt-4">
-                        Mark as read
+                        Đánh dấu đã học xong
                     </button>
                 }
 
-                <!-- VIDEO LESSON: AI SUPPORT -->
+                @* VIDEO + AI *@
                 @if (!string.IsNullOrEmpty(Model.CurrentLesson.VideoUrl))
                 {
                     <div class="card mt-4">
@@ -71,7 +74,7 @@
                             <div id="ai-summary" class="mb-3 text-muted">
                                 @if (Model.CurrentLesson.AiSummaryStatus == AiSummaryStatus.Processing)
                                 {
-                                    <span>Đợi xíu, AI đang tóm tắt bài này...</span>
+                                    <span>Đợi xíu, AI đang xử lý...</span>
                                 }
                                 else if (Model.CurrentLesson.AiSummaryStatus == AiSummaryStatus.Done)
                                 {
@@ -83,7 +86,7 @@
                                 <input type="text"
                                        id="ai-question"
                                        class="form-control"
-                                       placeholder="Hỏi AI về video này..." />
+                                       placeholder="Hỏi AI về bài học..." />
 
                                 <button class="btn btn-outline-secondary"
                                         id="btn-ask"
@@ -115,6 +118,7 @@
                         <li class="list-group-item d-flex align-items-center
                             @(lesson.IsCurrent ? "active" : "")">
 
+                            <!-- TICK -->
                             <span class="lesson-status
                                   @(lesson.IsCompleted ? "completed" : "")
                                   @(lesson.IsCurrent ? "current" : "")">
@@ -142,7 +146,16 @@
 
     <script>
         const video = document.getElementById("lesson-video");
+
         if (video) {
+            const startTime = parseInt(video.dataset.startTime || "0");
+
+            video.addEventListener("loadedmetadata", () => {
+                if (startTime > 0 && startTime < video.duration) {
+                    video.currentTime = startTime;
+                }
+            });
+
             setInterval(() => {
                 if (!video.paused && video.duration) {
                     fetch("/Course/UpdateVideoProgress", {
