@@ -47,6 +47,8 @@ public record LessonViewModel
     public int Duration { get; init; }
     public bool IsCurrent { get; set; }
 
+    public bool IsCompleted { get; set; }
+
     // AI
     public AiSummaryStatus AiSummaryStatus { get; set; }
     public string? AiSummary { get; set; }

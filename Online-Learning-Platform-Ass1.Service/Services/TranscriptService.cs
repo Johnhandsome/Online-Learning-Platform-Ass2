@@ -29,7 +29,7 @@ public class TranscriptService(HttpClient httpClient) : ITranscriptService
             form.Add(fileContent, "file", Path.GetFileName(tempFile));
 
             var response = await _http.PostAsync(
-                "http://192.168.1.25:8000/transcript",
+                "http://100.86.222.32:8000/transcript",
                 form
             );
 

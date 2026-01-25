@@ -9,7 +9,8 @@ namespace Online_Learning_Platform_Ass1.Service.Services;
 public class CourseService(
     ICourseRepository courseRepository,
     IEnrollmentRepository enrollmentRepository,
-    ICategoryRepository categoryRepository) : ICourseService
+    ICategoryRepository categoryRepository,
+    ILessonProgressService lessonProgressService) : ICourseService
 {
     public async Task<IEnumerable<CourseViewModel>> GetFeaturedCoursesAsync()
     {
@@ -104,32 +105,46 @@ public class CourseService(
     public async Task<CourseLearnViewModel?> GetCourseLearnAsync(Guid enrollmentId)
     {
         var enrollment = await enrollmentRepository.GetByIdAsync(enrollmentId);
-        if (enrollment == null) return null;
+        if (enrollment == null)
+            return null;
 
-        var modules = enrollment.Course.Modules
-            .OrderBy(m => m.OrderIndex)
-            .Select(m => new ModuleViewModel
-            {
-                Id = m.Id,
-                Title = m.Title,
-                Lessons = m.Lessons
-                    .OrderBy(l => l.OrderIndex)
-                    .Select(l => new LessonViewModel
-                    {
-                        Id = l.Id,
-                        Title = l.Title,
-                        Duration = l.Duration ?? 0,
-                        VideoUrl = l.Type == "video" ? l.ContentUrl : null,
-                        Content = l.Type == "text" ? l.ContentUrl : null
-                    })
-            });
+        var progresses = await lessonProgressService
+            .GetByEnrollmentAsync(enrollmentId);
+
+        var progressMap = progresses
+            .ToDictionary(p => p.LessonId);
 
         return new CourseLearnViewModel
         {
             Id = enrollment.Course.Id,
             EnrollmentId = enrollment.Id,
             Title = enrollment.Course.Title,
-            Modules = modules
+            Description = enrollment.Course.Description,
+            ImageUrl = enrollment.Course.ImageUrl,
+            InstructorName = enrollment.Course.Instructor?.Username ?? "",
+            CategoryName = enrollment.Course.Category?.Name ?? "",
+
+            Modules = enrollment.Course.Modules
+                .OrderBy(m => m.OrderIndex)
+                .Select(m => new ModuleViewModel
+                {
+                    Id = m.Id,
+                    Title = m.Title,
+
+                    Lessons = m.Lessons
+                        .OrderBy(l => l.OrderIndex)
+                        .Select(l => new LessonViewModel
+                        {
+                            Id = l.Id,
+                            Title = l.Title,
+                            Duration = l.Duration ?? 0,
+                            VideoUrl = l.Type == "video" ? l.ContentUrl : null,
+                            Content = l.Type == "text" ? l.ContentUrl : null,
+                            IsCompleted =
+                                progressMap.TryGetValue(l.Id, out var p)
+                                && p.IsCompleted
+                        }).ToList()
+                }).ToList()
         };
     }
 }
