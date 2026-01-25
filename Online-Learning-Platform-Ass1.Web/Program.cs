@@ -6,6 +6,7 @@ using Online_Learning_Platform_Ass1.Service.Services;
 using Online_Learning_Platform_Ass1.Service.Services.Interfaces;
 using Online_Learning_Platform_Ass1.Service.Validators.User;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Globalization;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -71,6 +72,10 @@ builder.Services.AddHttpClient<ITranscriptService, TranscriptService>(client =>
     client.Timeout = TimeSpan.FromMinutes(10);
 });
 builder.Services.AddHttpClient<IChatbotService, ChatbotService>();
+
+var cultureInfo = new CultureInfo("vi-VN");
+CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
 var app = builder.Build();
 
