@@ -21,23 +21,8 @@ public class AssessmentController(
             var hasCompleted = await userService.HasCompletedAssessmentAsync(userId);
             if (hasCompleted)
             {
-                // Check if user can retake (after 30 days)
-                var user = await userService.GetUserByIdAsync(userId);
-                if (user?.AssessmentCompletedAt != null)
-                {
-                    var daysSinceLastAssessment = (DateTime.UtcNow - user.AssessmentCompletedAt.Value).Days;
-                    
-                    if (daysSinceLastAssessment < 30)
-                    {
-                        TempData["InfoMessage"] = $"You completed the assessment {daysSinceLastAssessment} days ago. You can retake it after {30 - daysSinceLastAssessment} more days.";
-                        return RedirectToAction("Index", "Home");
-                    }
-                    else
-                    {
-                        // Allow retake
-                        TempData["InfoMessage"] = "It's been a while! Retake the assessment to get updated recommendations.";
-                    }
-                }
+                // Allow unlimited retakes - encourage users to update their preferences
+                TempData["InfoMessage"] = "Welcome back! Retake the assessment anytime to get updated course recommendations.";
             }
         }
         
