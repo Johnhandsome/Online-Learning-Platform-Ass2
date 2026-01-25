@@ -37,7 +37,7 @@
                     <div class="d-grid gap-2">
                         @if (User.Identity?.IsAuthenticated == true)
                         {
-                            <a asp-action="Checkout" asp-route-id="@Model.Id" class="btn btn-success btn-lg">Buy Learning Path</a>
+                            <a asp-controller="Order" asp-action="ConfirmPurchase" asp-route-pathId="@Model.Id" class="btn btn-success btn-lg">Buy Learning Path</a>
                         }
                         else
                         {

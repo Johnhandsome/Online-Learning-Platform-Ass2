@@ -7,6 +7,7 @@ using Online_Learning_Platform_Ass1.Service.Services.Interfaces;
 using Online_Learning_Platform_Ass1.Service.Validators.User;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Globalization;
+using Online_Learning_Platform_Ass1.Service.Hubs;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -76,6 +77,11 @@ builder.Services.AddHttpClient<IChatbotService, ChatbotService>();
 var cultureInfo = new CultureInfo("vi-VN");
 CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
 CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
+// Add SignalR
+builder.Services.AddSignalR();
+
+// Add Background Services
+builder.Services.AddHostedService<OrderCleanupService>();
 
 var app = builder.Build();
 
@@ -99,6 +105,9 @@ app.MapControllerRoute(
         "default",
         "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
+
+// Map SignalR Hub
+app.MapHub<OrderHub>("/orderHub");
 
 
 await app.RunAsync();

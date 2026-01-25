@@ -1,0 +1,121 @@
+@model Online_Learning_Platform_Ass1.Service.DTOs.Order.OrderPreviewDto
+
+@{
+    ViewData["Title"] = "Confirm Purchase";
+}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-cart-check me-2"></i>
+                        Confirm Your Purchase
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @if (!Model.CanPurchase)
+                    {
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Cannot Purchase:</strong> @Model.BlockReason
+                        </div>
+                        <div class="text-center mt-4">
+                            <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left me-1"></i>
+                                Back to Home
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <h5 class="mb-4">@Model.ItemType: @Model.ItemTitle</h5>
+
+                        <div class="pricing-details">
+                            <div class="row mb-3">
+                                <div class="col-8">
+                                    <strong>Original Price:</strong>
+                                </div>
+                                <div class="col-4 text-end">
+                                    @Model.OriginalPrice.ToString("N0") VND
+                                </div>
+                            </div>
+
+                            @if (Model.OwnedCourses.Any())
+                            {
+                                <div class="alert alert-info">
+                                    <h6><i class="bi bi-check-circle me-2"></i>You already own:</h6>
+                                    <ul class="mb-0">
+                                        @foreach (var course in Model.OwnedCourses)
+                                        {
+                                            <li>@course.Title - @course.Price.ToString("N0") VND</li>
+                                        }
+                                    </ul>
+                                </div>
+
+                                <div class="row mb-3 text-success">
+                                    <div class="col-8">
+                                        <strong>Discount:</strong>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        -@Model.TotalDiscount.ToString("N0") VND
+                                    </div>
+                                </div>
+                            }
+
+                            <hr class="my-3">
+
+                            <div class="row mb-4">
+                                <div class="col-8">
+                                    <h5 class="mb-0"><strong>Final Price:</strong></h5>
+                                </div>
+                                <div class="col-4 text-end">
+                                    <h5 class="mb-0 text-primary">
+                                        <strong>@Model.FinalPrice.ToString("N0") VND</strong>
+                                    </h5>
+                                </div>
+                            </div>
+
+                            @if (Model.TotalDiscount > 0)
+                            {
+                                <div class="alert alert-success">
+                                    <i class="bi bi-piggy-bank me-2"></i>
+                                    You save <strong>@Model.TotalDiscount.ToString("N0") VND</strong> 
+                                    (@(((Model.TotalDiscount / Model.OriginalPrice) * 100).ToString("F0"))% discount)!
+                                </div>
+                            }
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-1"></i>
+                                Cancel
+                            </a>
+                            <form asp-action="CreateOrder" method="post" class="d-inline">
+                                <input type="hidden" name="courseId" value="@Model.CourseId" />
+                                <input type="hidden" name="pathId" value="@Model.PathId" />
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-credit-card me-1"></i>
+                                    Proceed to Payment
+                                </button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .pricing-details {
+        font-size: 1.1rem;
+    }
+    .card {
+        border-radius: 10px;
+    }
+    .card-header {
+        border-radius: 10px 10px 0 0 !important;
+    }
+</style>
