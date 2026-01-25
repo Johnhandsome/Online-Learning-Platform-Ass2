@@ -1,183 +1,119 @@
 @model Online_Learning_Platform_Ass1.Service.DTOs.LearningPath.UserLearningPathWithProgressDto
 
 @{
-    ViewData["Title"] = $"Progress: {Model.Title}";
+    ViewData["Title"] = Model.Title;
 }
 
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-12">
-            <div class="mb-4">
-                <a asp-action="MyPaths" class="btn btn-outline-secondary btn-sm mb-3">
-                    <i class="bi bi-arrow-left"></i> Back
-                </a>
-                <h1 class="display-5 mb-2">@Model.Title</h1>
-                <p class="text-muted">Track your learning progress</p>
+<!-- Header -->
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="MyPaths" class="text-decoration-none">My Paths</a></li>
+            <li class="breadcrumb-item active">@Model.Title</li>
+        </ol>
+    </nav>
+    
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+        <div>
+            @if (Model.IsCustomPath)
+            {
+                <span class="badge bg-primary bg-opacity-10 text-primary mb-2">Custom Path</span>
+            }
+            <h1 class="fw-bold mb-2">@Model.Title</h1>
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <p class="text-muted">@Model.Description</p>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Progress Overview -->
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 12px;">
+    <div class="card-body p-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5 class="fw-bold mb-3">Your Progress</h5>
+                <div class="progress mb-2" style="height: 16px; border-radius: 8px;">
+                    <div class="progress-bar bg-success" style="width: @Model.ProgressPercentage%">
+                        @Model.ProgressPercentage%
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between text-muted small">
+                    <span>@Model.CompletedCourses of @Model.TotalCourses courses completed</span>
+                    <span>Started: @Model.EnrolledAt.ToString("MMM dd, yyyy")</span>
+                </div>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                @if (Model.ProgressPercentage == 100)
+                {
+                    <span class="badge bg-success fs-6 px-3 py-2">
+                        <i class="bi bi-trophy-fill me-1"></i>Completed!
+                    </span>
+                }
+                else
+                {
+                    <span class="text-muted">@(Model.TotalCourses - Model.CompletedCourses) courses remaining</span>
+                }
             </div>
         </div>
     </div>
+</div>
 
-    <div class="row">
-        <!-- Main Content -->
-        <div class="col-lg-8">
-            <!-- Progress Overview -->
-            <div class="card card-modern shadow-sm mb-4">
-                <div class="card-header bg-gradient-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Progress Overview</h5>
-                </div>
-                <div class="card-body">
-                    <!-- Main Progress Bar -->
-                    <div class="mb-4">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="text-muted">Overall Completion</label>
-                            <h5 class="mb-0">
-                                <span class="badge bg-success">@Model.ProgressPercentage%</span>
-                            </h5>
+<!-- Courses List -->
+<div class="card border-0 shadow-sm" style="border-radius: 12px;">
+    <div class="card-header bg-white border-0 p-4">
+        <h5 class="mb-0 fw-bold">
+            <i class="bi bi-list-check me-2 text-primary"></i>Courses in this Path
+        </h5>
+    </div>
+    <div class="list-group list-group-flush">
+        @{ int index = 1; }
+        @foreach (var course in Model.Courses)
+        {
+            <div class="list-group-item p-4">
+                <div class="d-flex gap-3">
+                    <!-- Step Number -->
+                    <div class="flex-shrink-0">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                             style="width: 48px; height: 48px; background: #0056d2; color: white;">
+                            @index
                         </div>
-                        <div class="progress" style="height: 32px;">
-                            <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" 
-                                 role="progressbar" 
-                                 style="width: @(Model.ProgressPercentage)%"
-                                 aria-valuenow="@Model.ProgressPercentage" 
-                                 aria-valuemin="0" 
-                                 aria-valuemax="100">
-                                <span class="fw-bold">@Model.CompletedCourses / @Model.TotalCourses courses</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Status Cards -->
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <div class="card border-0 bg-light text-center">
-                                <div class="card-body">
-                                    <h4 class="text-primary mb-0">@Model.TotalCourses</h4>
-                                    <small class="text-muted">Total Courses</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card border-0 bg-light text-center">
-                                <div class="card-body">
-                                    <h4 class="text-success mb-0">@Model.CompletedCourses</h4>
-                                    <small class="text-muted">Completed</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="card border-0 bg-light text-center">
-                                <div class="card-body">
-                                    <h4 class="text-warning mb-0">@(Model.TotalCourses - Model.CompletedCourses)</h4>
-                                    <small class="text-muted">Remaining</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr />
-
-                    <!-- Timeline -->
-                    <div class="row text-center">
-                        <div class="col-md-6">
-                            <small class="text-muted d-block">Started</small>
-                            <h6 class="mb-0">@Model.EnrolledAt.ToString("MMM dd, yyyy")</h6>
-                        </div>
-                        @if (Model.CompletedAt.HasValue)
-                        {
-                            <div class="col-md-6">
-                                <small class="text-muted d-block">Completed</small>
-                                <h6 class="mb-0">@Model.CompletedAt.Value.ToString("MMM dd, yyyy")</h6>
-                            </div>
-                        }
-                    </div>
-                </div>
-            </div>
-
-            <!-- Courses in Path -->
-            <div class="card card-modern shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="bi bi-book"></i> Courses in this Path</h5>
-                </div>
-                <div class="card-body">
-                    <div class="list-group list-group-flush">
-                        @{
-                            int courseIndex = 1;
-                        }
-                        @foreach (var course in Model.Courses)
-                        {
-                            <a href="#" class="list-group-item list-group-item-action">
-                                <div class="d-flex w-100 justify-content-between align-items-center">
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1">
-                                            <span class="badge bg-secondary me-2">@courseIndex</span>
-                                            @course.Title
-                                        </h6>
-                                        <small class="text-muted d-block mb-2">
-                                            <i class="bi bi-person"></i> @course.InstructorName
-                                        </small>
-                                        <small class="text-muted">
-                                            <i class="bi bi-tag"></i> @course.CategoryName
-                                        </small>
-                                    </div>
-                                    <div class="text-end ms-2">
-                                        <small class="text-muted d-block">@course.Price.ToString("C")</small>
-                                        <i class="bi bi-check-circle text-success"></i>
-                                    </div>
-                                </div>
-                            </a>
-                            courseIndex++;
-                        }
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <!-- Path Info Card -->
-            <div class="card card-modern sticky-top shadow-sm mb-4" style="top: 20px;">
-                <div class="card-header bg-gradient-primary text-white text-center">
-                    <h5 class="mb-0">Path Information</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <small class="text-muted d-block">Path Price</small>
-                        <h4 class="text-success mb-0">@Model.Price.ToString("C")</h4>
                     </div>
                     
-                    <hr />
-
-                    <div class="mb-3">
-                        <small class="text-muted d-block">Status</small>
-                        <span class="badge bg-success">@Model.EnrollmentStatus</span>
-                    </div>
-
-                    <div class="mb-3">
-                        <small class="text-muted d-block">Total Courses</small>
-                        <h5 class="mb-0">@Model.TotalCourses</h5>
-                    </div>
-
-                    <div class="mb-3">
-                        <small class="text-muted d-block">Completed</small>
-                        <h5 class="mb-0">@Model.CompletedCourses / @Model.TotalCourses</h5>
-                    </div>
-
-                    <hr />
-
-                    <div class="d-grid gap-2">
-                        <a asp-controller="Course" asp-action="MyCourses" class="btn btn-primary">
-                            <i class="bi bi-play-circle"></i> My Courses
-                        </a>
-                        <form asp-controller="LearningPath" asp-action="DropPath" method="post">
-                            <input type="hidden" name="enrollmentId" value="@Model.EnrollmentId" />
-                            <button type="submit" class="btn btn-outline-danger w-100"
-                                    onclick="return confirm('Are you sure you want to drop this learning path?');">
-                                <i class="bi bi-trash"></i> Drop Path
-                            </button>
-                        </form>
+                    <!-- Course Info -->
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="fw-bold mb-1">@course.Title</h6>
+                                <p class="text-muted small mb-2">@course.Description</p>
+                                <div class="d-flex gap-3 text-muted small">
+                                    <span><i class="bi bi-person me-1"></i>@course.InstructorName</span>
+                                    <span><i class="bi bi-tag me-1"></i>@course.CategoryName</span>
+                                </div>
+                            </div>
+                            <a asp-controller="Course" asp-action="Details" asp-route-id="@course.Id" 
+                               class="btn btn-sm btn-outline-primary">
+                                View
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+            index++;
+        }
     </div>
+</div>
+
+<!-- Actions -->
+<div class="d-flex justify-content-between align-items-center mt-4">
+    <a asp-action="MyPaths" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back to My Paths
+    </a>
+    <form asp-action="DropPath" method="post" onsubmit="return confirm('Are you sure you want to drop this learning path?');">
+        <input type="hidden" name="enrollmentId" value="@Model.EnrollmentId" />
+        <button type="submit" class="btn btn-outline-danger">
+            <i class="bi bi-trash me-1"></i>Drop Path
+        </button>
+    </form>
 </div>
