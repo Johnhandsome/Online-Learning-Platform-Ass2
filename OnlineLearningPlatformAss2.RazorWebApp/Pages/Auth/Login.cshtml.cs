@@ -67,7 +67,7 @@ namespace OnlineLearningPlatformAss2.RazorWebApp.Pages.Account
 
                     _logger.LogInformation("User {Email} logged in successfully", Input.Email);
                     SuccessMessage = "Login successful!";
-                    return RedirectToPage("/Index");
+                    return RedirectToPage("/User/Dashboard");
                 }
                 else
                 {
