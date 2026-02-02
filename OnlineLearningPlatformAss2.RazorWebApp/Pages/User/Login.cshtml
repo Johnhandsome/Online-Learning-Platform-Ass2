@@ -1,0 +1,47 @@
+@page
+@model OnlineLearningPlatformAss2.RazorWebApp.Pages.User.LoginModel
+
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-4">
+        <div class="card shadow border-0">
+            <div class="card-header bg-primary text-white text-center">
+                <h3><i class="bi bi-box-arrow-in-right"></i> Login</h3>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="LoginDto.Username" class="form-label">Username</label>
+                        <input asp-for="LoginDto.Username" class="form-control" />
+                        <span asp-validation-for="LoginDto.Username" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="LoginDto.Password" class="form-label">Password</label>
+                        <input asp-for="LoginDto.Password" type="password" class="form-control" />
+                        <span asp-validation-for="LoginDto.Password" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <p>Don't have an account? <a asp-page="/User/Register">Register here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

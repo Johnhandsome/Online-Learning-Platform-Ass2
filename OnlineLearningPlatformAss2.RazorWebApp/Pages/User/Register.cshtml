@@ -1,0 +1,59 @@
+@page
+@model OnlineLearningPlatformAss2.RazorWebApp.Pages.User.RegisterModel
+
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-4">
+        <div class="card shadow border-0">
+            <div class="card-header bg-success text-white text-center">
+                <h3><i class="bi bi-person-plus"></i> Register</h3>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="RegisterDto.Username" class="form-label">Username</label>
+                        <input asp-for="RegisterDto.Username" class="form-control" />
+                        <span asp-validation-for="RegisterDto.Username" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="RegisterDto.Email" class="form-label">Email</label>
+                        <input asp-for="RegisterDto.Email" type="email" class="form-control" />
+                        <span asp-validation-for="RegisterDto.Email" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="RegisterDto.Password" class="form-label">Password</label>
+                        <input asp-for="RegisterDto.Password" type="password" class="form-control" />
+                        <span asp-validation-for="RegisterDto.Password" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="RegisterDto.ConfirmPassword" class="form-label">Confirm Password</label>
+                        <input asp-for="RegisterDto.ConfirmPassword" type="password" class="form-control" />
+                        <span asp-validation-for="RegisterDto.ConfirmPassword" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-person-plus"></i> Register
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <p>Already have an account? <a asp-page="/User/Login">Login here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

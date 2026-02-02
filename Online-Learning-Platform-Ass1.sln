@@ -1,5 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.1.11312.151 d18.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Online-Learning-Platform-Ass1.Web", "Online-Learning-Platform-Ass1.Web\Online-Learning-Platform-Ass1.Web.csproj", "{253AECFA-9AE1-4F4B-A794-7867C509EEEB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Online-Learning-Platform-Ass1.Service", "Online-Learning-Platform-Ass1.Service\Online-Learning-Platform-Ass1.Service.csproj", "{009AD034-52C4-4D2D-80D0-CBA731DDF09C}"
@@ -8,11 +11,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Online-Learning-Platform-As
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{1428B084-37FA-49F1-9668-8F40C7D816F5}"
 	ProjectSection(SolutionItems) = preProject
-		Directory.Packages.props = Directory.Packages.props
-		Directory.Build.props = Directory.Build.props
-		.gitignore = .gitignore
-		.gitattributes = .gitattributes
 		.editorconfig = .editorconfig
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+		Directory.Build.props = Directory.Build.props
+		Directory.Packages.props = Directory.Packages.props
 		.config\dotnet-tools.json = .config\dotnet-tools.json
 	EndProjectSection
 EndProject
@@ -34,5 +37,11 @@ Global
 		{43F2D029-82E6-454C-9B91-C9699D168214}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43F2D029-82E6-454C-9B91-C9699D168214}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43F2D029-82E6-454C-9B91-C9699D168214}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E98583C3-9D87-4971-B46E-3F2575DE2E07}
 	EndGlobalSection
 EndGlobal
