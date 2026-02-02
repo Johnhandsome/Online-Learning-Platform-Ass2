@@ -21,6 +21,9 @@
   <link rel="stylesheet" href="~/css/modern-design-system.css" asp-append-version="true"/>
   <link rel="stylesheet" href="~/css/components.css" asp-append-version="true"/>
   <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+  
+  <!-- Page-specific styles -->
+  @await RenderSectionAsync("Styles", required: false)
 </head>
 
 <body>
@@ -130,9 +133,7 @@
     </div>
   }
   
-  <div class="container py-4">
-    @RenderBody()
-  </div>
+  @RenderBody()
 </main>
 
 <!-- Footer (Modern Coursera-inspired) -->
