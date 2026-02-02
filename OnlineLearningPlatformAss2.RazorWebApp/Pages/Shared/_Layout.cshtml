@@ -1,46 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>@ViewData["Title"] - LearnHub</title>
+  <meta name="description" content="LearnHub - Premium online learning platform with thousands of courses from expert instructors.">
   
-  <!-- Google Fonts - Coursera style -->
+  <!-- Preload critical resources -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;500;600;700;900&display=swap" as="style">
+  
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
   
   <!-- Bootstrap CSS -->
-  <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   
   <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   
   <!-- Custom CSS -->
   <link rel="stylesheet" href="~/css/modern-design-system.css" asp-append-version="true"/>
+  <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true"/>
   <link rel="stylesheet" href="~/css/components.css" asp-append-version="true"/>
   <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
   
   <!-- Page-specific styles -->
   @await RenderSectionAsync("Styles", required: false)
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>??</text></svg>">
 </head>
 
 <body>
-<!-- Top Banner (Coursera style) -->
-<div class="top-banner bg-dark text-white text-center py-2 d-none d-md-block">
-  <small>
-    <i class="bi bi-stars"></i> 
-    New to learning? <a href="/Assessment/Start" class="text-info text-decoration-underline">Take our skill assessment</a> to get personalized recommendations!
-  </small>
+<!-- Top Banner -->
+<div class="top-banner">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-center">
+      <i class="bi bi-stars me-2"></i>
+      <span>New to learning? <a href="/Assessment/Start">Take our skill assessment</a> to get personalized recommendations!</span>
+    </div>
+  </div>
 </div>
 
+<!-- Navigation -->
 <header>
-  <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom" id="mainNavbar">
+  <nav class="navbar navbar-expand-lg navbar-light bg-white">
     <div class="container">
       <!-- Logo -->
-      <a class="navbar-brand fw-bold" asp-page="/Index" style="color: #0056d2; font-size: 1.5rem;">
-        <i class="bi bi-mortarboard-fill me-1"></i>LearnHub
+      <a class="navbar-brand" asp-page="/Index">
+        <i class="bi bi-mortarboard-fill"></i>
+        LearnHub
       </a>
       
       <!-- Mobile Toggle -->
@@ -49,59 +60,75 @@
       </button>
       
       <div class="collapse navbar-collapse" id="navbarNav">
-        <!-- Main Nav -->
+        <!-- Main Navigation -->
         <ul class="navbar-nav me-auto">
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle fw-semibold" href="#" data-bs-toggle="dropdown">
+            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
               Explore
             </a>
-            <ul class="dropdown-menu dropdown-menu-lg shadow border-0 p-3">
-              <li><a class="dropdown-item py-2" asp-page="/Index"><i class="bi bi-grid me-2 text-primary"></i>Browse All Courses</a></li>
-              <li><a class="dropdown-item py-2" asp-page="/LearningPath/Browse"><i class="bi bi-signpost-split me-2 text-success"></i>Learning Paths</a></li>
+            <ul class="dropdown-menu">
+              <li>
+                <a class="dropdown-item" asp-page="/Index">
+                  <i class="bi bi-grid me-2"></i>Browse All Courses
+                  <small class="d-block text-muted">Explore our complete course library</small>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" asp-page="/LearningPath/Browse">
+                  <i class="bi bi-signpost-split me-2"></i>Learning Paths
+                  <small class="d-block text-muted">Structured learning journeys</small>
+                </a>
+              </li>
               <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item py-2" asp-page="/Assessment/Start"><i class="bi bi-clipboard-check me-2 text-info"></i>Skill Assessment</a></li>
+              <li>
+                <a class="dropdown-item" asp-page="/Assessment/Start">
+                  <i class="bi bi-clipboard-check me-2"></i>Skill Assessment
+                  <small class="d-block text-muted">Get personalized recommendations</small>
+                </a>
+              </li>
             </ul>
           </li>
         </ul>
         
-        <!-- Search Bar (Coursera style) -->
-        <form class="d-none d-lg-flex me-3" style="width: 400px;" method="get" asp-page="/Index">
-          <div class="input-group">
-            <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
-            <input type="text" class="form-control bg-light border-start-0" name="searchTerm" placeholder="What do you want to learn?" style="border-radius: 0 4px 4px 0;">
+        <!-- Search Bar -->
+        <form class="d-none d-lg-flex me-3" method="get" asp-page="/Index">
+          <div class="search-container">
+            <i class="bi bi-search search-icon"></i>
+            <input type="text" 
+                   class="search-input" 
+                   name="searchTerm" 
+                   placeholder="What do you want to learn?">
           </div>
         </form>
         
-        <!-- Right Nav -->
+        <!-- User Navigation -->
         <ul class="navbar-nav">
           @if (User.Identity?.IsAuthenticated == true)
           {
             <li class="nav-item">
               <a class="nav-link" asp-page="/Course/MyCourses">
-                <i class="bi bi-journal-bookmark"></i> My Learning
+                <i class="bi bi-journal-bookmark me-1"></i>My Learning
               </a>
             </li>
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                 <i class="bi bi-person-circle me-1"></i>@User.Identity.Name
               </a>
-              <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                <li><a class="dropdown-item" asp-page="/LearningPath/MyPaths"><i class="bi bi-signpost-2 me-2"></i>My Paths</a></li>
-                <li><a class="dropdown-item" asp-page="/Order/MyOrders"><i class="bi bi-receipt me-2"></i>My Orders</a></li>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" asp-page="/LearningPath/MyPaths">My Paths</a></li>
+                <li><a class="dropdown-item" asp-page="/Order/MyOrders">My Orders</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-danger" asp-page="/User/Logout"><i class="bi bi-box-arrow-right me-2"></i>Log Out</a></li>
+                <li><a class="dropdown-item text-danger" asp-page="/User/Logout">Log Out</a></li>
               </ul>
             </li>
           }
           else
           {
             <li class="nav-item">
-              <a class="nav-link fw-semibold" asp-page="/User/Login">Log In</a>
+              <a class="nav-link" asp-page="/User/Login">Log In</a>
             </li>
-            <li class="nav-item ms-2">
-              <a class="btn btn-primary px-4" asp-page="/User/Register" style="background: #0056d2; border: none;">
-                Join for Free
-              </a>
+            <li class="nav-item">
+              <a class="btn btn-primary" asp-page="/User/Register">Join for Free</a>
             </li>
           }
         </ul>
@@ -111,24 +138,16 @@
 </header>
 
 <!-- Main Content -->
-<main class="min-vh-100">
+<main>
   @if (TempData["SuccessMessage"] != null)
   {
-    <div class="container mt-3">
-      <div class="alert alert-success alert-dismissible fade show d-flex align-items-center" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i>
-        <div>@TempData["SuccessMessage"]</div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      </div>
-    </div>
-  }
-  @if (TempData["ErrorMessage"] != null)
-  {
-    <div class="container mt-3">
-      <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        <div>@TempData["ErrorMessage"]</div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="alert-container">
+      <div class="container">
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <i class="bi bi-check-circle-fill me-2"></i>
+          @TempData["SuccessMessage"]
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
       </div>
     </div>
   }
@@ -136,114 +155,76 @@
   @RenderBody()
 </main>
 
-<!-- Footer (Modern Coursera-inspired) -->
-<footer class="footer-main">
+<!-- Footer -->
+<footer class="footer">
   <div class="container">
-    <!-- Top Section -->
-    <div class="row g-4 pb-4">
-      <!-- Brand & Description -->
-      <div class="col-lg-4 col-md-6">
-        <div class="footer-brand mb-3">
+    <div class="row">
+      <div class="col-lg-4">
+        <div class="footer-brand">
           <i class="bi bi-mortarboard-fill"></i>
           <span>LearnHub</span>
         </div>
         <p class="footer-description">
-          A high-quality online learning platform that helps you develop skills and advance your career. 
-          Learn anytime, anywhere with courses designed by experts.
+          A high-quality online learning platform that helps you develop skills 
+          and advance your career with expert-led courses.
         </p>
-        <div class="footer-social">
-          <a href="https://github.com/PRN222-Group-1/Online-Learning-Platform-Ass1" target="_blank" title="GitHub">
-            <i class="bi bi-github"></i>
-          </a>
-          <a href="#" title="Facebook">
-            <i class="bi bi-facebook"></i>
-          </a>
-          <a href="#" title="LinkedIn">
-            <i class="bi bi-linkedin"></i>
-          </a>
-          <a href="#" title="YouTube">
-            <i class="bi bi-youtube"></i>
-          </a>
+        <div class="social-links">
+          <a href="#"><i class="bi bi-facebook"></i></a>
+          <a href="#"><i class="bi bi-twitter"></i></a>
+          <a href="#"><i class="bi bi-linkedin"></i></a>
+          <a href="#"><i class="bi bi-youtube"></i></a>
         </div>
       </div>
-      
-      <!-- Quick Links -->
-      <div class="col-lg-2 col-md-6 col-6">
-        <h6 class="footer-heading">Explore</h6>
-        <ul class="footer-links">
-          <li><a asp-page="/Index">All Courses</a></li>
-          <li><a asp-page="/LearningPath/Browse">Learning Paths</a></li>
-          <li><a asp-page="/Assessment/Start">Skill Assessment</a></li>
-        </ul>
-      </div>
-      
-      <!-- For Learners -->
-      <div class="col-lg-2 col-md-6 col-6">
-        <h6 class="footer-heading">Learners</h6>
-        <ul class="footer-links">
-          <li><a asp-page="/Course/MyCourses">My Courses</a></li>
-          <li><a asp-page="/LearningPath/MyPaths">My Paths</a></li>
-          <li><a asp-page="/Order/MyOrders">My Orders</a></li>
-        </ul>
-      </div>
-      
-      <!-- About -->
-      <div class="col-lg-2 col-md-6 col-6">
-        <h6 class="footer-heading">About Us</h6>
-        <ul class="footer-links">
-          <li><a href="#">About</a></li>
-          <li><a href="#">Our Team</a></li>
-          <li><a asp-page="/Privacy">Privacy Policy</a></li>
-        </ul>
-      </div>
-      
-      <!-- Contact -->
-      <div class="col-lg-2 col-md-6 col-6">
-        <h6 class="footer-heading">Contact</h6>
-        <ul class="footer-links footer-contact">
-          <li>
-            <i class="bi bi-envelope"></i>
-            <a href="mailto:support@learnhub.com">support@learnhub.com</a>
-          </li>
-          <li>
-            <i class="bi bi-telephone"></i>
-            <span>1900 1234</span>
-          </li>
-          <li>
-            <i class="bi bi-geo-alt"></i>
-            <span>FPT University, HCM</span>
-          </li>
-        </ul>
+      <div class="col-lg-8">
+        <div class="row">
+          <div class="col-md-3">
+            <h6>Company</h6>
+            <ul class="footer-links">
+              <li><a href="#">About</a></li>
+              <li><a href="#">Careers</a></li>
+              <li><a href="#">Press</a></li>
+              <li><a href="#">Blog</a></li>
+            </ul>
+          </div>
+          <div class="col-md-3">
+            <h6>Community</h6>
+            <ul class="footer-links">
+              <li><a href="#">Learners</a></li>
+              <li><a href="#">Partners</a></li>
+              <li><a href="#">Developers</a></li>
+              <li><a href="#">Beta Testers</a></li>
+            </ul>
+          </div>
+          <div class="col-md-3">
+            <h6>More</h6>
+            <ul class="footer-links">
+              <li><a href="#">Terms</a></li>
+              <li><a asp-page="/Privacy">Privacy</a></li>
+              <li><a href="#">Help</a></li>
+              <li><a href="#">Accessibility</a></li>
+            </ul>
+          </div>
+          <div class="col-md-3">
+            <h6>Mobile App</h6>
+            <ul class="footer-links">
+              <li><a href="#">Download iOS App</a></li>
+              <li><a href="#">Download Android App</a></li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
-    
-    <!-- Divider -->
-    <hr class="footer-divider">
-    
-    <!-- Bottom Section -->
+    <hr>
     <div class="footer-bottom">
-      <div class="footer-copyright">
-        <p>&copy; 2025 LearnHub - PRN222 Group 1. All rights reserved.</p>
-        <p class="footer-tech">
-          Built with <i class="bi bi-heart-fill text-danger"></i> using 
-          <strong>ASP.NET Core Razor Pages</strong> &bull; <strong>Entity Framework Core</strong> &bull; <strong>SQL Server</strong>
-        </p>
-      </div>
-      <div class="footer-legal">
-        <a href="#">Terms of Service</a>
-        <a asp-page="/Privacy">Privacy Policy</a>
-        <a href="#">Help Center</a>
-      </div>
+      <p>&copy; 2025 LearnHub Inc. All rights reserved.</p>
     </div>
   </div>
 </footer>
 
 <!-- Scripts -->
-<script src="~/lib/jquery/dist/jquery.min.js"></script>
-<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="~/js/site.js" asp-append-version="true"></script>
 
 @await RenderSectionAsync("Scripts", false)
 </body>
-
 </html>

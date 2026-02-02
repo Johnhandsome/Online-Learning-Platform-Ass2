@@ -10,4 +10,6 @@ public interface IUserService
     Task<IEnumerable<UserDto>> GetAllUsersAsync();
     Task<bool> HasCompletedAssessmentAsync(Guid userId);
     Task UpdateAssessmentStatusAsync(Guid userId, bool completed);
+    Task<UserDto?> GetUserByIdAsync(Guid userId);
+    Task<bool> UserExistsAsync(string usernameOrEmail);
 }

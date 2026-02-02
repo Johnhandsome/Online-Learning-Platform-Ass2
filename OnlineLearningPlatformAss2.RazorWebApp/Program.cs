@@ -24,20 +24,45 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.SameSite = SameSiteMode.Lax;
     });
 
-// Add DbContext
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<OnlineLearningContext>(options =>
-    options.UseSqlServer(connectionString));
+// Add DbContext - Use InMemory for development
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddDbContext<OnlineLearningContext>(options =>
+        options.UseInMemoryDatabase("OnlineLearningDb"));
+}
+else
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    builder.Services.AddDbContext<OnlineLearningContext>(options =>
+        options.UseSqlServer(connectionString));
+}
 
 // Add services
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<ILearningPathService, LearningPathService>();
+builder.Services.AddScoped<IAssessmentService, AssessmentService>();
+builder.Services.AddScoped<DatabaseSeedService>();
 
 // Add SignalR
 builder.Services.AddSignalR();
 
 var app = builder.Build();
+
+// Seed database
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var seedService = scope.ServiceProvider.GetRequiredService<DatabaseSeedService>();
+        await seedService.SeedAsync();
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
+}
 
 if (!app.Environment.IsDevelopment())
 {

@@ -1,38 +1,225 @@
 using OnlineLearningPlatformAss2.Service.Services.Interfaces;
 using OnlineLearningPlatformAss2.Service.DTOs.User;
 using OnlineLearningPlatformAss2.Service.Results;
+using OnlineLearningPlatformAss2.Data.Database;
+using OnlineLearningPlatformAss2.Data.Database.Entities;
+using Microsoft.EntityFrameworkCore;
+using BCrypt.Net;
 
 namespace OnlineLearningPlatformAss2.Service.Services;
 
 public class UserService : IUserService
 {
-    public Task<ServiceResult<Guid>> RegisterAsync(UserRegisterDto dto)
+    private readonly OnlineLearningContext _context;
+
+    public UserService(OnlineLearningContext context)
     {
-        // Placeholder implementation
-        return Task.FromResult(ServiceResult<Guid>.FailureResult("Service not implemented"));
+        _context = context;
     }
 
-    public Task<ServiceResult<UserLoginResponseDto>> LoginAsync(UserLoginDto dto)
+    public async Task<ServiceResult<Guid>> RegisterAsync(UserRegisterDto dto)
     {
-        // Placeholder implementation
-        return Task.FromResult(ServiceResult<UserLoginResponseDto>.FailureResult("Service not implemented"));
+        try
+        {
+            // Validate input
+            if (string.IsNullOrWhiteSpace(dto.Username))
+                return ServiceResult<Guid>.FailureResult("Username is required.");
+
+            if (string.IsNullOrWhiteSpace(dto.Email))
+                return ServiceResult<Guid>.FailureResult("Email is required.");
+
+            if (string.IsNullOrWhiteSpace(dto.Password))
+                return ServiceResult<Guid>.FailureResult("Password is required.");
+
+            if (dto.Password != dto.ConfirmPassword)
+                return ServiceResult<Guid>.FailureResult("Passwords do not match.");
+
+            if (dto.Password.Length < 6)
+                return ServiceResult<Guid>.FailureResult("Password must be at least 6 characters long.");
+
+            // Check if username already exists
+            var existingUser = await _context.Users
+                .FirstOrDefaultAsync(u => u.Username.ToLower() == dto.Username.ToLower() || 
+                                         u.Email.ToLower() == dto.Email.ToLower());
+            
+            if (existingUser != null)
+            {
+                if (existingUser.Username.ToLower() == dto.Username.ToLower())
+                    return ServiceResult<Guid>.FailureResult("Username already exists.");
+                
+                if (existingUser.Email.ToLower() == dto.Email.ToLower())
+                    return ServiceResult<Guid>.FailureResult("Email already exists.");
+            }
+
+            // Hash password
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+
+            // Get default user role
+            var defaultRole = await _context.Roles
+                .FirstOrDefaultAsync(r => r.Name.ToLower() == "user");
+
+            // Create new user
+            var user = new User
+            {
+                Id = Guid.NewGuid(),
+                Username = dto.Username.Trim(),
+                Email = dto.Email.Trim().ToLower(),
+                PasswordHash = hashedPassword,
+                CreateAt = DateTime.UtcNow,
+                RoleId = defaultRole?.Id,
+                HasCompletedAssessment = false
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            return ServiceResult<Guid>.SuccessResult(user.Id);
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<Guid>.FailureResult($"Registration failed: {ex.Message}");
+        }
     }
 
-    public Task<IEnumerable<UserDto>> GetAllUsersAsync()
+    public async Task<ServiceResult<UserLoginResponseDto>> LoginAsync(UserLoginDto dto)
     {
-        // Placeholder implementation
-        return Task.FromResult(Enumerable.Empty<UserDto>());
+        try
+        {
+            if (string.IsNullOrWhiteSpace(dto.UsernameOrEmail))
+                return ServiceResult<UserLoginResponseDto>.FailureResult("Username or email is required.");
+
+            if (string.IsNullOrWhiteSpace(dto.Password))
+                return ServiceResult<UserLoginResponseDto>.FailureResult("Password is required.");
+
+            // Find user by username or email
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => 
+                    u.Username.ToLower() == dto.UsernameOrEmail.ToLower() || 
+                    u.Email.ToLower() == dto.UsernameOrEmail.ToLower());
+
+            if (user == null)
+                return ServiceResult<UserLoginResponseDto>.FailureResult("Invalid username/email or password.");
+
+            // Verify password
+            if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+                return ServiceResult<UserLoginResponseDto>.FailureResult("Invalid username/email or password.");
+
+            // Create response DTO
+            var response = new UserLoginResponseDto(
+                user.Id,
+                user.Username,
+                user.Email,
+                user.Role?.Name,
+                user.CreateAt
+            );
+
+            return ServiceResult<UserLoginResponseDto>.SuccessResult(response);
+        }
+        catch (Exception ex)
+        {
+            return ServiceResult<UserLoginResponseDto>.FailureResult($"Login failed: {ex.Message}");
+        }
     }
 
-    public Task<bool> HasCompletedAssessmentAsync(Guid userId)
+    public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
     {
-        // Placeholder implementation
-        return Task.FromResult(false);
+        try
+        {
+            var users = await _context.Users
+                .Include(u => u.Role)
+                .Select(u => new UserDto(
+                    u.Id,
+                    u.Username,
+                    u.Email,
+                    u.Role != null ? u.Role.Name : null,
+                    u.CreateAt
+                ))
+                .ToListAsync();
+
+            return users;
+        }
+        catch
+        {
+            return Enumerable.Empty<UserDto>();
+        }
     }
 
-    public Task UpdateAssessmentStatusAsync(Guid userId, bool completed)
+    public async Task<bool> HasCompletedAssessmentAsync(Guid userId)
     {
-        // Placeholder implementation
-        return Task.CompletedTask;
+        try
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            return user?.HasCompletedAssessment ?? false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task UpdateAssessmentStatusAsync(Guid userId, bool completed)
+    {
+        try
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user != null)
+            {
+                user.HasCompletedAssessment = completed;
+                if (completed)
+                {
+                    user.AssessmentCompletedAt = DateTime.UtcNow;
+                }
+
+                await _context.SaveChangesAsync();
+            }
+        }
+        catch
+        {
+            // Log error if needed
+        }
+    }
+
+    public async Task<UserDto?> GetUserByIdAsync(Guid userId)
+    {
+        try
+        {
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+                return null;
+
+            return new UserDto(
+                user.Id,
+                user.Username,
+                user.Email,
+                user.Role?.Name,
+                user.CreateAt
+            );
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public async Task<bool> UserExistsAsync(string usernameOrEmail)
+    {
+        try
+        {
+            return await _context.Users
+                .AnyAsync(u => u.Username.ToLower() == usernameOrEmail.ToLower() || 
+                              u.Email.ToLower() == usernameOrEmail.ToLower());
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

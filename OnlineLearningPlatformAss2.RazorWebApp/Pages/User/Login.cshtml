@@ -3,416 +3,190 @@
 
 @{
     ViewData["Title"] = "Sign in to LearnHub";
-    Layout = null;
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"]</title>
-    <meta name="description" content="Sign in to your LearnHub account and continue your learning journey with thousands of courses." />
-    
-    <!-- Preload critical resources -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;500;600;700;900&display=swap" as="style">
-    
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="~/css/modern-design-system.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/components.css" asp-append-version="true" />
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>??</text></svg>">
-</head>
+@section Styles {
+    <link rel="stylesheet" href="~/css/auth.css" asp-append-version="true" />
+}
 
-<body class="bg-gradient">
-    <div class="auth-container">
-        <div class="auth-card fade-in-up">
-            <!-- Header Section -->
-            <div class="auth-header">
-                <a href="~/" class="auth-logo" aria-label="Go to LearnHub homepage">
-                    <i class="bi bi-mortarboard-fill" aria-hidden="true"></i>
-                    <span>LearnHub</span>
-                </a>
-                <h1 class="auth-title">Welcome back</h1>
-                <p class="auth-subtitle">Sign in to continue your learning journey</p>
-            </div>
-
-            <!-- Main Content -->
-            <div class="auth-body">
-                <!-- Alert Messages -->
-                @if (TempData["SuccessMessage"] != null)
-                {
-                    <div class="success-message slide-in" role="alert">
-                        <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
-                        <span>@TempData["SuccessMessage"]</span>
-                    </div>
-                }
-
-                @if (TempData["ErrorMessage"] != null)
-                {
-                    <div class="validation-summary-errors slide-in" role="alert">
-                        <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
-                        <span>@TempData["ErrorMessage"]</span>
-                    </div>
-                }
-
-                <!-- Model Validation Summary -->
-                <div asp-validation-summary="ModelOnly" class="validation-summary-errors" role="alert"></div>
-
-                <!-- Sign In Form -->
-                <form method="post" class="auth-form" novalidate>
-                    <div class="form-group">
-                        <label asp-for="LoginDto.UsernameOrEmail" class="form-label">
-                            <i class="bi bi-person" aria-hidden="true"></i>
-                            <span>Email or Username</span>
-                        </label>
-                        <input asp-for="LoginDto.UsernameOrEmail" 
-                               type="email"
-                               class="form-control" 
-                               placeholder="Enter your email or username"
-                               autocomplete="email"
-                               required
-                               aria-describedby="username-help" />
-                        <span asp-validation-for="LoginDto.UsernameOrEmail" class="field-validation-error" role="alert"></span>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label asp-for="LoginDto.Password" class="form-label">
-                            <i class="bi bi-shield-lock" aria-hidden="true"></i>
-                            <span>Password</span>
-                        </label>
-                        <div class="position-relative">
-                            <input asp-for="LoginDto.Password" 
-                                   type="password" 
-                                   class="form-control" 
-                                   placeholder="Enter your password"
-                                   autocomplete="current-password"
-                                   required
-                                   id="password-input" />
-                            <button type="button" 
-                                    class="btn btn-link position-absolute top-50 end-0 translate-middle-y pe-3 border-0 bg-transparent text-muted"
-                                    id="toggle-password"
-                                    aria-label="Toggle password visibility">
-                                <i class="bi bi-eye" id="password-icon"></i>
-                            </button>
+<div class="auth-page">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="auth-card">
+                    <!-- Header -->
+                    <div class="auth-header text-center">
+                        <div class="auth-logo mb-4">
+                            <i class="bi bi-mortarboard-fill"></i>
+                            <span>LearnHub</span>
                         </div>
-                        <span asp-validation-for="LoginDto.Password" class="field-validation-error" role="alert"></span>
+                        <h1 class="auth-title">Welcome back</h1>
+                        <p class="auth-subtitle">Sign in to continue your learning journey</p>
                     </div>
 
-                    <!-- Additional Options -->
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="rememberMe" name="rememberMe" />
-                            <label class="form-check-label" for="rememberMe">
-                                Keep me signed in
+                    <!-- Alerts -->
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            @TempData["SuccessMessage"]
+                        </div>
+                    }
+
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            @TempData["ErrorMessage"]
+                        </div>
+                    }
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <!-- Login Form -->
+                    <form method="post" class="auth-form">
+                        <div class="form-group mb-3">
+                            <label asp-for="LoginDto.UsernameOrEmail" class="form-label">
+                                Email or Username
                             </label>
-                        </div>
-                        <a href="#" class="text-decoration-none text-primary fw-semibold small" 
-                           data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">
-                            Forgot password?
-                        </a>
-                    </div>
-                    
-                    <!-- Sign In Button -->
-                    <button type="submit" class="auth-btn loading-btn" id="login-btn">
-                        <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
-                        <span>Sign In</span>
-                    </button>
-                </form>
-
-                <!-- Divider -->
-                <div class="auth-divider">
-                    <span>or</span>
-                </div>
-
-                <!-- Social Sign In -->
-                <div class="social-login">
-                    <button type="button" class="social-btn google" data-provider="google">
-                        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-                            <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18Z"/>
-                            <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2.04a4.8 4.8 0 0 1-7.18-2.53H1.83v2.07A8 8 0 0 0 8.98 17Z"/>
-                            <path fill="#FBBC05" d="M4.5 10.49a4.8 4.8 0 0 1 0-3.07V5.35H1.83a8 8 0 0 0 0 7.28l2.67-2.14Z"/>
-                            <path fill="#EA4335" d="M8.98 4.72c1.16 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.35L4.5 7.42a4.77 4.77 0 0 1 4.48-2.7Z"/>
-                        </svg>
-                        <span>Continue with Google</span>
-                    </button>
-                    
-                    <button type="button" class="social-btn github" data-provider="github">
-                        <i class="bi bi-github" style="font-size: 1.1em;"></i>
-                        <span>Continue with GitHub</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Footer -->
-            <div class="auth-footer">
-                <p class="mb-3">
-                    New to LearnHub? 
-                    <a asp-page="/User/Register" class="fw-bold">Join for free</a>
-                </p>
-                <div class="auth-links">
-                    <a href="~/" class="d-inline-flex align-items-center gap-1">
-                        <i class="bi bi-house" aria-hidden="true"></i>
-                        <span>Back to Home</span>
-                    </a>
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#helpModal">Help</a>
-                    <a asp-page="/Privacy">Privacy</a>
-                    <a href="#" data-bs-toggle="modal" data-bs-target="#accessibilityModal">Accessibility</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Forgot Password Modal -->
-    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold" id="forgotPasswordModalLabel">Reset your password</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body pt-0">
-                    <p class="text-muted">Enter your email address and we'll send you a link to reset your password.</p>
-                    <div class="form-group">
-                        <label for="resetEmail" class="form-label">Email address</label>
-                        <input type="email" class="form-control" id="resetEmail" placeholder="Enter your email">
-                    </div>
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn" style="background: var(--coursera-blue); color: white;">Send Reset Link</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Help Modal -->
-    <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header border-0">
-                    <h5 class="modal-title fw-bold" id="helpModalLabel">Need help signing in?</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="accordion" id="helpAccordion">
-                        <div class="accordion-item border-0 mb-3">
-                            <h6 class="accordion-header">
-                                <button class="accordion-button bg-light border-0 rounded" type="button" data-bs-toggle="collapse" data-bs-target="#help1">
-                                    I forgot my password
-                                </button>
-                            </h6>
-                            <div id="help1" class="accordion-collapse collapse show" data-bs-parent="#helpAccordion">
-                                <div class="accordion-body text-muted">
-                                    Click "Forgot password?" above to reset your password via email.
-                                </div>
+                            <div class="input-with-icon">
+                                <i class="bi bi-person input-icon"></i>
+                                <input asp-for="LoginDto.UsernameOrEmail" 
+                                       type="text"
+                                       class="form-control" 
+                                       placeholder="Enter your email or username"
+                                       autocomplete="username" />
                             </div>
+                            <span asp-validation-for="LoginDto.UsernameOrEmail" class="text-danger small"></span>
                         </div>
-                        <div class="accordion-item border-0 mb-3">
-                            <h6 class="accordion-header">
-                                <button class="accordion-button collapsed bg-light border-0 rounded" type="button" data-bs-toggle="collapse" data-bs-target="#help2">
-                                    I'm having trouble with social login
+                        
+                        <div class="form-group mb-4">
+                            <label asp-for="LoginDto.Password" class="form-label">Password</label>
+                            <div class="input-with-icon">
+                                <i class="bi bi-lock input-icon"></i>
+                                <input asp-for="LoginDto.Password" 
+                                       type="password" 
+                                       class="form-control" 
+                                       placeholder="Enter your password"
+                                       autocomplete="current-password"
+                                       id="password-input" />
+                                <button type="button" 
+                                        class="password-toggle"
+                                        id="toggle-password">
+                                    <i class="bi bi-eye" id="password-icon"></i>
                                 </button>
-                            </h6>
-                            <div id="help2" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
-                                <div class="accordion-body text-muted">
-                                    Make sure you have an account with the selected provider and that pop-ups are enabled.
-                                </div>
                             </div>
+                            <span asp-validation-for="LoginDto.Password" class="text-danger small"></span>
+                        </div>
+
+                        <div class="form-options mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="rememberMe" name="rememberMe" />
+                                <label class="form-check-label" for="rememberMe">
+                                    Remember me
+                                </label>
+                            </div>
+                            <a href="#" class="forgot-password" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">
+                                Forgot password?
+                            </a>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100 mb-4" id="login-btn">
+                            Sign In
+                        </button>
+                    </form>
+
+                    <!-- Divider -->
+                    <div class="divider">
+                        <span>or</span>
+                    </div>
+
+                    <!-- Social Login -->
+                    <div class="social-login">
+                        <button type="button" class="btn btn-social btn-google mb-2">
+                            <svg width="18" height="18" viewBox="0 0 18 18" class="me-2">
+                                <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18Z"/>
+                                <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2.04a4.8 4.8 0 0 1-7.18-2.53H1.83v2.07A8 8 0 0 0 8.98 17Z"/>
+                                <path fill="#FBBC05" d="M4.5 10.49a4.8 4.8 0 0 1 0-3.07V5.35H1.83a8 8 0 0 0 0 7.28l2.67-2.14Z"/>
+                                <path fill="#EA4335" d="M8.98 4.72c1.16 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.35L4.5 7.42a4.77 4.77 0 0 1 4.48-2.7Z"/>
+                            </svg>
+                            Continue with Google
+                        </button>
+                        
+                        <button type="button" class="btn btn-social btn-github">
+                            <i class="bi bi-github me-2"></i>
+                            Continue with GitHub
+                        </button>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="auth-footer text-center">
+                        <p class="mb-3">
+                            New to LearnHub? 
+                            <a asp-page="/User/Register" class="text-primary fw-semibold">Join for free</a>
+                        </p>
+                        <div class="auth-links">
+                            <a asp-page="/Index" class="text-muted text-decoration-none me-3">
+                                <i class="bi bi-house me-1"></i>Back to Home
+                            </a>
+                            <a href="#" class="text-muted text-decoration-none">Help</a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Forgot Password Modal -->
+<div class="modal fade" id="forgotPasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reset your password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">Enter your email address and we'll send you a link to reset your password.</p>
+                <div class="mb-3">
+                    <label for="resetEmail" class="form-label">Email address</label>
+                    <input type="email" class="form-control" id="resetEmail" placeholder="Enter your email">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Send Reset Link</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
     <script>
-        // Enhanced authentication interactions
         document.addEventListener('DOMContentLoaded', function() {
-            // Elements
+            // Password toggle
+            const togglePassword = document.getElementById('toggle-password');
+            const passwordInput = document.getElementById('password-input');
+            const passwordIcon = document.getElementById('password-icon');
+
+            if (togglePassword) {
+                togglePassword.addEventListener('click', function() {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    passwordIcon.className = type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+                });
+            }
+
+            // Form submission
             const loginForm = document.querySelector('.auth-form');
             const loginBtn = document.getElementById('login-btn');
-            const passwordInput = document.getElementById('password-input');
-            const togglePasswordBtn = document.getElementById('toggle-password');
-            const passwordIcon = document.getElementById('password-icon');
-            const inputs = document.querySelectorAll('.form-control');
 
-            // Password visibility toggle
-            if (togglePasswordBtn && passwordInput && passwordIcon) {
-                togglePasswordBtn.addEventListener('click', function() {
-                    const isPassword = passwordInput.type === 'password';
-                    passwordInput.type = isPassword ? 'text' : 'password';
-                    passwordIcon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
-                    this.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
-                });
-            }
-
-            // Form submission with loading state
-            if (loginForm && loginBtn) {
-                loginForm.addEventListener('submit', function(e) {
-                    // Basic client-side validation
-                    const emailInput = this.querySelector('input[asp-for="LoginDto.UsernameOrEmail"]');
-                    const passwordInput = this.querySelector('input[asp-for="LoginDto.Password"]');
-                    
-                    if (!emailInput.value.trim() || !passwordInput.value.trim()) {
-                        e.preventDefault();
-                        showError('Please fill in all required fields.');
-                        return;
-                    }
-                    
-                    // Show loading state
-                    loginBtn.classList.add('loading');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function() {
                     loginBtn.disabled = true;
-                    
-                    // Re-enable button after timeout (fallback)
-                    setTimeout(() => {
-                        loginBtn.classList.remove('loading');
-                        loginBtn.disabled = false;
-                    }, 10000);
+                    loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Signing in...';
                 });
             }
-
-            // Enhanced input focus effects
-            inputs.forEach(input => {
-                const formGroup = input.closest('.form-group');
-                
-                input.addEventListener('focus', function() {
-                    if (formGroup) {
-                        formGroup.classList.add('focused');
-                    }
-                });
-                
-                input.addEventListener('blur', function() {
-                    if (formGroup) {
-                        formGroup.classList.remove('focused');
-                    }
-                });
-
-                // Real-time validation feedback
-                input.addEventListener('input', function() {
-                    if (this.validity.valid) {
-                        this.classList.remove('is-invalid');
-                        this.classList.add('is-valid');
-                    } else {
-                        this.classList.remove('is-valid');
-                        this.classList.add('is-invalid');
-                    }
-                });
-            });
-
-            // Social login handlers
-            document.querySelectorAll('.social-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const provider = this.dataset.provider;
-                    handleSocialLogin(provider);
-                });
-            });
-
-            // Forgot password handler
-            const resetPasswordBtn = document.querySelector('#forgotPasswordModal .btn-primary');
-            if (resetPasswordBtn) {
-                resetPasswordBtn.addEventListener('click', function() {
-                    const email = document.getElementById('resetEmail').value;
-                    if (email) {
-                        // Simulate API call
-                        this.disabled = true;
-                        this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
-                        
-                        setTimeout(() => {
-                            bootstrap.Modal.getInstance(document.getElementById('forgotPasswordModal')).hide();
-                            showSuccess('Password reset link sent to your email!');
-                            this.disabled = false;
-                            this.innerHTML = 'Send Reset Link';
-                        }, 2000);
-                    } else {
-                        showError('Please enter your email address.');
-                    }
-                });
-            }
-
-            // Keyboard shortcuts
-            document.addEventListener('keydown', function(e) {
-                // Alt + L to focus on login field
-                if (e.altKey && e.key === 'l') {
-                    e.preventDefault();
-                    inputs[0]?.focus();
-                }
-                // Alt + P to focus on password field  
-                if (e.altKey && e.key === 'p') {
-                    e.preventDefault();
-                    passwordInput?.focus();
-                }
-            });
         });
-
-        // Helper functions
-        function handleSocialLogin(provider) {
-            // Placeholder for social login implementation
-            const providerName = provider.charAt(0).toUpperCase() + provider.slice(1);
-            showInfo(`${providerName} login will be available soon!`);
-        }
-
-        function showSuccess(message) {
-            showAlert(message, 'success');
-        }
-
-        function showError(message) {
-            showAlert(message, 'error');
-        }
-
-        function showInfo(message) {
-            showAlert(message, 'info');
-        }
-
-        function showAlert(message, type) {
-            // Create alert element
-            const alertClass = type === 'success' ? 'success-message' : 'validation-summary-errors';
-            const iconClass = type === 'success' ? 'bi-check-circle-fill' : 'bi-info-circle-fill';
-            
-            const alert = document.createElement('div');
-            alert.className = `${alertClass} slide-in`;
-            alert.innerHTML = `
-                <i class="bi ${iconClass}"></i>
-                <span>${message}</span>
-                <button type="button" class="btn-close" style="margin-left: auto;"></button>
-            `;
-            
-            // Insert at top of auth-body
-            const authBody = document.querySelector('.auth-body');
-            authBody.insertBefore(alert, authBody.firstChild);
-            
-            // Auto dismiss
-            setTimeout(() => {
-                alert.remove();
-            }, 5000);
-            
-            // Manual dismiss
-            alert.querySelector('.btn-close')?.addEventListener('click', () => {
-                alert.remove();
-            });
-        }
-
-        // Analytics and performance monitoring
-        if (typeof gtag !== 'undefined') {
-            gtag('event', 'page_view', {
-                page_title: 'Sign In',
-                page_location: window.location.href
-            });
-        }
     </script>
-</body>
-</html>
+}

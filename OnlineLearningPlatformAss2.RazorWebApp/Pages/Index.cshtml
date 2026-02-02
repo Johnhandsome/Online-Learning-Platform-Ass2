@@ -9,67 +9,69 @@
     <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
 }
 
-<!-- Hero Section (Premium Coursera-style) -->
-<section class="hero-section position-relative overflow-hidden mb-5">
-    <div class="hero-background"></div>
-    <div class="container position-relative">
-        <div class="row align-items-center min-vh-75">
-            <div class="col-lg-6 order-lg-1">
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
                 <div class="hero-content">
-                    <h1 class="hero-title display-4 fw-bold mb-4">
-                        Learn without limits
-                    </h1>
-                    <p class="hero-subtitle lead text-muted mb-5">
+                    <h1 class="hero-title">Learn without limits</h1>
+                    <p class="hero-description">
                         Start, switch, or advance your career with thousands of courses, 
                         Professional Certificates, and degrees from world-class universities and companies.
                     </p>
-                    <div class="hero-actions d-flex gap-3 flex-wrap mb-5">
-                        <a asp-page="/User/Register" class="btn btn-primary btn-lg px-5 py-3">
-                            <i class="bi bi-person-plus me-2"></i>
-                            Join for Free
-                        </a>
-                        <a asp-page="/Index" asp-route-viewAll="true" class="btn btn-outline-primary btn-lg px-5 py-3">
-                            <i class="bi bi-play-circle me-2"></i>
-                            Explore Courses
-                        </a>
+                    <div class="hero-buttons">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <a asp-page="/Assessment/Start" class="btn btn-primary btn-lg">
+                                <i class="bi bi-clipboard-check me-2"></i>
+                                Take Skill Assessment
+                            </a>
+                            <a asp-page="/Index" asp-route-viewAll="true" class="btn btn-outline-secondary btn-lg">Explore Courses</a>
+                        }
+                        else
+                        {
+                            <a asp-page="/User/Register" class="btn btn-primary btn-lg">Get Started Free</a>
+                            <a asp-page="/Assessment/Start" class="btn btn-outline-primary btn-lg">
+                                <i class="bi bi-play-circle me-2"></i>
+                                Try Assessment
+                            </a>
+                        }
                     </div>
                     
                     <!-- Trust indicators -->
-                    <div class="hero-stats">
-                        <div class="d-flex gap-4 flex-wrap text-muted small">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-people-fill me-2 text-primary"></i>
-                                <span><strong>100M+</strong> registered learners</span>
+                    <div class="hero-trust">
+                        <div class="trust-stats">
+                            <div class="stat-item">
+                                <span class="stat-number">50K+</span>
+                                <span class="stat-label">Students</span>
                             </div>
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-mortarboard-fill me-2 text-success"></i>
-                                <span><strong>7,000+</strong> courses</span>
+                            <div class="stat-item">
+                                <span class="stat-number">1000+</span>
+                                <span class="stat-label">Courses</span>
                             </div>
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-award-fill me-2 text-warning"></i>
-                                <span><strong>Industry leaders</strong> as instructors</span>
+                            <div class="stat-item">
+                                <span class="stat-number">4.8</span>
+                                <span class="stat-label">? Rating</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-6 order-lg-2 text-center">
+            <div class="col-lg-6">
                 <div class="hero-image-container">
-                    <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop&crop=faces" 
+                    <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=400&fit=crop&crop=faces" 
                          alt="Students learning together" 
-                         class="hero-image img-fluid rounded-4 shadow-lg"
-                         loading="lazy">
-                    <div class="floating-card">
-                        <div class="d-flex align-items-center">
-                            <div class="avatar-stack me-3">
-                                <img src="https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=40&h=40&fit=crop&crop=face" class="avatar" alt="Learner">
-                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face" class="avatar" alt="Learner">
-                                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop&crop=face" class="avatar" alt="Learner">
-                            </div>
-                            <div>
-                                <div class="small fw-semibold">Join 100M+ learners</div>
-                                <div class="small text-muted">Learning together</div>
-                            </div>
+                         class="hero-image img-fluid">
+                    
+                    <!-- Floating elements -->
+                    <div class="floating-card assessment-card">
+                        <div class="card-icon">
+                            <i class="bi bi-clipboard-check"></i>
+                        </div>
+                        <div class="card-content">
+                            <h6>Skill Assessment</h6>
+                            <p>Get personalized recommendations</p>
                         </div>
                     </div>
                 </div>
@@ -78,300 +80,361 @@
     </div>
 </section>
 
-<!-- Category Navigation -->
-<section class="category-nav mb-5">
-    <div class="container">
-        <div class="category-pills-container">
-            <div class="category-pills d-flex gap-2 flex-nowrap overflow-auto pb-2">
-                <a asp-page="/Index" 
-                   class="category-pill @(Model.SelectedCategoryId == null && !Model.ViewAll && string.IsNullOrEmpty(Model.SearchTerm) ? "active" : "")">
-                    <i class="bi bi-star-fill me-1"></i>
-                    Featured
-                </a>
-                <a asp-page="/Index" asp-route-viewAll="true"
-                   class="category-pill @(Model.ViewAll ? "active" : "")">
-                    <i class="bi bi-grid me-1"></i>
-                    All Courses
-                </a>
-                @foreach (var cat in Model.Categories)
-                {
-                    <a asp-page="/Index" asp-route-categoryId="@cat.Id"
-                       class="category-pill @(Model.SelectedCategoryId == cat.Id ? "active" : "")">
-                        <i class="bi bi-bookmark me-1"></i>
-                        @cat.Name
-                    </a>
-                }
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Search Results Header -->
-@if (!string.IsNullOrEmpty(Model.SearchTerm))
+<!-- Assessment CTA Section (for authenticated users) -->
+@if (User.Identity?.IsAuthenticated == true)
 {
-    <section class="search-results-header mb-4">
+    <section class="assessment-banner">
         <div class="container">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h2 class="h4 mb-1">Search results for "@Model.SearchTerm"</h2>
-                    <p class="text-muted small mb-0">@Model.FeaturedCourses?.Count() results found</p>
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="banner-content">
+                        <div class="banner-icon">
+                            <i class="bi bi-stars"></i>
+                        </div>
+                        <div>
+                            <h4>Discover Your Perfect Learning Path</h4>
+                            <p>Take our 5-minute assessment to get personalized course recommendations tailored to your goals and skill level.</p>
+                        </div>
+                    </div>
                 </div>
-                <a asp-page="/Index" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-x-lg me-1"></i>
-                    Clear search
-                </a>
+                <div class="col-lg-4 text-lg-end">
+                    <a asp-page="/Assessment/Start" class="btn btn-warning btn-lg">
+                        <i class="bi bi-lightning-charge me-2"></i>
+                        Start Assessment
+                    </a>
+                </div>
             </div>
         </div>
     </section>
 }
 
-<!-- Main Content Section -->
-<section class="main-content">
+<!-- Category Pills -->
+<section class="category-section">
     <div class="container">
-        <!-- Section Header -->
-        <div class="section-header mb-4">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h2 class="section-title fw-bold mb-2">
-                        @if (Model.ViewAll) 
-                        { 
-                            <text>All Courses</text> 
-                        }
-                        else if (Model.SelectedCategoryId.HasValue) 
-                        { 
-                            <text>@Model.Categories.FirstOrDefault(c => c.Id == Model.SelectedCategoryId)?.Name Courses</text> 
-                        }
-                        else 
-                        { 
-                            <text>Most Popular Courses</text> 
-                        }
-                    </h2>
-                    <p class="section-subtitle text-muted mb-0">Explore our expertly curated selection</p>
-                </div>
-                <div class="section-actions">
-                    <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-outline-secondary btn-sm active" data-view="grid">
-                            <i class="bi bi-grid-3x3-gap"></i>
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" data-view="list">
-                            <i class="bi bi-list"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Courses Grid -->
-        <div class="courses-grid" id="coursesContainer">
-            @if (Model.FeaturedCourses != null && Model.FeaturedCourses.Any())
-            {
-                <div class="row g-4">
-                    @foreach (var course in Model.FeaturedCourses)
-                    {
-                        <div class="col-lg-4 col-md-6">
-                            <div class="course-card h-100">
-                                <!-- Course Image -->
-                                <div class="course-image-container">
-                                    @if (!string.IsNullOrEmpty(course.ImageUrl))
-                                    {
-                                        <img src="@course.ImageUrl" class="course-image" alt="@course.Title" loading="lazy">
-                                    }
-                                    else
-                                    {
-                                        <div class="course-image-placeholder">
-                                            <i class="bi bi-book course-placeholder-icon"></i>
-                                        </div>
-                                    }
-                                    <div class="course-overlay">
-                                        <a asp-page="/Course/Details" asp-route-id="@course.Id" class="btn btn-primary btn-sm">
-                                            View Course
-                                        </a>
-                                    </div>
-                                </div>
-                                
-                                <div class="course-content">
-                                    <!-- Category Badge -->
-                                    <div class="course-meta mb-2">
-                                        <span class="course-category-badge">
-                                            @course.CategoryName
-                                        </span>
-                                        <div class="course-rating">
-                                            <div class="stars">
-                                                <i class="bi bi-star-fill"></i>
-                                                <i class="bi bi-star-fill"></i>
-                                                <i class="bi bi-star-fill"></i>
-                                                <i class="bi bi-star-fill"></i>
-                                                <i class="bi bi-star-half"></i>
-                                            </div>
-                                            <span class="rating-text">(4.5)</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Course Title -->
-                                    <h5 class="course-title mb-2">
-                                        <a asp-page="/Course/Details" asp-route-id="@course.Id" class="course-link">
-                                            @course.Title
-                                        </a>
-                                    </h5>
-                                    
-                                    <!-- Instructor -->
-                                    <p class="course-instructor text-muted mb-3">
-                                        <i class="bi bi-person me-1"></i>
-                                        @course.InstructorName
-                                    </p>
-                                    
-                                    <!-- Course Stats -->
-                                    <div class="course-stats mb-3">
-                                        <div class="d-flex justify-content-between text-muted small">
-                                            <span><i class="bi bi-clock me-1"></i>12 hours</span>
-                                            <span><i class="bi bi-people me-1"></i>2.5k students</span>
-                                            <span><i class="bi bi-translate me-1"></i>English</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Price & Action -->
-                                    <div class="course-footer d-flex justify-content-between align-items-center">
-                                        <div class="course-price">
-                                            <span class="current-price fw-bold">@course.Price.ToString("C")</span>
-                                        </div>
-                                        <button class="btn btn-outline-primary btn-sm add-to-wishlist" 
-                                                data-course-id="@course.Id"
-                                                title="Add to wishlist">
-                                            <i class="bi bi-heart"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="empty-state text-center py-5">
-                    <div class="empty-state-icon mb-4">
-                        <i class="bi bi-search text-muted"></i>
-                    </div>
-                    <h4 class="empty-state-title mb-3">No courses found</h4>
-                    <p class="empty-state-text text-muted mb-4">
-                        We couldn't find any courses matching your criteria. Try adjusting your search or browse all courses.
-                    </p>
-                    <a asp-page="/Index" asp-route-viewAll="true" class="btn btn-primary">
-                        Browse All Courses
-                    </a>
-                </div>
-            }
+        <div class="category-pills">
+            <a href="@Url.Page("/Index")" class="category-pill @(string.IsNullOrEmpty(Model.SelectedCategory) && !Model.ViewAll ? "active" : "")">Featured</a>
+            <a href="@Url.Page("/Index", new { viewAll = "true" })" class="category-pill @(Model.ViewAll ? "active" : "")">All Courses</a>
+            <a href="@Url.Page("/Index", new { category = "Web Development" })" class="category-pill @(Model.SelectedCategory == "Web Development" ? "active" : "")">Web Development</a>
+            <a href="@Url.Page("/Index", new { category = "Data Science" })" class="category-pill @(Model.SelectedCategory == "Data Science" ? "active" : "")">Data Science</a>
+            <a href="@Url.Page("/Index", new { category = "Design" })" class="category-pill @(Model.SelectedCategory == "Design" ? "active" : "")">Design</a>
+            <a href="@Url.Page("/Index", new { category = "Business" })" class="category-pill @(Model.SelectedCategory == "Business" ? "active" : "")">Business</a>
         </div>
     </div>
 </section>
 
-<!-- Learning Paths Section -->
-<section class="learning-paths-section py-5 mt-5" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);">
+<!-- Dynamic Courses Section -->
+<section class="courses-section">
     <div class="container">
-        <div class="section-header text-center mb-5">
-            <h2 class="section-title fw-bold mb-3">Popular Learning Paths</h2>
-            <p class="section-subtitle text-muted">Structured learning journeys designed by experts</p>
+        <div class="section-header">
+            <h2 class="section-title">
+                @if (!string.IsNullOrEmpty(Model.SelectedCategory))
+                {
+                    @($"{Model.SelectedCategory} Courses")
+                }
+                else if (Model.ViewAll)
+                {
+                    @("All Courses")
+                }
+                else
+                {
+                    @("Featured Courses")
+                }
+            </h2>
+            <p class="section-subtitle">
+                @if (!string.IsNullOrEmpty(Model.SelectedCategory))
+                {
+                    @($"Master {Model.SelectedCategory.ToLower()} with expert-led courses")
+                }
+                else
+                {
+                    @("Explore our top-rated courses from industry experts")
+                }
+            </p>
         </div>
 
-        <div class="row g-4">
-            @if (Model.FeaturedPaths != null && Model.FeaturedPaths.Any())
-            {
-                @foreach (var path in Model.FeaturedPaths)
+        @if (Model.Courses.Any())
+        {
+            <div class="courses-grid">
+                @foreach (var course in Model.Courses)
                 {
-                    <div class="col-lg-6">
-                        <div class="learning-path-card h-100">
-                            <div class="learning-path-header">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div class="path-badges">
-                                        <span class="path-badge">@path.Courses.Count() Courses</span>
-                                        <span class="path-level-badge">Beginner</span>
-                                    </div>
-                                    <div class="path-price">
-                                        <span class="price-text fw-bold">@path.Price.ToString("C")</span>
-                                    </div>
+                    <div class="course-card">
+                        <div class="course-image">
+                            @if (!string.IsNullOrEmpty(course.ImageUrl))
+                            {
+                                <img src="@course.ImageUrl" alt="@course.Title" loading="lazy">
+                            }
+                            else
+                            {
+                                <div class="course-placeholder">
+                                    <i class="bi bi-play-circle"></i>
                                 </div>
-                                <h4 class="path-title fw-bold mb-2">@path.Title</h4>
-                                <p class="path-description text-muted mb-3">@path.Description</p>
-                            </div>
-                            
-                            <!-- Path Preview -->
-                            <div class="path-preview mb-4">
-                                <div class="path-courses">
-                                    @foreach (var course in path.Courses.Take(3))
-                                    {
-                                        <div class="path-course-item">
-                                            <i class="bi bi-play-circle-fill text-primary me-2"></i>
-                                            <span>@course.Title</span>
-                                        </div>
-                                    }
-                                    @if (path.Courses.Count() > 3)
-                                    {
-                                        <div class="path-course-item more-courses">
-                                            <i class="bi bi-three-dots me-2"></i>
-                                            <span class="text-muted">+ @(path.Courses.Count() - 3) more courses</span>
-                                        </div>
-                                    }
+                            }
+                            @if (course.IsFeatured)
+                            {
+                                <span class="course-badge">Featured</span>
+                            }
+                        </div>
+                        <div class="course-content">
+                            <div class="course-category">@course.CategoryName</div>
+                            <h3 class="course-title">
+                                <a asp-page="/Course/Details" asp-route-id="@course.Id">@course.Title</a>
+                            </h3>
+                            <p class="course-instructor">@course.InstructorName</p>
+                            <div class="course-rating">
+                                <div class="stars">
+                                    <span>@course.RatingDisplay</span>
                                 </div>
+                                <span class="rating-text">(@course.Rating.ToString("F1"))</span>
                             </div>
-                            
-                            <!-- Path Stats -->
-                            <div class="path-stats mb-4">
-                                <div class="d-flex gap-4 text-muted small">
-                                    <span><i class="bi bi-clock me-1"></i>3-6 months</span>
-                                    <span><i class="bi bi-people me-1"></i>15k+ enrolled</span>
-                                    <span><i class="bi bi-award me-1"></i>Certificate</span>
-                                </div>
-                            </div>
-                            
-                            <!-- Action Button -->
-                            <div class="path-action">
-                                <a asp-page="/LearningPath/Details" asp-route-id="@path.Id" 
-                                   class="btn btn-primary w-100 py-2">
-                                    <i class="bi bi-arrow-right me-2"></i>
-                                    Start Learning Path
+                            <p class="course-description">@course.Description</p>
+                            <div class="course-footer">
+                                <span class="course-price">@course.FormattedPrice</span>
+                                <a asp-page="/Course/Details" asp-route-id="@course.Id" class="btn btn-outline-primary btn-sm">
+                                    View Course
                                 </a>
                             </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            
+            @if (Model.Courses.Count >= 6 && !Model.ViewAll)
+            {
+                <div class="text-center mt-5">
+                    <a asp-page="/Index" asp-route-viewAll="true" class="btn btn-primary btn-lg">
+                        View All Courses
+                        <i class="bi bi-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="bi bi-search"></i>
+                </div>
+                <h4>No courses found</h4>
+                <p>We're working hard to add more courses in this category.</p>
+                <a asp-page="/Index" class="btn btn-primary">Browse All Categories</a>
+            </div>
+        }
+    </div>
+</section>
+
+<!-- Learning Paths -->
+<section class="learning-paths-section">
+    <div class="container">
+        <div class="section-header-with-action">
+            <div>
+                <h2 class="section-title">Learning Paths</h2>
+                <p class="section-subtitle">Structured programs to achieve your goals faster</p>
+            </div>
+            <a asp-page="/LearningPath/Browse" class="btn btn-outline-primary">
+                View All Paths
+                <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="learning-paths-grid">
+            @if (Model.FeaturedPaths.Any())
+            {
+                @foreach (var path in Model.FeaturedPaths.Take(2))
+                {
+                    <div class="learning-path-card">
+                        <div class="path-header">
+                            <div class="path-badge">@path.BadgeText</div>
+                            <h4 class="path-title">@path.Title</h4>
+                            <p class="path-description">@path.Description</p>
+                        </div>
+                        
+                        <div class="path-progress">
+                            @for (int i = 0; i < Math.Min(3, path.CourseCount); i++)
+                            {
+                                <div class="progress-item @(i < 2 ? "completed" : "current")">
+                                    <i class="bi bi-@(i < 2 ? "check-circle-fill" : "circle")"></i>
+                                    <span>Course @(i + 1)</span>
+                                </div>
+                            }
+                            @if (path.CourseCount > 3)
+                            {
+                                <div class="progress-more">
+                                    <span>+@(path.CourseCount - 3) more courses</span>
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="path-footer">
+                            <div class="path-price">
+                                <span class="price">@path.FormattedPrice</span>
+                                <span class="courses-count">@path.CourseCount courses</span>
+                            </div>
+                            <a asp-page="/LearningPath/Details" asp-route-id="@path.Id" class="btn btn-primary">
+                                Start Path
+                            </a>
                         </div>
                     </div>
                 }
             }
             else
             {
-                <div class="col-12">
-                    <div class="text-center py-4">
-                        <p class="text-muted">Learning paths will be available soon.</p>
+                <!-- Default/Placeholder Learning Paths -->
+                <div class="learning-path-card">
+                    <div class="path-header">
+                        <div class="path-badge">Popular</div>
+                        <h4 class="path-title">Full Stack Web Developer</h4>
+                        <p class="path-description">Master both front-end and back-end development with modern technologies.</p>
+                    </div>
+                    
+                    <div class="path-progress">
+                        <div class="progress-item completed">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>HTML & CSS Fundamentals</span>
+                        </div>
+                        <div class="progress-item completed">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>JavaScript Essentials</span>
+                        </div>
+                        <div class="progress-item current">
+                            <i class="bi bi-circle"></i>
+                            <span>React Development</span>
+                        </div>
+                        <div class="progress-more">
+                            <span>+4 more courses</span>
+                        </div>
+                    </div>
+                    
+                    <div class="path-footer">
+                        <div class="path-price">
+                            <span class="price">$299</span>
+                            <span class="courses-count">7 courses</span>
+                        </div>
+                        <a asp-page="/LearningPath/Browse" class="btn btn-primary">
+                            Start Path
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="learning-path-card">
+                    <div class="path-header">
+                        <div class="path-badge">New</div>
+                        <h4 class="path-title">Data Science Mastery</h4>
+                        <p class="path-description">From Python basics to machine learning and AI applications.</p>
+                    </div>
+                    
+                    <div class="path-progress">
+                        <div class="progress-item completed">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>Python for Data Science</span>
+                        </div>
+                        <div class="progress-item current">
+                            <i class="bi bi-circle"></i>
+                            <span>Data Analysis & Visualization</span>
+                        </div>
+                        <div class="progress-item">
+                            <i class="bi bi-circle"></i>
+                            <span>Machine Learning</span>
+                        </div>
+                        <div class="progress-more">
+                            <span>+3 more courses</span>
+                        </div>
+                    </div>
+                    
+                    <div class="path-footer">
+                        <div class="path-price">
+                            <span class="price">$399</span>
+                            <span class="courses-count">6 courses</span>
+                        </div>
+                        <a asp-page="/LearningPath/Browse" class="btn btn-primary">
+                            Start Path
+                        </a>
                     </div>
                 </div>
             }
         </div>
-
-        <div class="text-center mt-5">
-            <a asp-page="/LearningPath/Browse" class="btn btn-outline-primary btn-lg">
-                View All Learning Paths
-                <i class="bi bi-arrow-right ms-2"></i>
-            </a>
-        </div>
     </div>
 </section>
 
-<!-- Call-to-Action Section -->
-<section class="cta-section py-5 my-5">
+<!-- Assessment CTA Section (for non-authenticated users) -->
+@if (User.Identity?.IsAuthenticated != true)
+{
+    <section class="cta-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="cta-content">
+                        <h2 class="cta-title">Not sure where to start?</h2>
+                        <p class="cta-description">
+                            Take our skill assessment and get personalized course recommendations tailored to your experience level and goals.
+                        </p>
+                        <div class="cta-features">
+                            <div class="feature-item">
+                                <i class="bi bi-clock"></i>
+                                <span>5-minute assessment</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="bi bi-bullseye"></i>
+                                <span>Personalized recommendations</span>
+                            </div>
+                            <div class="feature-item">
+                                <i class="bi bi-shield-check"></i>
+                                <span>Completely free</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="cta-action">
+                        <a asp-page="/Assessment/Start" class="btn btn-light btn-lg">
+                            <i class="bi bi-play-circle me-2"></i>
+                            Start Assessment
+                        </a>
+                        <p class="cta-note">No registration required to try</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+}
+
+<!-- Stats Section -->
+<section class="stats-section">
     <div class="container">
-        <div class="cta-card text-center">
-            <div class="cta-content">
-                <h2 class="cta-title fw-bold mb-3">Take the next step in your career</h2>
-                <p class="cta-subtitle text-muted mb-4">
-                    Get personalized recommendations based on your skills and career goals
-                </p>
-                <div class="cta-actions">
-                    <a asp-page="/Assessment/Start" class="btn btn-primary btn-lg me-3">
-                        <i class="bi bi-clipboard-check me-2"></i>
-                        Take Skill Assessment
-                    </a>
-                    <a asp-page="/User/Register" class="btn btn-outline-primary btn-lg">
-                        <i class="bi bi-person-plus me-2"></i>
-                        Join for Free
-                    </a>
+        <div class="row">
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <h3 class="stat-number">50,000+</h3>
+                    <p class="stat-label">Active Students</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="bi bi-book"></i>
+                    </div>
+                    <h3 class="stat-number">1,000+</h3>
+                    <p class="stat-label">Expert Courses</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="bi bi-award"></i>
+                    </div>
+                    <h3 class="stat-number">25,000+</h3>
+                    <p class="stat-label">Certificates Earned</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <h3 class="stat-number">4.8</h3>
+                    <p class="stat-label">Average Rating</p>
                 </div>
             </div>
         </div>
