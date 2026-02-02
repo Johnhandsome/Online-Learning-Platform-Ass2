@@ -2,140 +2,167 @@
 @model OnlineLearningPlatformAss2.RazorWebApp.Pages.Course.DetailsModel
 
 @{
-    ViewData["Title"] = Model.CourseDetails?.Title ?? "Course Details";
+    ViewData["Title"] = Model.Course?.Title ?? "Course Details";
 }
 
 @section Styles {
     <link rel="stylesheet" href="~/css/course-details.css" asp-append-version="true" />
 }
 
-@if (Model.CourseDetails == null)
-{
-    <div class="container my-5">
-        <div class="text-center">
-            <h1>Course Not Found</h1>
-            <p>The course you're looking for doesn't exist or has been removed.</p>
-            <a asp-page="/Index" class="btn btn-primary">Back to Home</a>
-        </div>
-    </div>
-}
-else
+@if (Model.Course != null)
 {
     <!-- Course Hero Section -->
     <section class="course-hero">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8">
-                    <div class="course-info">
-                        <div class="course-category">
-                            <i class="bi bi-bookmark"></i>
-                            @Model.CourseDetails.CategoryName
-                        </div>
-                        <h1 class="course-title">@Model.CourseDetails.Title</h1>
-                        <p class="course-description">@Model.CourseDetails.Description</p>
-                        
+                    <div class="course-hero-content">
+                        <nav aria-label="breadcrumb" class="course-breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a asp-page="/Index">Home</a></li>
+                                <li class="breadcrumb-item"><a asp-page="/Index" asp-route-category="@Model.Course.CategoryName">@Model.Course.CategoryName</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">@Model.Course.Title</li>
+                            </ol>
+                        </nav>
+
+                        <h1 class="course-title">@Model.Course.Title</h1>
+                        <p class="course-subtitle">@Model.Course.Description</p>
+
                         <div class="course-meta">
                             <div class="meta-item">
-                                <div class="rating">
-                                    <div class="stars">
-                                        <span>?????</span>
-                                    </div>
-                                    <span class="rating-text">4.5 (2,847 reviews)</span>
+                                <div class="rating-display">
+                                    <span class="rating-stars">@Model.Course.RatingDisplay</span>
+                                    <span class="rating-number">@Model.Course.Rating.ToString("F1")</span>
+                                    <span class="rating-count">(@Model.Course.ReviewCount.ToString("N0") reviews)</span>
                                 </div>
                             </div>
                             <div class="meta-item">
                                 <i class="bi bi-people"></i>
-                                <span>15,432 students</span>
+                                <span>@Model.Course.StudentCount.ToString("N0") students</span>
                             </div>
                             <div class="meta-item">
                                 <i class="bi bi-person"></i>
-                                <span>By @Model.CourseDetails.InstructorName</span>
+                                <span>Created by <strong>@Model.Course.InstructorName</strong></span>
                             </div>
                             <div class="meta-item">
-                                <i class="bi bi-globe"></i>
-                                <span>English</span>
+                                <i class="bi bi-translate"></i>
+                                <span>@Model.Course.Language</span>
                             </div>
                         </div>
 
                         <div class="course-badges">
-                            <span class="badge badge-bestseller">Bestseller</span>
-                            <span class="badge badge-updated">Recently updated</span>
+                            <span class="badge badge-level">@Model.Course.Level</span>
+                            <span class="badge badge-category">@Model.Course.CategoryName</span>
+                            @if (Model.Course.HasCertificate)
+                            {
+                                <span class="badge badge-certificate">
+                                    <i class="bi bi-award"></i>
+                                    Certificate
+                                </span>
+                            }
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-4">
-                    <div class="course-card-preview">
-                        <div class="course-image">
-                            @if (!string.IsNullOrEmpty(Model.CourseDetails.ImageUrl))
+                    <div class="course-preview-card">
+                        <div class="preview-image">
+                            @if (!string.IsNullOrEmpty(Model.Course.ImageUrl))
                             {
-                                <img src="@Model.CourseDetails.ImageUrl" alt="@Model.CourseDetails.Title" />
+                                <img src="@Model.Course.ImageUrl" alt="@Model.Course.Title" class="img-fluid">
                             }
                             else
                             {
-                                <div class="image-placeholder">
+                                <div class="preview-placeholder">
                                     <i class="bi bi-play-circle"></i>
                                 </div>
                             }
-                        </div>
-                        <div class="course-purchase">
-                            <div class="price-section">
-                                <div class="current-price">@Model.CourseDetails.Price.ToString("C")</div>
-                                <div class="original-price">$199.99</div>
-                                <div class="discount">75% off</div>
+                            <div class="play-overlay">
+                                <button class="play-button" data-bs-toggle="modal" data-bs-target="#previewModal">
+                                    <i class="bi bi-play-fill"></i>
+                                </button>
                             </div>
-                            
-                            @if (Model.CourseDetails.IsEnrolled)
-                            {
-                                <button class="btn btn-success w-100 mb-3" disabled>
-                                    <i class="bi bi-check-circle me-2"></i>
-                                    Already Enrolled
-                                </button>
-                                <a href="#" class="btn btn-outline-primary w-100 mb-3">
-                                    Continue Learning
-                                </a>
-                            }
-                            else
-                            {
-                                <button class="btn btn-primary w-100 mb-3" onclick="enrollInCourse('@Model.CourseDetails.Id')">
-                                    Enroll Now
-                                </button>
-                                <button class="btn btn-outline-secondary w-100 mb-3" onclick="addToWishlist('@Model.CourseDetails.Id')">
-                                    <i class="bi bi-heart me-2"></i>
-                                    Add to Wishlist
-                                </button>
-                            }
-                            
-                            <div class="course-includes">
-                                <h6>This course includes:</h6>
-                                <div class="include-item">
-                                    <i class="bi bi-play-circle"></i>
-                                    <span>12 hours on-demand video</span>
-                                </div>
-                                <div class="include-item">
-                                    <i class="bi bi-file-earmark"></i>
-                                    <span>15 articles</span>
-                                </div>
-                                <div class="include-item">
-                                    <i class="bi bi-download"></i>
-                                    <span>32 downloadable resources</span>
-                                </div>
-                                <div class="include-item">
-                                    <i class="bi bi-infinity"></i>
-                                    <span>Full lifetime access</span>
-                                </div>
-                                <div class="include-item">
-                                    <i class="bi bi-phone"></i>
-                                    <span>Access on mobile and TV</span>
-                                </div>
-                                <div class="include-item">
-                                    <i class="bi bi-award"></i>
-                                    <span>Certificate of completion</span>
-                                </div>
+                        </div>
+                        
+                        <div class="preview-content">
+                            <div class="price-section">
+                                <div class="current-price">@Model.Course.FormattedPrice</div>
+                                @if (Model.Course.Price > 0)
+                                {
+                                    <div class="original-price">$@((Model.Course.Price * 1.5m).ToString("F2"))</div>
+                                    <div class="discount-badge">33% off</div>
+                                }
                             </div>
 
-                            <div class="guarantee">
-                                <i class="bi bi-shield-check"></i>
-                                <span>30-Day Money-Back Guarantee</span>
+                            @if (Model.IsEnrolled)
+                            {
+                                <div class="enrolled-section">
+                                    <div class="enrolled-badge">
+                                        <i class="bi bi-check-circle-fill"></i>
+                                        Enrolled
+                                    </div>
+                                    <a asp-page="/Course/Learn" asp-route-id="@Model.Course.Id" class="btn btn-success btn-lg w-100">
+                                        <i class="bi bi-play-circle me-2"></i>
+                                        Continue Learning
+                                    </a>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="enrollment-section">
+                                    @if (Model.IsAuthenticated)
+                                    {
+                                        <form method="post" asp-page-handler="Enroll" asp-route-id="@Model.Course.Id">
+                                            <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
+                                                <i class="bi bi-plus-circle me-2"></i>
+                                                Enroll Now
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <a asp-page="/User/Register" class="btn btn-primary btn-lg w-100 mb-3">
+                                            <i class="bi bi-plus-circle me-2"></i>
+                                            Enroll Now
+                                        </a>
+                                    }
+                                    <button class="btn btn-outline-secondary w-100 mb-3">
+                                        <i class="bi bi-heart me-2"></i>
+                                        Add to Wishlist
+                                    </button>
+                                </div>
+                            }
+
+                            <div class="course-includes">
+                                <h6>This course includes:</h6>
+                                <ul class="includes-list">
+                                    <li><i class="bi bi-play-circle"></i> @Model.Course.FormattedDuration of on-demand video</li>
+                                    <li><i class="bi bi-file-earmark-text"></i> @Model.Course.TotalLessons lessons</li>
+                                    <li><i class="bi bi-download"></i> Downloadable resources</li>
+                                    <li><i class="bi bi-phone"></i> Access on mobile and TV</li>
+                                    <li><i class="bi bi-infinity"></i> Full lifetime access</li>
+                                    @if (Model.Course.HasCertificate)
+                                    {
+                                        <li><i class="bi bi-award"></i> Certificate of completion</li>
+                                    }
+                                </ul>
+                            </div>
+
+                            <div class="share-section">
+                                <h6>Share this course</h6>
+                                <div class="share-buttons">
+                                    <a href="#" class="share-btn facebook">
+                                        <i class="bi bi-facebook"></i>
+                                    </a>
+                                    <a href="#" class="share-btn twitter">
+                                        <i class="bi bi-twitter"></i>
+                                    </a>
+                                    <a href="#" class="share-btn linkedin">
+                                        <i class="bi bi-linkedin"></i>
+                                    </a>
+                                    <a href="#" class="share-btn link" onclick="copyToClipboard()">
+                                        <i class="bi bi-link-45deg"></i>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -144,144 +171,236 @@ else
         </div>
     </section>
 
-    <!-- Course Content Tabs -->
+    <!-- Course Content -->
     <section class="course-content">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8">
-                    <!-- Navigation Tabs -->
-                    <nav class="course-tabs">
-                        <div class="nav nav-tabs" id="courseTab" role="tablist">
-                            <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
-                                Overview
-                            </button>
-                            <button class="nav-link" id="curriculum-tab" data-bs-toggle="tab" data-bs-target="#curriculum" type="button" role="tab">
-                                Curriculum
-                            </button>
-                            <button class="nav-link" id="instructor-tab" data-bs-toggle="tab" data-bs-target="#instructor" type="button" role="tab">
-                                Instructor
-                            </button>
-                            <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">
-                                Reviews
-                            </button>
-                        </div>
-                    </nav>
-
-                    <!-- Tab Content -->
-                    <div class="tab-content" id="courseTabContent">
-                        <!-- Overview -->
-                        <div class="tab-pane fade show active" id="overview" role="tabpanel">
-                            <div class="overview-content">
-                                <h3>What you'll learn</h3>
-                                <div class="learning-outcomes">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="outcome-item">
-                                                <i class="bi bi-check-circle"></i>
-                                                <span>Build responsive web applications</span>
-                                            </div>
-                                            <div class="outcome-item">
-                                                <i class="bi bi-check-circle"></i>
-                                                <span>Master modern CSS techniques</span>
-                                            </div>
-                                            <div class="outcome-item">
-                                                <i class="bi bi-check-circle"></i>
-                                                <span>Create interactive user interfaces</span>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="outcome-item">
-                                                <i class="bi bi-check-circle"></i>
-                                                <span>Understand web accessibility</span>
-                                            </div>
-                                            <div class="outcome-item">
-                                                <i class="bi bi-check-circle"></i>
-                                                <span>Deploy web applications</span>
-                                            </div>
-                                            <div class="outcome-item">
-                                                <i class="bi bi-check-circle"></i>
-                                                <span>Debug and optimize performance</span>
-                                            </div>
+                    <!-- What you'll learn -->
+                    <div class="content-section">
+                        <h3>What you'll learn</h3>
+                        <div class="learning-objectives">
+                            <div class="row">
+                                @for (int i = 0; i < Model.Course.WhatYouWillLearn.Count; i++)
+                                {
+                                    <div class="col-md-6">
+                                        <div class="objective-item">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                            <span>@Model.Course.WhatYouWillLearn[i]</span>
                                         </div>
                                     </div>
-                                </div>
-
-                                <h3>Requirements</h3>
-                                <ul class="requirements-list">
-                                    <li>Basic understanding of HTML</li>
-                                    <li>No prior CSS experience required</li>
-                                    <li>A computer with internet access</li>
-                                    <li>Willingness to learn and practice</li>
-                                </ul>
-
-                                <h3>Description</h3>
-                                <div class="course-full-description">
-                                    <p>
-                                        This comprehensive course will take you from CSS basics to advanced layouts and modern techniques. 
-                                        You'll learn everything you need to create beautiful, responsive websites that work across all devices.
-                                    </p>
-                                </div>
+                                }
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Curriculum -->
-                        <div class="tab-pane fade" id="curriculum" role="tabpanel">
-                            <div class="curriculum-content">
-                                <div class="curriculum-header">
-                                    <h3>Course Curriculum</h3>
-                                    <div class="curriculum-stats">
-                                        <span>8 sections • 45 lectures • 12h 30m total length</span>
-                                    </div>
-                                </div>
-                            </div>
+                    <!-- Course curriculum -->
+                    <div class="content-section">
+                        <h3>Course curriculum</h3>
+                        <div class="curriculum-info">
+                            <span>@Model.Course.Modules.Count sections • @Model.Course.TotalLessons lessons • @Model.Course.FormattedDuration total length</span>
                         </div>
-
-                        <!-- Instructor -->
-                        <div class="tab-pane fade" id="instructor" role="tabpanel">
-                            <div class="instructor-content">
-                                <div class="instructor-profile">
-                                    <div class="instructor-avatar">
-                                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=face" alt="@Model.CourseDetails.InstructorName">
+                        
+                        <div class="curriculum-accordion">
+                            @for (int moduleIndex = 0; moduleIndex < Model.Course.Modules.Count; moduleIndex++)
+                            {
+                                var module = Model.Course.Modules[moduleIndex];
+                                <div class="curriculum-module">
+                                    <div class="module-header" data-bs-toggle="collapse" data-bs-target="#module-@moduleIndex">
+                                        <div class="module-info">
+                                            <h5>@module.Title</h5>
+                                            <span class="module-meta">@module.Lessons.Count lessons • @module.FormattedDuration</span>
+                                        </div>
+                                        <div class="expand-icon">
+                                            <i class="bi bi-chevron-down"></i>
+                                        </div>
                                     </div>
-                                    <div class="instructor-info">
-                                        <h3>@Model.CourseDetails.InstructorName</h3>
-                                        <p class="instructor-title">Senior Web Developer & CSS Expert</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Reviews -->
-                        <div class="tab-pane fade" id="reviews" role="tabpanel">
-                            <div class="reviews-content">
-                                <div class="reviews-summary">
-                                    <div class="rating-overview">
-                                        <div class="average-rating">
-                                            <span class="rating-number">4.5</span>
-                                            <div class="stars">
-                                                <span>?????</span>
-                                            </div>
-                                            <span class="rating-count">Course Rating • 2,847 reviews</span>
+                                    
+                                    <div class="collapse @(moduleIndex == 0 ? "show" : "")" id="module-@moduleIndex">
+                                        <div class="module-content">
+                                            @foreach (var lesson in module.Lessons)
+                                            {
+                                                <div class="lesson-item">
+                                                    <div class="lesson-info">
+                                                        <i class="bi bi-play-circle lesson-icon"></i>
+                                                        <span class="lesson-title">@lesson.Title</span>
+                                                        @if (lesson.IsPreview)
+                                                        {
+                                                            <span class="preview-badge">Preview</span>
+                                                        }
+                                                    </div>
+                                                    <span class="lesson-duration">@lesson.FormattedDuration</span>
+                                                </div>
+                                            }
                                         </div>
                                     </div>
                                 </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Requirements -->
+                    <div class="content-section">
+                        <h3>Requirements</h3>
+                        <ul class="requirements-list">
+                            @foreach (var requirement in Model.Course.Requirements)
+                            {
+                                <li>@requirement</li>
+                            }
+                        </ul>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="content-section">
+                        <h3>Description</h3>
+                        <div class="course-description">
+                            <p>@Model.Course.Description</p>
+                            <p>This comprehensive course is designed to take you from a complete beginner to a confident developer. You'll learn by building real-world projects and get hands-on experience with the latest technologies and best practices.</p>
+                            <p>Our step-by-step approach ensures you understand each concept before moving to the next. By the end of this course, you'll have the skills and confidence to build your own projects and start your career as a professional developer.</p>
+                        </div>
+                    </div>
+
+                    <!-- Instructor -->
+                    <div class="content-section">
+                        <h3>About the instructor</h3>
+                        <div class="instructor-card">
+                            <div class="instructor-avatar">
+                                <i class="bi bi-person-circle"></i>
+                            </div>
+                            <div class="instructor-info">
+                                <h4>@Model.Course.InstructorName</h4>
+                                <p class="instructor-title">Senior Web Developer & Instructor</p>
+                                <div class="instructor-stats">
+                                    <div class="stat">
+                                        <i class="bi bi-star-fill"></i>
+                                        <span>4.9 Instructor Rating</span>
+                                    </div>
+                                    <div class="stat">
+                                        <i class="bi bi-award"></i>
+                                        <span>15,450 Reviews</span>
+                                    </div>
+                                    <div class="stat">
+                                        <i class="bi bi-people"></i>
+                                        <span>89,342 Students</span>
+                                    </div>
+                                    <div class="stat">
+                                        <i class="bi bi-play-circle"></i>
+                                        <span>12 Courses</span>
+                                    </div>
+                                </div>
+                                <p class="instructor-bio">
+                                    Experienced developer with over 8 years in the industry. Specializes in modern web technologies and has helped thousands of students launch successful careers in tech.
+                                </p>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <!-- Sticky sidebar for mobile -->
+                    <div class="d-lg-none mb-4">
+                        <!-- Course preview card for mobile -->
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
+    <!-- Related Courses -->
+    @if (Model.RelatedCourses.Any())
+    {
+        <section class="related-courses">
+            <div class="container">
+                <h3>More courses in @Model.Course.CategoryName</h3>
+                <div class="row">
+                    @foreach (var course in Model.RelatedCourses)
+                    {
+                        <div class="col-lg-4 col-md-6">
+                            <div class="course-card">
+                                <div class="course-image">
+                                    @if (!string.IsNullOrEmpty(course.ImageUrl))
+                                    {
+                                        <img src="@course.ImageUrl" alt="@course.Title">
+                                    }
+                                    else
+                                    {
+                                        <div class="course-placeholder">
+                                            <i class="bi bi-play-circle"></i>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="course-content">
+                                    <h5><a asp-page="/Course/Details" asp-route-id="@course.Id">@course.Title</a></h5>
+                                    <p class="instructor">@course.InstructorName</p>
+                                    <div class="course-rating">
+                                        <span class="stars">@course.RatingDisplay</span>
+                                        <span class="rating">(@course.Rating.ToString("F1"))</span>
+                                    </div>
+                                    <div class="price">@course.FormattedPrice</div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </section>
+    }
 }
+else
+{
+    <!-- Course not found -->
+    <section class="course-not-found">
+        <div class="container text-center py-5">
+            <h2>Course Not Found</h2>
+            <p>The course you're looking for doesn't exist or has been removed.</p>
+            <a asp-page="/Index" class="btn btn-primary">Browse All Courses</a>
+        </div>
+    </section>
+}
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Course Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="ratio ratio-16x9">
+                    <video controls poster="@Model.Course?.ImageUrl">
+                        <source src="#" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <script>
-        function enrollInCourse(courseId) {
-            alert('Enrollment functionality will be implemented soon!');
+        // Copy course URL to clipboard
+        function copyToClipboard() {
+            navigator.clipboard.writeText(window.location.href).then(function() {
+                // Show success message
+                const btn = document.querySelector('.share-btn.link');
+                const originalIcon = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-check"></i>';
+                setTimeout(() => {
+                    btn.innerHTML = originalIcon;
+                }, 2000);
+            });
         }
 
-        function addToWishlist(courseId) {
-            alert('Wishlist functionality will be implemented soon!');
-        }
+        // Smooth scroll for internal links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
     </script>
 }

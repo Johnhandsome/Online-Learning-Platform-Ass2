@@ -1,22 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using OnlineLearningPlatformAss2.Service.Services.Interfaces;
-using OnlineLearningPlatformAss2.Service.DTOs.Course;
+using OnlineLearningPlatformAss2.Service.DTOs.LearningPath;
 using System.Security.Claims;
 
-namespace OnlineLearningPlatformAss2.RazorWebApp.Pages.Course;
+namespace OnlineLearningPlatformAss2.RazorWebApp.Pages.LearningPath;
 
 public class DetailsModel : PageModel
 {
-    private readonly ICourseService _courseService;
+    private readonly ILearningPathService _learningPathService;
 
-    public DetailsModel(ICourseService courseService)
+    public DetailsModel(ILearningPathService learningPathService)
     {
-        _courseService = courseService;
+        _learningPathService = learningPathService;
     }
 
-    public CourseDetailViewModel? Course { get; set; }
-    public List<CourseViewModel> RelatedCourses { get; set; } = new();
+    public LearningPathDetailsWithProgressDto? LearningPath { get; set; }
     public bool IsAuthenticated { get; set; }
     public bool IsEnrolled { get; set; }
 
@@ -30,21 +29,14 @@ public class DetailsModel : PageModel
             userId = parsedUserId;
         }
 
-        Course = await _courseService.GetCourseDetailsAsync(id, userId);
+        LearningPath = await _learningPathService.GetPathDetailsWithProgressAsync(id, userId);
         
-        if (Course == null)
+        if (LearningPath == null)
         {
             return NotFound();
         }
 
-        IsEnrolled = Course.IsEnrolled;
-
-        // Get related courses from same category
-        var allCourses = await _courseService.GetAllCoursesAsync();
-        RelatedCourses = allCourses
-            .Where(c => c.CategoryName == Course.CategoryName && c.Id != Course.Id)
-            .Take(3)
-            .ToList();
+        IsEnrolled = LearningPath.IsEnrolled;
 
         return Page();
     }
@@ -61,9 +53,11 @@ public class DetailsModel : PageModel
             return RedirectToPage("/User/Login");
         }
 
-        // For now, just redirect to course learning page
-        // In a real app, you'd create enrollment record here
-        TempData["SuccessMessage"] = "Successfully enrolled in the course!";
-        return RedirectToPage("/Course/Learn", new { id = id });
+        // For demo purposes, simulate enrollment
+        TempData["SuccessMessage"] = "Successfully enrolled in the learning path!";
+        
+        // In a real application, you would create an enrollment record here
+        
+        return RedirectToPage("/LearningPath/MyPaths");
     }
 }

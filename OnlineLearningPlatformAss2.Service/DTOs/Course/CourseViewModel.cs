@@ -10,4 +10,13 @@ public class CourseViewModel
     public string CategoryName { get; set; } = null!;
     public string InstructorName { get; set; } = null!;
     public bool IsEnrolled { get; set; }
+    public decimal Rating { get; set; } = 4.5m;
+    public int StudentCount { get; set; }
+    public bool IsFeatured { get; set; }
+    public DateTime? EnrollmentDate { get; set; }
+    public decimal Progress { get; set; }
+    
+    // Helper properties
+    public string FormattedPrice => Price == 0 ? "Free" : Price.ToString("C");
+    public string RatingDisplay => new string('★', (int)Math.Round(Rating)) + new string('☆', 5 - (int)Math.Round(Rating));
 }
