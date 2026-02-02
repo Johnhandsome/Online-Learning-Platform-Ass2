@@ -23,7 +23,7 @@ public class LoginModel : PageModel
     }
 
     [BindProperty]
-    public UserLoginDto LoginDto { get; set; } = new();
+    public UserLoginDto LoginDto { get; set; } = new("", "");
 
     public void OnGet()
     {

@@ -13,7 +13,7 @@ public class RegisterModel : PageModel
     }
 
     [BindProperty]
-    public UserRegisterDto RegisterDto { get; set; } = new();
+    public UserRegisterDto RegisterDto { get; set; } = new("", "", "", "");
 
     public void OnGet()
     {

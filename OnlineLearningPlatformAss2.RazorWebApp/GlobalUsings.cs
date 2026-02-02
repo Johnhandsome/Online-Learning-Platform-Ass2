@@ -1,0 +1,11 @@
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.AspNetCore.Mvc.RazorPages;
+global using Microsoft.AspNetCore.Authorization;
+global using Microsoft.AspNetCore.Authentication;
+global using Microsoft.AspNetCore.Authentication.Cookies;
+global using System.Security.Claims;
+global using OnlineLearningPlatformAss2.Service.Services.Interfaces;
+global using OnlineLearningPlatformAss2.Service.DTOs.User;
+global using OnlineLearningPlatformAss2.Service.DTOs.Course;
+global using OnlineLearningPlatformAss2.Service.DTOs.LearningPath;
+global using OnlineLearningPlatformAss2.Service.DTOs.Category;
