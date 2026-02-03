@@ -1,0 +1,150 @@
+@page "/Course/Browse"
+@model OnlineLearningPlatformAss2.RazorWebApp.Pages.Course.BrowseModel
+@{
+    ViewData["Title"] = "Browse Courses";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/course-browse.css" asp-append-version="true" />
+}
+
+<div class="browse-page">
+    <!-- Hero Section -->
+    <section class="browse-hero">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="hero-title">Discover Your Next Course</h1>
+                    <p class="hero-subtitle">Choose from @Model.TotalCourses courses across multiple categories to advance your skills</p>
+                </div>
+                <div class="col-lg-4">
+                    <div class="search-stats">
+                        <div class="stat">
+                            <span class="number">@Model.TotalCourses</span>
+                            <span class="label">Courses Available</span>
+                        </div>
+                        <div class="stat">
+                            <span class="number">@Model.Categories.Count()</span>
+                            <span class="label">Categories</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filters & Search -->
+    <section class="browse-filters">
+        <div class="container">
+            <div class="filter-bar">
+                <div class="row align-items-center">
+                    <!-- Search Box -->
+                    <div class="col-lg-4 col-md-6 mb-3 mb-lg-0">
+                        <div class="search-box">
+                            <i class="bi bi-search"></i>
+                            <input type="text" 
+                                   id="searchInput" 
+                                   placeholder="Search courses..." 
+                                   value="@Model.SearchTerm"
+                                   autocomplete="off">
+                            <div class="search-clear" id="searchClear" style="display: @(string.IsNullOrEmpty(Model.SearchTerm) ? "none" : "block")">
+                                <i class="bi bi-x"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Category Filter -->
+                    <div class="col-lg-3 col-md-6 mb-3 mb-lg-0">
+                        <div class="filter-dropdown">
+                            <select id="categoryFilter" class="form-select">
+                                <option value="">All Categories</option>
+                                @foreach (var category in Model.Categories)
+                                {
+                                    <option value="@category.Id" selected="@(Model.CategoryId == category.Id)">
+                                        @category.Name
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Sort Options -->
+                    <div class="col-lg-3 col-md-6 mb-3 mb-lg-0">
+                        <div class="filter-dropdown">
+                            <select id="sortFilter" class="form-select">
+                                <option value="newest" selected="@(Model.SortBy == "newest")">Newest First</option>
+                                <option value="title" selected="@(Model.SortBy == "title")">Title A-Z</option>
+                                <option value="price_low" selected="@(Model.SortBy == "price_low")">Price: Low to High</option>
+                                <option value="price_high" selected="@(Model.SortBy == "price_high")">Price: High to Low</option>
+                                <option value="rating" selected="@(Model.SortBy == "rating")">Highest Rated</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Results Count -->
+                    <div class="col-lg-2 col-md-6 text-end">
+                        <div class="results-count">
+                            <span id="resultsCount">@Model.TotalCourses</span> courses
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Filters -->
+            <div class="active-filters" id="activeFilters" style="display: @((!string.IsNullOrEmpty(Model.SearchTerm) || Model.CategoryId.HasValue) ? "flex" : "none")">
+                <span class="filter-label">Active filters:</span>
+                <div class="filter-tags">
+                    @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                    {
+                        <span class="filter-tag">
+                            Search: "@Model.SearchTerm"
+                            <button type="button" class="filter-remove" data-filter="search">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </span>
+                    }
+                    @if (Model.CategoryId.HasValue)
+                    {
+                        <span class="filter-tag">
+                            Category: @Model.SelectedCategoryName
+                            <button type="button" class="filter-remove" data-filter="category">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </span>
+                    }
+                </div>
+                <button type="button" class="clear-all-filters" id="clearAllFilters">
+                    Clear all
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Course Grid -->
+    <section class="browse-content">
+        <div class="container">
+            <div id="courseGrid">
+                @await Html.PartialAsync("_CourseGrid", new ViewDataDictionary(ViewData) { 
+                    { "Courses", Model.Courses }, 
+                    { "TotalCourses", Model.TotalCourses },
+                    { "SearchTerm", Model.SearchTerm },
+                    { "SelectedCategoryName", Model.SelectedCategoryName }
+                })
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+                <div class="spinner">
+                    <div class="bounce1"></div>
+                    <div class="bounce2"></div>
+                    <div class="bounce3"></div>
+                </div>
+                <p>Loading courses...</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <script src="~/js/course-browse.js" asp-append-version="true"></script>
+}

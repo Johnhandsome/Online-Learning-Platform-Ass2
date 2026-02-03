@@ -18,6 +18,7 @@ public class IndexModel : PageModel
 
     public List<CourseDisplayModel> Courses { get; set; } = new();
     public List<LearningPathDisplayModel> FeaturedPaths { get; set; } = new();
+    public List<CategoryDisplayModel> Categories { get; set; } = new();
     public string? SelectedCategory { get; set; }
     public bool ViewAll { get; set; }
     public string? SearchTerm { get; set; }
@@ -28,6 +29,9 @@ public class IndexModel : PageModel
         ViewAll = viewAll;
         SearchTerm = searchTerm;
 
+        // Load categories
+        Categories = GetSampleCategories();
+        
         // Get courses
         await LoadCoursesAsync();
         
@@ -212,6 +216,19 @@ public class IndexModel : PageModel
             }
         };
     }
+
+    private List<CategoryDisplayModel> GetSampleCategories()
+    {
+        return new List<CategoryDisplayModel>
+        {
+            new() { Id = Guid.NewGuid(), Name = "Web Development" },
+            new() { Id = Guid.NewGuid(), Name = "Data Science" },
+            new() { Id = Guid.NewGuid(), Name = "Design" },
+            new() { Id = Guid.NewGuid(), Name = "Business" },
+            new() { Id = Guid.NewGuid(), Name = "Mobile Development" },
+            new() { Id = Guid.NewGuid(), Name = "Marketing" }
+        };
+    }
 }
 
 public class CourseDisplayModel
@@ -240,4 +257,10 @@ public class LearningPathDisplayModel
     public string BadgeText { get; set; } = string.Empty;
 
     public string FormattedPrice => Price == 0 ? "Free" : Price.ToString("C");
+}
+
+public class CategoryDisplayModel
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
 }

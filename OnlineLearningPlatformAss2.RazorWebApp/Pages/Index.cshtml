@@ -113,11 +113,16 @@
     <div class="container">
         <div class="category-pills">
             <a href="@Url.Page("/Index")" class="category-pill @(string.IsNullOrEmpty(Model.SelectedCategory) && !Model.ViewAll ? "active" : "")">Featured</a>
-            <a href="@Url.Page("/Index", new { viewAll = "true" })" class="category-pill @(Model.ViewAll ? "active" : "")">All Courses</a>
-            <a href="@Url.Page("/Index", new { category = "Web Development" })" class="category-pill @(Model.SelectedCategory == "Web Development" ? "active" : "")">Web Development</a>
-            <a href="@Url.Page("/Index", new { category = "Data Science" })" class="category-pill @(Model.SelectedCategory == "Data Science" ? "active" : "")">Data Science</a>
-            <a href="@Url.Page("/Index", new { category = "Design" })" class="category-pill @(Model.SelectedCategory == "Design" ? "active" : "")">Design</a>
-            <a href="@Url.Page("/Index", new { category = "Business" })" class="category-pill @(Model.SelectedCategory == "Business" ? "active" : "")">Business</a>
+            <a href="@Url.Page("/Course/Browse")" class="category-pill">All Courses</a>
+            @foreach (var category in Model.Categories)
+            {
+                <a href="@Url.Page("/Course/Browse", new { categoryId = category.Id })" 
+                   class="category-pill" 
+                   data-category="@category.Id" 
+                   data-category-name="@category.Name">
+                    @category.Name
+                </a>
+            }
         </div>
     </div>
 </section>
@@ -201,8 +206,8 @@
             @if (Model.Courses.Count >= 6 && !Model.ViewAll)
             {
                 <div class="text-center mt-5">
-                    <a asp-page="/Index" asp-route-viewAll="true" class="btn btn-primary btn-lg">
-                        View All Courses
+                    <a asp-page="/Course/Browse" class="btn btn-primary btn-lg">
+                        Browse All Courses
                         <i class="bi bi-arrow-right ms-2"></i>
                     </a>
                 </div>
