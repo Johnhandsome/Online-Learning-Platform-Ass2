@@ -50,12 +50,12 @@ public class CourseService : ICourseService
 
     public async Task<IEnumerable<CourseViewModel>> GetAllCoursesAsync(string? searchTerm = null, Guid? categoryId = null)
     {
-        // Always start with sample data to ensure we have courses to search
-        var sampleCourses = GetSampleCourses().ToList();
-        
         try
         {
-            // Try to get database courses and merge with sample
+            // Get sample courses
+            var sampleCourses = GetSampleCourses().ToList();
+            
+            // Try to get database courses
             var query = _context.Courses
                 .Include(c => c.Category)
                 .Include(c => c.Instructor)
@@ -88,9 +88,8 @@ public class CourseService : ICourseService
             }
 
             // Apply search filter
-            if (!string.IsNullOrEmpty(searchTerm))
+            if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                var searchTermLower = searchTerm.ToLowerInvariant();
                 allCourses = allCourses.Where(c => 
                     (c.Title?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (c.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
@@ -119,12 +118,12 @@ public class CourseService : ICourseService
             Console.WriteLine($"Error in GetAllCoursesAsync: {ex.Message}");
             
             // Fallback to sample data with filtering
-            var allCourses = sampleCourses;
+            var sampleCourses = GetSampleCourses().ToList();
             
             // Apply search filter to sample data
-            if (!string.IsNullOrEmpty(searchTerm))
+            if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                allCourses = allCourses.Where(c => 
+                sampleCourses = sampleCourses.Where(c => 
                     (c.Title?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (c.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
                     (c.CategoryName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
@@ -139,13 +138,13 @@ public class CourseService : ICourseService
                 var categoryName = sampleCategories.FirstOrDefault(c => c.Id == categoryId.Value)?.Name;
                 if (!string.IsNullOrEmpty(categoryName))
                 {
-                    allCourses = allCourses.Where(c => 
-                        c.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)
+                    sampleCourses = sampleCourses.Where(c => 
+                        c.CategoryName != null && c.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)
                     ).ToList();
                 }
             }
             
-            return allCourses;
+            return sampleCourses;
         }
     }
 

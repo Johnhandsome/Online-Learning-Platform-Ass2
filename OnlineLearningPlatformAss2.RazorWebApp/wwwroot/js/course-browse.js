@@ -1,4 +1,4 @@
-// Course Browse JavaScript - AJAX filtering without page reload
+ï»¿// Course Browse JavaScript - Simple and effective filtering
 
 class CourseBrowser {
     constructor() {
@@ -10,27 +10,43 @@ class CourseBrowser {
         this.loadingIndicator = document.getElementById('loadingIndicator');
         this.activeFilters = document.getElementById('activeFilters');
         this.resultsCount = document.getElementById('resultsCount');
+        this.totalCoursesDisplay = document.getElementById('totalCoursesDisplay');
         this.clearAllFilters = document.getElementById('clearAllFilters');
+        this.filterTags = document.getElementById('filterTags');
 
         this.searchTimeout = null;
         this.isLoading = false;
 
-        this.initEventListeners();
-        this.updateActiveFilters();
+        this.init();
     }
 
-    initEventListeners() {
-        // Search input with debounce và loading indication
-        this.searchInput?.addEventListener('input', (e) => {
+    init() {
+        console.log('CourseBrowser initialized');
+        console.log('Initial search term from input:', this.searchInput?.value);
+        console.log('Initial search term from URL:', new URLSearchParams(window.location.search).get('SearchTerm'));
+        
+        this.syncInputWithURL();
+        this.attachEventListeners();
+        this.logCurrentState();
+    }
+
+    syncInputWithURL() {
+        // Sync input box with URL parameter on page load
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlSearchTerm = urlParams.get('SearchTerm') || '';
+        
+        if (this.searchInput && urlSearchTerm) {
+            this.searchInput.value = urlSearchTerm;
+            this.updateSearchClearButton();
+        }
+    }
+
+    attachEventListeners() {
+        // Search with debounce
+        this.searchInput?.addEventListener('input', () => {
             clearTimeout(this.searchTimeout);
-            
-            // Show subtle loading hint
-            this.searchInput.style.borderColor = '#94a3b8';
-            
-            this.searchTimeout = setTimeout(() => {
-                this.filterCourses();
-                this.toggleSearchClear();
-            }, 300); // Reduced debounce time for better responsiveness
+            this.searchTimeout = setTimeout(() => this.applyFilters(), 500);
+            this.updateSearchClearButton();
         });
 
         // Search on Enter key
@@ -38,124 +54,92 @@ class CourseBrowser {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 clearTimeout(this.searchTimeout);
-                this.filterCourses();
+                this.applyFilters();
             }
         });
 
-        // Clear search button
+        // Clear search
         this.searchClear?.addEventListener('click', () => {
             this.searchInput.value = '';
-            this.toggleSearchClear();
-            this.filterCourses();
+            this.updateSearchClearButton();
+            this.applyFilters();
         });
 
         // Category filter
-        this.categoryFilter?.addEventListener('change', () => {
-            this.filterCourses();
-        });
+        this.categoryFilter?.addEventListener('change', () => this.applyFilters());
 
         // Sort filter
-        this.sortFilter?.addEventListener('change', () => {
-            this.filterCourses();
-        });
+        this.sortFilter?.addEventListener('change', () => this.applyFilters());
 
-        // Filter remove buttons
+        // Remove individual filters
         document.addEventListener('click', (e) => {
-            if (e.target.closest('.filter-remove')) {
-                const filterType = e.target.closest('.filter-remove').dataset.filter;
+            const removeBtn = e.target.closest('.filter-remove');
+            if (removeBtn) {
+                const filterType = removeBtn.dataset.filter;
                 this.removeFilter(filterType);
             }
         });
 
         // Clear all filters
-        this.clearAllFilters?.addEventListener('click', () => {
-            this.clearAllFiltersMethod();
-        });
-
-        // Prevent default form submission
-        const searchForm = this.searchInput?.closest('form');
-        if (searchForm) {
-            searchForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.filterCourses();
-            });
-        }
+        this.clearAllFilters?.addEventListener('click', () => this.clearAll());
     }
 
-    async filterCourses() {
-        if (this.isLoading) return;
+    async applyFilters() {
+        if (this.isLoading) {
+            console.log('Already loading, skipping...');
+            return;
+        }
+
+        const searchTerm = this.searchInput?.value.trim() || '';
+        const categoryId = this.categoryFilter?.value || '';
+        const sortBy = this.sortFilter?.value || 'newest';
+
+        console.log('=== Applying filters ===');
+        console.log('Search term:', searchTerm);
+        console.log('Category ID:', categoryId);
+        console.log('Sort by:', sortBy);
 
         this.isLoading = true;
         this.showLoading();
 
         try {
             const params = new URLSearchParams();
-            
-            const searchTerm = this.searchInput?.value.trim();
-            const categoryId = this.categoryFilter?.value;
-            const sortBy = this.sortFilter?.value;
+            if (searchTerm) params.append('searchTerm', searchTerm);
+            if (categoryId) params.append('categoryId', categoryId);
+            params.append('sortBy', sortBy);
 
-            console.log('Filter parameters:', { searchTerm, categoryId, sortBy });
+            const url = `/Course/Browse?handler=Courses&${params.toString()}`;
+            console.log('Fetching:', url);
 
-            if (searchTerm) {
-                params.append('SearchTerm', searchTerm);
-            }
-
-            if (categoryId) {
-                params.append('CategoryId', categoryId);
-            }
-
-            if (sortBy) {
-                params.append('SortBy', sortBy);
-            }
-
-            // Remove redundant debug call that might slow things down
-            const url = `/Course/Browse?handler=Courses&${params.toString()}&t=${new Date().getTime()}`;
-            console.log('Fetching courses with URL:', url);
-            
             const response = await fetch(url, {
                 method: 'GET',
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'text/html'
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
             });
 
             console.log('Response status:', response.status);
-            console.log('Response headers:', [...response.headers.entries()]);
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`Server returned ${response.status}: ${response.statusText}`);
             }
 
             const html = await response.text();
             console.log('Received HTML length:', html.length);
-            console.log('First 200 chars:', html.substring(0, 200));
-            
-            // Check if we got valid HTML
-            if (html.length < 100) {
-                console.warn('Received very short response, might be an error:', html);
-            }
-            
+            console.log('HTML preview:', html.substring(0, 200));
+
             this.courseGrid.innerHTML = html;
-
-            // Update browser URL without reloading
-            this.updateUrl(params);
             
-            // Update active filters
-            this.updateActiveFilters();
-
-            // Update results count
+            // Update UI
             this.updateResultsCount();
+            this.updateActiveFilters();
+            this.updateURL(params);
 
-            // Smooth scroll to results
-            this.smoothScrollToResults();
-
-            console.log('Filter completed successfully');
+            console.log('=== Filters applied successfully ===');
 
         } catch (error) {
-            console.error('Error filtering courses:', error);
-            this.showError(`Failed to load courses: ${error.message}. Please try again.`);
+            console.error('Error applying filters:', error);
+            this.showError(error.message);
         } finally {
             this.hideLoading();
             this.isLoading = false;
@@ -163,275 +147,164 @@ class CourseBrowser {
     }
 
     showLoading() {
-        this.courseGrid.classList.add('loading');
-        this.courseGrid.style.opacity = '0.6';
-        this.courseGrid.style.pointerEvents = 'none';
-        this.loadingIndicator.style.display = 'block';
+        if (this.loadingIndicator) {
+            this.loadingIndicator.style.display = 'block';
+        }
+        if (this.courseGrid) {
+            this.courseGrid.style.opacity = '0.5';
+        }
     }
 
     hideLoading() {
-        this.courseGrid.classList.remove('loading');
-        this.courseGrid.style.opacity = '1';
-        this.courseGrid.style.pointerEvents = 'auto';
-        this.loadingIndicator.style.display = 'none';
-        
-        // Add fade-in animation to new content
-        const courseCards = this.courseGrid.querySelectorAll('.course-card');
-        courseCards.forEach((card, index) => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(20px)';
-            setTimeout(() => {
-                card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                card.style.opacity = '1';
-                card.style.transform = 'translateY(0)';
-            }, index * 50); // Stagger animation
-        });
-    }
-
-    updateUrl(params) {
-        const newUrl = params.toString() ? 
-            `${window.location.pathname}?${params.toString()}` : 
-            window.location.pathname;
-        
-        window.history.replaceState({}, '', newUrl);
-    }
-
-    updateActiveFilters() {
-        const searchTerm = this.searchInput?.value.trim();
-        const categoryId = this.categoryFilter?.value;
-        const hasActiveFilters = searchTerm || categoryId;
-
-        if (this.activeFilters) {
-            this.activeFilters.style.display = hasActiveFilters ? 'flex' : 'none';
+        if (this.loadingIndicator) {
+            this.loadingIndicator.style.display = 'none';
         }
-
-        // Update filter tags
-        this.updateFilterTags();
-    }
-
-    updateFilterTags() {
-        const filterTags = this.activeFilters?.querySelector('.filter-tags');
-        if (!filterTags) return;
-
-        let tagsHtml = '';
-        
-        const searchTerm = this.searchInput?.value.trim();
-        if (searchTerm) {
-            tagsHtml += `
-                <span class="filter-tag">
-                    Search: "${searchTerm}"
-                    <button type="button" class="filter-remove" data-filter="search">
-                        <i class="bi bi-x"></i>
-                    </button>
-                </span>
-            `;
-        }
-
-        const categoryId = this.categoryFilter?.value;
-        if (categoryId) {
-            const categoryName = this.categoryFilter.options[this.categoryFilter.selectedIndex].text;
-            tagsHtml += `
-                <span class="filter-tag">
-                    Category: ${categoryName}
-                    <button type="button" class="filter-remove" data-filter="category">
-                        <i class="bi bi-x"></i>
-                    </button>
-                </span>
-            `;
-        }
-
-        filterTags.innerHTML = tagsHtml;
-    }
-
-    removeFilter(filterType) {
-        switch (filterType) {
-            case 'search':
-                this.searchInput.value = '';
-                this.toggleSearchClear();
-                break;
-            case 'category':
-                this.categoryFilter.value = '';
-                break;
-        }
-        
-        this.filterCourses();
-    }
-
-    clearAllFiltersMethod() {
-        if (this.searchInput) {
-            this.searchInput.value = '';
-            this.toggleSearchClear();
-        }
-        
-        if (this.categoryFilter) {
-            this.categoryFilter.value = '';
-        }
-        
-        if (this.sortFilter) {
-            this.sortFilter.value = 'newest';
-        }
-        
-        this.filterCourses();
-    }
-
-    toggleSearchClear() {
-        if (this.searchClear) {
-            this.searchClear.style.display = 
-                this.searchInput.value.trim() ? 'block' : 'none';
+        if (this.courseGrid) {
+            this.courseGrid.style.opacity = '1';
         }
     }
 
     updateResultsCount() {
         const courseCards = this.courseGrid.querySelectorAll('.course-card');
+        const count = courseCards.length;
+        
+        console.log('Found course cards:', count);
+        
         if (this.resultsCount) {
-            this.resultsCount.textContent = courseCards.length;
+            this.resultsCount.textContent = count;
+        }
+        if (this.totalCoursesDisplay) {
+            this.totalCoursesDisplay.textContent = count;
         }
     }
 
-    smoothScrollToResults() {
-        // Ch? scroll n?u ng??i dùng ?ang ? phía trên khu v?c k?t qu?
-        const courseGridTop = this.courseGrid.offsetTop - 100; // 100px buffer t? top
-        const currentScroll = window.pageYOffset;
+    updateActiveFilters() {
+        const searchTerm = this.searchInput?.value.trim() || '';
+        const categoryId = this.categoryFilter?.value || '';
         
-        // Ch? scroll xu?ng n?u ?ang ? trên khu v?c k?t qu?
-        // Không scroll n?u ?ã ? d??i ho?c g?n khu v?c k?t qu?
-        if (currentScroll < courseGridTop) {
-            window.scrollTo({
-                top: courseGridTop,
-                behavior: 'smooth'
-            });
+        if (!searchTerm && !categoryId) {
+            if (this.activeFilters) {
+                this.activeFilters.style.display = 'none';
+            }
+            return;
         }
-        // N?u ?ã ? trong khu v?c k?t qu?, không scroll gì c?
+
+        if (this.activeFilters) {
+            this.activeFilters.style.display = 'flex';
+        }
+
+        if (this.filterTags) {
+            let html = '';
+            
+            if (searchTerm) {
+                html += `
+                    <span class="filter-tag">
+                        Search: "${searchTerm}"
+                        <button type="button" class="filter-remove" data-filter="search">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </span>
+                `;
+            }
+            
+            if (categoryId && this.categoryFilter) {
+                const categoryName = this.categoryFilter.options[this.categoryFilter.selectedIndex].text;
+                html += `
+                    <span class="filter-tag">
+                        Category: ${categoryName}
+                        <button type="button" class="filter-remove" data-filter="category">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </span>
+                `;
+            }
+            
+            this.filterTags.innerHTML = html;
+        }
+    }
+
+    updateSearchClearButton() {
+        const hasText = this.searchInput?.value.trim().length > 0;
+        if (this.searchClear) {
+            this.searchClear.style.display = hasText ? 'block' : 'none';
+        }
+    }
+
+    removeFilter(filterType) {
+        console.log('Removing filter:', filterType);
+        
+        if (filterType === 'search' && this.searchInput) {
+            this.searchInput.value = '';
+            this.updateSearchClearButton();
+        } else if (filterType === 'category' && this.categoryFilter) {
+            this.categoryFilter.value = '';
+        }
+        
+        this.applyFilters();
+    }
+
+    clearAll() {
+        console.log('Clearing all filters');
+        
+        if (this.searchInput) {
+            this.searchInput.value = '';
+            this.updateSearchClearButton();
+        }
+        if (this.categoryFilter) {
+            this.categoryFilter.value = '';
+        }
+        if (this.sortFilter) {
+            this.sortFilter.value = 'newest';
+        }
+        
+        this.applyFilters();
+    }
+
+    updateURL(params) {
+        const newUrl = params.toString() 
+            ? `${window.location.pathname}?${params.toString()}`
+            : window.location.pathname;
+        
+        console.log('Updating URL to:', newUrl);
+        window.history.replaceState({}, '', newUrl);
     }
 
     showError(message) {
-        // Show error message with fallback option
         const errorHtml = `
             <div class="alert alert-danger" role="alert">
                 <i class="bi bi-exclamation-triangle me-2"></i>
-                ${message}
+                <strong>Error:</strong> ${message}
             </div>
             <div class="text-center mt-3">
                 <button class="btn btn-primary" onclick="location.reload()">
-                    <i class="bi bi-arrow-clockwise me-1"></i>Reload Page
-                </button>
-                <button class="btn btn-outline-secondary ms-2" onclick="window.fallbackLoadCourses()">
-                    <i class="bi bi-gear me-1"></i>Load Sample Data
+                    <i class="bi bi-arrow-clockwise me-1"></i> Reload Page
                 </button>
             </div>
         `;
         this.courseGrid.innerHTML = errorHtml;
     }
-}
 
-// Category filter functionality for homepage
-class CategoryFilter {
-    constructor() {
-        this.initCategoryButtons();
-    }
-
-    initCategoryButtons() {
-        // Add event listeners for category buttons on homepage
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.category-card') || e.target.closest('[data-category]')) {
-                e.preventDefault();
-                const categoryElement = e.target.closest('.category-card') || e.target.closest('[data-category]');
-                const categoryId = categoryElement.dataset.category;
-                const categoryName = categoryElement.dataset.categoryName;
-                
-                // Navigate to browse page with category filter
-                this.navigateToBrowseWithCategory(categoryId, categoryName);
-            }
-        });
-    }
-
-    navigateToBrowseWithCategory(categoryId, categoryName) {
-        const url = `/Course/Browse?categoryId=${categoryId}`;
-        window.location.href = url;
+    logCurrentState() {
+        console.log('=== Current State ===');
+        console.log('Search:', this.searchInput?.value);
+        console.log('Category:', this.categoryFilter?.value);
+        console.log('Sort:', this.sortFilter?.value);
+        console.log('Course cards:', this.courseGrid?.querySelectorAll('.course-card').length);
+        console.log('===================');
     }
 }
 
-// Initialize when DOM is loaded
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize course browser only on browse page
     if (document.getElementById('courseGrid')) {
-        new CourseBrowser();
-        
-        // Debug: Test if page loads with data
-        console.log('Course Browse page initialized');
-        const courseCards = document.querySelectorAll('.course-card');
-        console.log(`Found ${courseCards.length} course cards on page load`);
+        console.log('Initializing CourseBrowser...');
+        window.courseBrowser = new CourseBrowser();
     }
-
-    // Initialize category filter for all pages
-    new CategoryFilter();
 });
 
-// Debug helper - can be called from browser console
-window.debugCourses = () => {
-    const courseCards = document.querySelectorAll('.course-card');
-    console.log(`Current course cards: ${courseCards.length}`);
-    courseCards.forEach((card, index) => {
-        const title = card.querySelector('.course-title a')?.textContent || 'No title';
-        console.log(`${index + 1}. ${title}`);
-    });
-};
-
-// Export for use in other scripts
-window.CourseBrowser = CourseBrowser;
-window.CategoryFilter = CategoryFilter;
-
-// Global function for clearing filters (accessible from HTML)
+// Global clear function
 function clearAllFilters() {
-    if (window.courseBrowserInstance) {
-        window.courseBrowserInstance.clearAllFiltersMethod();
+    if (window.courseBrowser) {
+        window.courseBrowser.clearAll();
     }
 }
-
-// Fallback function to load sample data
-window.fallbackLoadCourses = function() {
-    const sampleCoursesHtml = `
-        <div class="course-grid">
-            <div class="row g-4">
-                <div class="col-lg-4 col-md-6">
-                    <div class="course-card">
-                        <div class="course-image">
-                            <div class="course-placeholder"><i class="bi bi-book"></i></div>
-                            <div class="course-badge"><span class="badge bg-primary">Web Development</span></div>
-                        </div>
-                        <div class="course-content">
-                            <h3 class="course-title"><a href="#">Advanced JavaScript ES6+</a></h3>
-                            <p class="course-description">Master modern JavaScript features and advanced concepts</p>
-                            <div class="course-footer">
-                                <div class="course-price"><span class="price">$39.99</span></div>
-                                <a href="#" class="btn btn-primary">Enroll Now</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="course-card">
-                        <div class="course-image">
-                            <div class="course-placeholder"><i class="bi bi-book"></i></div>
-                            <div class="course-badge"><span class="badge bg-primary">Web Development</span></div>
-                        </div>
-                        <div class="course-content">
-                            <h3 class="course-title"><a href="#">Advanced React Development</a></h3>
-                            <p class="course-description">Take your React skills to the next level</p>
-                            <div class="course-footer">
-                                <div class="course-price"><span class="price">$69.99</span></div>
-                                <a href="#" class="btn btn-primary">Enroll Now</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="results-summary">
-            <p>Showing 2 sample courses (Fallback Mode)</p>
-        </div>
-    `;
-    
-    document.getElementById('courseGrid').innerHTML = sampleCoursesHtml;
-    document.getElementById('resultsCount').textContent = '2';
-};

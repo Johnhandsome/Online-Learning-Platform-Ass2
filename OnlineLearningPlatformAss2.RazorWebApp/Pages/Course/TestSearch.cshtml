@@ -1,0 +1,38 @@
+@page
+@model OnlineLearningPlatformAss2.RazorWebApp.Pages.Course.TestSearchModel
+@{
+    ViewData["Title"] = "Test Search";
+}
+
+<div class="container mt-5">
+    <h1>Search Test Page</h1>
+    
+    <div class="mb-3">
+        <h3>Test Results</h3>
+        <p>Search Term: <strong>@Model.SearchTerm</strong></p>
+        <p>Category ID: <strong>@Model.CategoryId</strong></p>
+        <p>Found: <strong>@Model.Courses.Count()</strong> courses</p>
+    </div>
+
+    <div class="mb-3">
+        <h4>Courses:</h4>
+        <ul>
+            @foreach (var course in Model.Courses)
+            {
+                <li>@course.Title - @course.CategoryName - @course.InstructorName</li>
+            }
+        </ul>
+    </div>
+
+    <div class="mb-3">
+        <h4>Test Links:</h4>
+        <ul>
+            <li><a asp-page="TestSearch">All Courses</a></li>
+            <li><a asp-page="TestSearch" asp-route-searchTerm="advanced">Search: "advanced"</a></li>
+            <li><a asp-page="TestSearch" asp-route-searchTerm="javascript">Search: "javascript"</a></li>
+            <li><a asp-page="TestSearch" asp-route-searchTerm="web">Search: "web"</a></li>
+            <li><a asp-page="TestSearch" asp-route-categoryId="11111111-1111-1111-1111-111111111111">Category: Web Development</a></li>
+            <li><a asp-page="TestSearch" asp-route-categoryId="22222222-2222-2222-2222-222222222222">Category: Data Science</a></li>
+        </ul>
+    </div>
+</div>
