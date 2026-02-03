@@ -34,6 +34,9 @@ public class DatabaseSeedService
 
         // Seed Learning Paths
         await SeedLearningPathsAsync();
+
+        // Seed Sample Users and Orders
+        await SeedSampleUsersAndOrdersAsync();
     }
 
     private async Task SeedRolesAsync()
@@ -595,6 +598,127 @@ public class DatabaseSeedService
             }
 
             await _context.LearningPaths.AddRangeAsync(learningPaths);
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    private async Task SeedSampleUsersAndOrdersAsync()
+    {
+        var userRole = await _context.Roles.FirstAsync(r => r.Name == "User");
+        
+        // Create sample user if none exist
+        if (!await _context.Users.AnyAsync(u => u.Role != null && u.Role.Name == "User"))
+        {
+            var sampleUser = new User
+            {
+                Id = Guid.NewGuid(),
+                Username = "testuser",
+                Email = "test@example.com",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
+                CreateAt = DateTime.UtcNow,
+                RoleId = userRole.Id
+            };
+
+            await _context.Users.AddAsync(sampleUser);
+            await _context.SaveChangesAsync();
+
+            // Create sample orders for the test user
+            var courses = await _context.Courses.Take(3).ToListAsync();
+            var learningPaths = await _context.LearningPaths.Take(2).ToListAsync();
+
+            var orders = new List<Order>();
+
+            // Create course orders
+            foreach (var course in courses)
+            {
+                var order = new Order
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = sampleUser.Id,
+                    TotalAmount = course.Price,
+                    Status = Random.Shared.Next(0, 3) switch
+                    {
+                        0 => "Pending",
+                        1 => "Completed",
+                        _ => "Completed"
+                    },
+                    CreatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 30)),
+                    CompletedAt = Random.Shared.Next(0, 3) > 0 ? DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 20)) : null
+                };
+
+                orders.Add(order);
+
+                // Create transaction for completed orders
+                if (order.Status == "Completed")
+                {
+                    var transaction = new Transaction
+                    {
+                        Id = Guid.NewGuid(),
+                        OrderId = order.Id,
+                        Amount = order.TotalAmount,
+                        Status = "Completed",
+                        PaymentMethod = "Credit Card",
+                        CreatedAt = order.CompletedAt ?? order.CreatedAt
+                    };
+
+                    await _context.Transactions.AddAsync(transaction);
+
+                    // Create enrollment for completed course orders
+                    var enrollment = new Enrollment
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = sampleUser.Id,
+                        CourseId = course.Id,
+                        EnrolledAt = order.CompletedAt ?? order.CreatedAt,
+                        Status = "Active"
+                    };
+
+                    await _context.Enrollments.AddAsync(enrollment);
+                }
+            }
+
+            // Create learning path orders
+            foreach (var path in learningPaths)
+            {
+                var order = new Order
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = sampleUser.Id,
+                    TotalAmount = path.Price,
+                    Status = "Completed",
+                    CreatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 60)),
+                    CompletedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 50))
+                };
+
+                orders.Add(order);
+
+                // Create transaction
+                var transaction = new Transaction
+                {
+                    Id = Guid.NewGuid(),
+                    OrderId = order.Id,
+                    Amount = order.TotalAmount,
+                    Status = "Completed",
+                    PaymentMethod = "PayPal",
+                    CreatedAt = order.CompletedAt ?? order.CreatedAt
+                };
+
+                await _context.Transactions.AddAsync(transaction);
+
+                // Create learning path enrollment
+                var pathEnrollment = new UserLearningPathEnrollment
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = sampleUser.Id,
+                    PathId = path.Id,
+                    EnrolledAt = order.CompletedAt ?? order.CreatedAt,
+                    Status = "Active"
+                };
+
+                await _context.UserLearningPathEnrollments.AddAsync(pathEnrollment);
+            }
+
+            await _context.Orders.AddRangeAsync(orders);
             await _context.SaveChangesAsync();
         }
     }

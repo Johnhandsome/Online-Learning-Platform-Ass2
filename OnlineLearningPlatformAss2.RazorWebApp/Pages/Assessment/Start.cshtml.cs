@@ -1,3 +1,8 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using OnlineLearningPlatformAss2.Service.Services.Interfaces;
+using System.Security.Claims;
+
 namespace OnlineLearningPlatformAss2.RazorWebApp.Pages.Assessment;
 
 [Authorize]

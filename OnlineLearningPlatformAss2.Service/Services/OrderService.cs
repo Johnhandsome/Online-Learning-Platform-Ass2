@@ -1,0 +1,179 @@
+using Microsoft.EntityFrameworkCore;
+using OnlineLearningPlatformAss2.Data.Database;
+using OnlineLearningPlatformAss2.Data.Database.Entities;
+using OnlineLearningPlatformAss2.Service.DTOs.Order;
+using OnlineLearningPlatformAss2.Service.Services.Interfaces;
+
+namespace OnlineLearningPlatformAss2.Service.Services;
+
+public class OrderService : IOrderService
+{
+    private readonly OnlineLearningContext _context;
+
+    public OrderService(OnlineLearningContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<IEnumerable<OrderViewModel>> GetUserOrdersAsync(Guid userId)
+    {
+        var orders = await _context.Orders
+            .Where(o => o.UserId == userId)
+            .OrderByDescending(o => o.CreatedAt)
+            .Select(o => new OrderViewModel
+            {
+                Id = o.Id,
+                TotalAmount = o.TotalAmount,
+                Status = o.Status,
+                CreatedAt = o.CreatedAt,
+                CompletedAt = o.CompletedAt
+            })
+            .ToListAsync();
+
+        return orders;
+    }
+
+    public async Task<OrderDetailViewModel?> GetOrderDetailsAsync(Guid orderId)
+    {
+        var order = await _context.Orders
+            .Where(o => o.Id == orderId)
+            .Select(o => new OrderDetailViewModel
+            {
+                Id = o.Id,
+                TotalAmount = o.TotalAmount,
+                Status = o.Status,
+                CreatedAt = o.CreatedAt,
+                CompletedAt = o.CompletedAt,
+                Transactions = o.Transactions.Select(t => new TransactionViewModel
+                {
+                    Id = t.Id,
+                    Amount = t.Amount,
+                    Status = t.Status,
+                    PaymentMethod = t.PaymentMethod,
+                    CreatedAt = t.CreatedAt
+                }).ToList()
+            })
+            .FirstOrDefaultAsync();
+
+        return order;
+    }
+
+    public async Task<OrderViewModel> CreateCourseOrderAsync(Guid userId, Guid courseId)
+    {
+        var course = await _context.Courses.FindAsync(courseId);
+        if (course == null)
+            throw new InvalidOperationException("Course not found");
+
+        // Check if user is already enrolled
+        var existingEnrollment = await _context.Enrollments
+            .AnyAsync(e => e.UserId == userId && e.CourseId == courseId);
+
+        if (existingEnrollment)
+            throw new InvalidOperationException("User is already enrolled in this course");
+
+        var order = new Order
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            TotalAmount = course.Price,
+            Status = "Pending",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.Orders.Add(order);
+        await _context.SaveChangesAsync();
+
+        return new OrderViewModel
+        {
+            Id = order.Id,
+            TotalAmount = order.TotalAmount,
+            Status = order.Status,
+            CreatedAt = order.CreatedAt,
+            CompletedAt = order.CompletedAt
+        };
+    }
+
+    public async Task<OrderViewModel> CreateLearningPathOrderAsync(Guid userId, Guid pathId)
+    {
+        var learningPath = await _context.LearningPaths.FindAsync(pathId);
+        if (learningPath == null)
+            throw new InvalidOperationException("Learning path not found");
+
+        // Check if user is already enrolled
+        var existingEnrollment = await _context.UserLearningPathEnrollments
+            .AnyAsync(e => e.UserId == userId && e.PathId == pathId);
+
+        if (existingEnrollment)
+            throw new InvalidOperationException("User is already enrolled in this learning path");
+
+        var order = new Order
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            TotalAmount = learningPath.Price,
+            Status = "Pending",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.Orders.Add(order);
+        await _context.SaveChangesAsync();
+
+        return new OrderViewModel
+        {
+            Id = order.Id,
+            TotalAmount = order.TotalAmount,
+            Status = order.Status,
+            CreatedAt = order.CreatedAt,
+            CompletedAt = order.CompletedAt
+        };
+    }
+
+    public async Task<bool> ProcessPaymentAsync(Guid orderId, string paymentMethod)
+    {
+        var order = await _context.Orders.FindAsync(orderId);
+        if (order == null)
+            return false;
+
+        try
+        {
+            // Create transaction
+            var transaction = new Transaction
+            {
+                Id = Guid.NewGuid(),
+                OrderId = orderId,
+                Amount = order.TotalAmount,
+                Status = "Completed", // In a real app, this would integrate with payment gateway
+                PaymentMethod = paymentMethod,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Transactions.Add(transaction);
+
+            // Update order status
+            order.Status = "Completed";
+            order.CompletedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<OrderStatsViewModel> GetOrderStatsAsync(Guid userId)
+    {
+        var orders = await _context.Orders
+            .Where(o => o.UserId == userId)
+            .ToListAsync();
+
+        return new OrderStatsViewModel
+        {
+            TotalOrders = orders.Count,
+            TotalSpent = orders.Where(o => o.Status == "Completed").Sum(o => o.TotalAmount),
+            CompletedOrders = orders.Count(o => o.Status == "Completed"),
+            PendingOrders = orders.Count(o => o.Status == "Pending")
+        };
+    }
+}
