@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using OnlineLearningPlatformAss2.Service.DTOs.Course;
 using OnlineLearningPlatformAss2.Service.DTOs.Category;
 using OnlineLearningPlatformAss2.Service.Services.Interfaces;
@@ -35,29 +34,10 @@ public class BrowseModel : PageModel
 
     public async Task OnGetAsync()
     {
-        _logger.LogInformation("OnGetAsync called - SearchTerm: {SearchTerm}, CategoryId: {CategoryId}, SortBy: {SortBy}", 
+        _logger.LogInformation("Browse - SearchTerm: '{SearchTerm}', CategoryId: {CategoryId}, SortBy: {SortBy}", 
             SearchTerm, CategoryId, SortBy);
         
         await LoadCoursesAsync();
-    }
-
-    public async Task<IActionResult> OnGetCoursesAsync(string? searchTerm, Guid? categoryId, string? sortBy)
-    {
-        _logger.LogInformation("OnGetCoursesAsync handler - searchTerm: {SearchTerm}, categoryId: {CategoryId}, sortBy: {SortBy}", 
-            searchTerm, categoryId, sortBy);
-        
-        SearchTerm = searchTerm;
-        CategoryId = categoryId;
-        SortBy = sortBy ?? "newest";
-
-        await LoadCoursesAsync();
-        
-        ViewData["Courses"] = Courses;
-        ViewData["TotalCourses"] = TotalCourses;
-        ViewData["SearchTerm"] = SearchTerm;
-        ViewData["SelectedCategoryName"] = SelectedCategoryName;
-        
-        return Partial("_CourseGrid");
     }
 
     private async Task LoadCoursesAsync()
@@ -74,10 +54,10 @@ public class BrowseModel : PageModel
                 SelectedCategoryName = selectedCategory?.Name ?? "All Categories";
             }
 
-            // Get courses with filters
+            // Get courses with filters - NO SAMPLE DATA
             var courses = await _courseService.GetAllCoursesAsync(SearchTerm, CategoryId);
             
-            _logger.LogInformation("Retrieved {Count} courses from service", courses.Count());
+            _logger.LogInformation("Retrieved {Count} courses", courses.Count());
 
             // Apply sorting
             var sortedCourses = SortBy switch
@@ -86,13 +66,11 @@ public class BrowseModel : PageModel
                 "price_high" => courses.OrderByDescending(c => c.Price),
                 "title" => courses.OrderBy(c => c.Title),
                 "rating" => courses.OrderByDescending(c => c.Rating),
-                _ => courses.OrderByDescending(c => c.Id) // newest
+                _ => courses.OrderByDescending(c => c.Id)
             };
             
             Courses = sortedCourses.ToList();
             TotalCourses = Courses.Count();
-            
-            _logger.LogInformation("Final course count after sorting: {Count}", TotalCourses);
         }
         catch (Exception ex)
         {

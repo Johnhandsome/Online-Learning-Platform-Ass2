@@ -2,6 +2,7 @@
 @model OnlineLearningPlatformAss2.RazorWebApp.Pages.Course.BrowseModel
 @{
     ViewData["Title"] = "Browse Courses";
+    var displayCount = Model.Courses?.Count() ?? Model.TotalCourses;
 }
 
 @section Styles {
@@ -20,12 +21,12 @@
                 <div class="col-lg-4">
                     <div class="search-stats">
                         <div class="stat">
-                            <span class="number" id="totalCoursesDisplay">@Model.TotalCourses</span>
-                            <span class="label">Courses Available</span>
+                            <span class="number">@displayCount</span>
+                            <span class="label">COURSES AVAILABLE</span>
                         </div>
                         <div class="stat">
                             <span class="number">@Model.Categories.Count()</span>
-                            <span class="label">Categories</span>
+                            <span class="label">CATEGORIES</span>
                         </div>
                     </div>
                 </div>
@@ -36,116 +37,149 @@
     <!-- Filters & Search -->
     <section class="browse-filters">
         <div class="container">
-            <div class="filter-bar">
-                <div class="row align-items-center g-3">
-                    <!-- Search Box -->
-                    <div class="col-lg-4 col-md-6">
-                        <div class="search-box">
-                            <i class="bi bi-search"></i>
-                            <input type="text" 
-                                   id="searchInput" 
-                                   placeholder="Search courses..." 
-                                   value="@Model.SearchTerm"
-                                   autocomplete="off">
+            <form method="get" id="filterForm">
+                <div class="filter-bar">
+                    <div class="row align-items-center g-3">
+                        <!-- Search Box -->
+                        <div class="col-lg-4 col-md-6">
+                            <div class="search-box">
+                                <i class="bi bi-search"></i>
+                                <input type="text" 
+                                       name="SearchTerm"
+                                       id="searchInput" 
+                                       placeholder="Search courses..." 
+                                       value="@Model.SearchTerm"
+                                       autocomplete="off">
+                                @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                                {
+                                    <button type="button" class="search-clear" id="searchClear">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Category Filter -->
+                        <div class="col-lg-3 col-md-6">
+                            <select name="CategoryId" id="categoryFilter" class="form-select">
+                                <option value="">All Categories</option>
+                                @foreach (var category in Model.Categories)
+                                {
+                                    <option value="@category.Id" selected="@(Model.CategoryId == category.Id)">
+                                        @category.Name
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <!-- Sort Options -->
+                        <div class="col-lg-3 col-md-6">
+                            <select name="SortBy" id="sortFilter" class="form-select">
+                                <option value="newest" selected="@(Model.SortBy == "newest")">Newest First</option>
+                                <option value="title" selected="@(Model.SortBy == "title")">Title A-Z</option>
+                                <option value="price_low" selected="@(Model.SortBy == "price_low")">Price: Low to High</option>
+                                <option value="price_high" selected="@(Model.SortBy == "price_high")">Price: High to Low</option>
+                                <option value="rating" selected="@(Model.SortBy == "rating")">Highest Rated</option>
+                            </select>
+                        </div>
+
+                        <!-- Results Count -->
+                        <div class="col-lg-2 col-md-6 text-end">
+                            <div class="results-count">
+                                <strong>@displayCount</strong> courses
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Filters -->
+                @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.CategoryId.HasValue)
+                {
+                    <div class="active-filters">
+                        <span class="filter-label">Active filters:</span>
+                        <div class="filter-tags">
                             @if (!string.IsNullOrEmpty(Model.SearchTerm))
                             {
-                                <button type="button" class="search-clear" id="searchClear">
-                                    <i class="bi bi-x"></i>
-                                </button>
+                                <span class="filter-tag">
+                                    Search: "@Model.SearchTerm"
+                                    <a href="@Url.Page("/Course/Browse", new { CategoryId = Model.CategoryId, SortBy = Model.SortBy })" class="filter-remove">
+                                        <i class="bi bi-x"></i>
+                                    </a>
+                                </span>
                             }
-                        </div>
-                    </div>
-
-                    <!-- Category Filter -->
-                    <div class="col-lg-3 col-md-6">
-                        <select id="categoryFilter" class="form-select">
-                            <option value="">All Categories</option>
-                            @foreach (var category in Model.Categories)
+                            @if (Model.CategoryId.HasValue)
                             {
-                                <option value="@category.Id" selected="@(Model.CategoryId == category.Id)">
-                                    @category.Name
-                                </option>
+                                <span class="filter-tag">
+                                    Category: @Model.SelectedCategoryName
+                                    <a href="@Url.Page("/Course/Browse", new { SearchTerm = Model.SearchTerm, SortBy = Model.SortBy })" class="filter-remove">
+                                        <i class="bi bi-x"></i>
+                                    </a>
+                                </span>
                             }
-                        </select>
-                    </div>
-
-                    <!-- Sort Options -->
-                    <div class="col-lg-3 col-md-6">
-                        <select id="sortFilter" class="form-select">
-                            <option value="newest" selected="@(Model.SortBy == "newest")">Newest First</option>
-                            <option value="title" selected="@(Model.SortBy == "title")">Title A-Z</option>
-                            <option value="price_low" selected="@(Model.SortBy == "price_low")">Price: Low to High</option>
-                            <option value="price_high" selected="@(Model.SortBy == "price_high")">Price: High to Low</option>
-                            <option value="rating" selected="@(Model.SortBy == "rating")">Highest Rated</option>
-                        </select>
-                    </div>
-
-                    <!-- Results Count -->
-                    <div class="col-lg-2 col-md-6 text-end">
-                        <div class="results-count">
-                            <strong id="resultsCount">@Model.TotalCourses</strong> courses
                         </div>
+                        <a href="@Url.Page("/Course/Browse")" class="clear-all-filters">
+                            Clear all
+                        </a>
                     </div>
-                </div>
-            </div>
-
-            <!-- Active Filters -->
-            @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.CategoryId.HasValue)
-            {
-                <div class="active-filters" id="activeFilters">
-                    <span class="filter-label">Active filters:</span>
-                    <div class="filter-tags" id="filterTags">
-                        @if (!string.IsNullOrEmpty(Model.SearchTerm))
-                        {
-                            <span class="filter-tag">
-                                Search: "@Model.SearchTerm"
-                                <button type="button" class="filter-remove" data-filter="search">
-                                    <i class="bi bi-x"></i>
-                                </button>
-                            </span>
-                        }
-                        @if (Model.CategoryId.HasValue)
-                        {
-                            <span class="filter-tag">
-                                Category: @Model.SelectedCategoryName
-                                <button type="button" class="filter-remove" data-filter="category">
-                                    <i class="bi bi-x"></i>
-                                </button>
-                            </span>
-                        }
-                    </div>
-                    <button type="button" class="clear-all-filters" id="clearAllFilters">
-                        Clear all
-                    </button>
-                </div>
-            }
+                }
+            </form>
         </div>
     </section>
 
     <!-- Course Grid -->
     <section class="browse-content">
         <div class="container">
-            <!-- Loading Indicator -->
-            <div id="loadingIndicator" class="loading-indicator" style="display: none;">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-2">Loading courses...</p>
-            </div>
-
-            <!-- Course Grid Container -->
-            <div id="courseGrid">
-                @await Html.PartialAsync("_CourseGrid", new ViewDataDictionary(ViewData) { 
-                    { "Courses", Model.Courses }, 
-                    { "TotalCourses", Model.TotalCourses },
-                    { "SearchTerm", Model.SearchTerm },
-                    { "SelectedCategoryName", Model.SelectedCategoryName }
-                })
-            </div>
+            @await Html.PartialAsync("_CourseGrid", new ViewDataDictionary(ViewData) { 
+                { "Courses", Model.Courses }, 
+                { "TotalCourses", Model.TotalCourses },
+                { "SearchTerm", Model.SearchTerm },
+                { "SelectedCategoryName", Model.SelectedCategoryName }
+            })
         </div>
     </section>
 </div>
 
 @section Scripts {
-    <script src="~/js/course-browse.js" asp-append-version="true"></script>
+    <script>
+        // Simple form-based filtering - NO AJAX
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('filterForm');
+            const searchInput = document.getElementById('searchInput');
+            const categoryFilter = document.getElementById('categoryFilter');
+            const sortFilter = document.getElementById('sortFilter');
+            const searchClear = document.getElementById('searchClear');
+            
+            let searchTimeout;
+            
+            // Auto-submit on input change with debounce
+            searchInput?.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => form.submit(), 500);
+                
+                // Show/hide clear button
+                if (searchClear) {
+                    searchClear.style.display = searchInput.value ? 'block' : 'none';
+                }
+            });
+            
+            // Submit on Enter
+            searchInput?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    form.submit();
+                }
+            });
+            
+            // Clear search
+            searchClear?.addEventListener('click', () => {
+                searchInput.value = '';
+                searchClear.style.display = 'none';
+                form.submit();
+            });
+            
+            // Auto-submit on filter change
+            categoryFilter?.addEventListener('change', () => form.submit());
+            sortFilter?.addEventListener('change', () => form.submit());
+        });
+    </script>
 }

@@ -52,16 +52,29 @@ public class CourseService : ICourseService
     {
         try
         {
-            // Get sample courses
-            var sampleCourses = GetSampleCourses().ToList();
-            
-            // Try to get database courses
             var query = _context.Courses
                 .Include(c => c.Category)
                 .Include(c => c.Instructor)
                 .AsQueryable();
 
-            var dbCourses = await query
+            // Apply search filter
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query = query.Where(c => 
+                    c.Title.Contains(searchTerm) ||
+                    c.Description.Contains(searchTerm) ||
+                    c.Category.Name.Contains(searchTerm) ||
+                    c.Instructor.Username.Contains(searchTerm)
+                );
+            }
+            
+            // Apply category filter
+            if (categoryId.HasValue)
+            {
+                query = query.Where(c => c.CategoryId == categoryId.Value);
+            }
+
+            var courses = await query
                 .Select(c => new CourseViewModel
                 {
                     Id = c.Id,
@@ -71,80 +84,18 @@ public class CourseService : ICourseService
                     ImageUrl = c.ImageUrl,
                     CategoryName = c.Category.Name,
                     InstructorName = c.Instructor.Username,
-                    Rating = 4.3m,
-                    StudentCount = 850,
+                    Rating = 4.5m,
+                    StudentCount = 1200,
                     IsFeatured = false
                 })
                 .ToListAsync();
 
-            // Merge database courses with sample courses (remove duplicates by title)
-            var allCourses = sampleCourses.ToList();
-            foreach (var dbCourse in dbCourses)
-            {
-                if (!allCourses.Any(sc => sc.Title.Equals(dbCourse.Title, StringComparison.OrdinalIgnoreCase)))
-                {
-                    allCourses.Add(dbCourse);
-                }
-            }
-
-            // Apply search filter
-            if (!string.IsNullOrWhiteSpace(searchTerm))
-            {
-                allCourses = allCourses.Where(c => 
-                    (c.Title?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (c.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (c.CategoryName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (c.InstructorName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
-                ).ToList();
-            }
-            
-            // Apply category filter
-            if (categoryId.HasValue)
-            {
-                var categoryName = await GetCategoryNameAsync(categoryId.Value);
-                if (!string.IsNullOrEmpty(categoryName))
-                {
-                    allCourses = allCourses.Where(c => 
-                        c.CategoryName != null && c.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)
-                    ).ToList();
-                }
-            }
-            
-            return allCourses;
+            return courses;
         }
         catch (Exception ex)
         {
-            // Log error for debugging
             Console.WriteLine($"Error in GetAllCoursesAsync: {ex.Message}");
-            
-            // Fallback to sample data with filtering
-            var sampleCourses = GetSampleCourses().ToList();
-            
-            // Apply search filter to sample data
-            if (!string.IsNullOrWhiteSpace(searchTerm))
-            {
-                sampleCourses = sampleCourses.Where(c => 
-                    (c.Title?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (c.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (c.CategoryName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                    (c.InstructorName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
-                ).ToList();
-            }
-            
-            // Apply category filter to sample data
-            if (categoryId.HasValue)
-            {
-                var sampleCategories = GetSampleCategories();
-                var categoryName = sampleCategories.FirstOrDefault(c => c.Id == categoryId.Value)?.Name;
-                if (!string.IsNullOrEmpty(categoryName))
-                {
-                    sampleCourses = sampleCourses.Where(c => 
-                        c.CategoryName != null && c.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)
-                    ).ToList();
-                }
-            }
-            
-            return sampleCourses;
+            return Enumerable.Empty<CourseViewModel>();
         }
     }
 
