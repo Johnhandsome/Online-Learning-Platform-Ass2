@@ -108,18 +108,23 @@ class CourseBrowser {
 
             const url = `/Course/Browse?handler=Courses&${params.toString()}`;
             
+            console.log('Fetching courses with URL:', url); // Debug log
+            
             const response = await fetch(url, {
                 method: 'GET',
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json'
                 }
             });
 
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const html = await response.text();
+            console.log('Received HTML length:', html.length); // Debug log
+            
             this.courseGrid.innerHTML = html;
 
             // Update browser URL without reloading
@@ -134,9 +139,11 @@ class CourseBrowser {
             // Smooth scroll to results (không scroll v? ??u trang)
             this.smoothScrollToResults();
 
+            console.log('Filter completed successfully'); // Debug log
+
         } catch (error) {
             console.error('Error filtering courses:', error);
-            this.showError('Failed to load courses. Please try again.');
+            this.showError(`Failed to load courses: ${error.message}. Please try again.`);
         } finally {
             this.hideLoading();
             this.isLoading = false;
@@ -329,11 +336,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize course browser only on browse page
     if (document.getElementById('courseGrid')) {
         new CourseBrowser();
+        
+        // Debug: Test if page loads with data
+        console.log('Course Browse page initialized');
+        const courseCards = document.querySelectorAll('.course-card');
+        console.log(`Found ${courseCards.length} course cards on page load`);
     }
 
     // Initialize category filter for all pages
     new CategoryFilter();
 });
+
+// Debug helper - can be called from browser console
+window.debugCourses = () => {
+    const courseCards = document.querySelectorAll('.course-card');
+    console.log(`Current course cards: ${courseCards.length}`);
+    courseCards.forEach((card, index) => {
+        const title = card.querySelector('.course-title a')?.textContent || 'No title';
+        console.log(`${index + 1}. ${title}`);
+    });
+};
 
 // Export for use in other scripts
 window.CourseBrowser = CourseBrowser;

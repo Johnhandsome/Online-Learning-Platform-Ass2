@@ -32,28 +32,38 @@ public class BrowseModel : PageModel
 
     public async Task OnGetAsync()
     {
-        Categories = await _courseService.GetAllCategoriesAsync();
-        
-        if (CategoryId.HasValue)
+        try
         {
-            var selectedCategory = Categories.FirstOrDefault(c => c.Id == CategoryId.Value);
-            SelectedCategoryName = selectedCategory?.Name ?? "All Categories";
-        }
+            Categories = await _courseService.GetAllCategoriesAsync();
+            
+            if (CategoryId.HasValue)
+            {
+                var selectedCategory = Categories.FirstOrDefault(c => c.Id == CategoryId.Value);
+                SelectedCategoryName = selectedCategory?.Name ?? "All Categories";
+            }
 
-        var allCourses = await _courseService.GetAllCoursesAsync(SearchTerm, CategoryId);
-        
-        // Apply sorting
-        allCourses = SortBy switch
+            var allCourses = await _courseService.GetAllCoursesAsync(SearchTerm, CategoryId);
+            
+            // Apply sorting
+            allCourses = SortBy switch
+            {
+                "price_low" => allCourses.OrderBy(c => c.Price),
+                "price_high" => allCourses.OrderByDescending(c => c.Price),
+                "title" => allCourses.OrderBy(c => c.Title),
+                "rating" => allCourses.OrderByDescending(c => c.Rating),
+                _ => allCourses.OrderBy(c => c.Title) // default sorting by title since CreatedAt doesn't exist
+            };
+            
+            Courses = allCourses.ToList();
+            TotalCourses = Courses.Count();
+        }
+        catch (Exception)
         {
-            "price_low" => allCourses.OrderBy(c => c.Price),
-            "price_high" => allCourses.OrderByDescending(c => c.Price),
-            "title" => allCourses.OrderBy(c => c.Title),
-            "rating" => allCourses.OrderByDescending(c => c.Rating),
-            _ => allCourses.OrderBy(c => c.Title) // default sorting by title since CreatedAt doesn't exist
-        };
-        
-        Courses = allCourses.ToList();
-        TotalCourses = Courses.Count();
+            // Fallback in case of any errors
+            Categories = new List<CategoryViewModel>();
+            Courses = new List<CourseViewModel>();
+            TotalCourses = 0;
+        }
     }
 
     public async Task<IActionResult> OnGetCoursesAsync()

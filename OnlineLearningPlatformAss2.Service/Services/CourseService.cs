@@ -85,11 +85,54 @@ public class CourseService : ICourseService
                 })
                 .ToListAsync();
 
-            return courses.Any() ? courses : GetSampleCourses();
+            // Always return sample data if no results or empty database
+            if (!courses.Any())
+            {
+                var sampleCourses = GetSampleCourses().ToList();
+                
+                // Apply search filter to sample data
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    sampleCourses = sampleCourses.Where(c => 
+                        c.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                        c.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                        c.CategoryName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                    ).ToList();
+                }
+                
+                // Apply category filter to sample data
+                if (categoryId.HasValue)
+                {
+                    var categoryName = await GetCategoryNameAsync(categoryId.Value);
+                    if (!string.IsNullOrEmpty(categoryName))
+                    {
+                        sampleCourses = sampleCourses.Where(c => 
+                            c.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)
+                        ).ToList();
+                    }
+                }
+                
+                return sampleCourses;
+            }
+
+            return courses;
         }
         catch
         {
-            return GetSampleCourses();
+            // Fallback to sample data
+            var sampleCourses = GetSampleCourses().ToList();
+            
+            // Apply filters to sample data
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                sampleCourses = sampleCourses.Where(c => 
+                    c.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    c.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    c.CategoryName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+            }
+            
+            return sampleCourses;
         }
     }
 
@@ -285,8 +328,127 @@ public class CourseService : ICourseService
                 Rating = 4.7m,
                 StudentCount = 8920,
                 IsFeatured = true
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Title = "UI/UX Design Fundamentals",
+                Description = "Learn user interface and user experience design principles and tools",
+                Price = 39.99m,
+                ImageUrl = "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=225&fit=crop",
+                CategoryName = "Design",
+                InstructorName = "Creative Designer",
+                Rating = 4.6m,
+                StudentCount = 5420,
+                IsFeatured = false
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Title = "Digital Marketing Mastery",
+                Description = "Complete guide to digital marketing, SEO, social media, and advertising",
+                Price = 44.99m,
+                ImageUrl = "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=225&fit=crop",
+                CategoryName = "Business",
+                InstructorName = "Marketing Pro",
+                Rating = 4.5m,
+                StudentCount = 7890,
+                IsFeatured = false
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Title = "Advanced JavaScript ES6+",
+                Description = "Master modern JavaScript features, async programming, and advanced concepts",
+                Price = 39.99m,
+                ImageUrl = "https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?w=400&h=225&fit=crop",
+                CategoryName = "Web Development",
+                InstructorName = "JS Expert",
+                Rating = 4.4m,
+                StudentCount = 6750,
+                IsFeatured = false
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Title = "Machine Learning Fundamentals",
+                Description = "Introduction to machine learning algorithms and applications",
+                Price = 69.99m,
+                ImageUrl = "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=225&fit=crop",
+                CategoryName = "Data Science",
+                InstructorName = "ML Researcher",
+                Rating = 4.9m,
+                StudentCount = 4320,
+                IsFeatured = false
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Title = "React.js Complete Guide",
+                Description = "Build dynamic UIs with React, Redux, and modern development practices",
+                Price = 59.99m,
+                ImageUrl = "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=225&fit=crop",
+                CategoryName = "Web Development",
+                InstructorName = "React Master",
+                Rating = 4.7m,
+                StudentCount = 9890,
+                IsFeatured = false
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Title = "Adobe Creative Suite Mastery",
+                Description = "Master Photoshop, Illustrator, and InDesign for professional design",
+                Price = 54.99m,
+                ImageUrl = "https://images.unsplash.com/photo-1626785774625-0b1c2c4eab67?w=400&h=225&fit=crop",
+                CategoryName = "Design",
+                InstructorName = "Adobe Expert",
+                Rating = 4.6m,
+                StudentCount = 3210,
+                IsFeatured = false
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Title = "iOS App Development with Swift",
+                Description = "Build native iOS applications from beginner to advanced level",
+                Price = 59.99m,
+                ImageUrl = "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=225&fit=crop",
+                CategoryName = "Mobile Development",
+                InstructorName = "iOS Developer",
+                Rating = 4.5m,
+                StudentCount = 5670,
+                IsFeatured = false
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Title = "Project Management Professional",
+                Description = "Learn PMP methodologies, agile practices, and leadership skills",
+                Price = 49.99m,
+                ImageUrl = "https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=225&fit=crop",
+                CategoryName = "Business",
+                InstructorName = "PM Expert",
+                Rating = 4.3m,
+                StudentCount = 2340,
+                IsFeatured = false
             }
         };
+    }
+
+    private async Task<string?> GetCategoryNameAsync(Guid categoryId)
+    {
+        try
+        {
+            var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == categoryId);
+            return category?.Name;
+        }
+        catch
+        {
+            // Fallback to sample categories
+            var sampleCategories = GetSampleCategories();
+            return sampleCategories.FirstOrDefault(c => c.Id == categoryId)?.Name;
+        }
     }
 
     private CourseDetailViewModel GetSampleCourseDetail(Guid id)
@@ -398,7 +560,9 @@ public class CourseService : ICourseService
             new() { Id = Guid.NewGuid(), Name = "Web Development", Description = "Frontend and backend web technologies", CourseCount = 25 },
             new() { Id = Guid.NewGuid(), Name = "Data Science", Description = "Data analysis and machine learning", CourseCount = 18 },
             new() { Id = Guid.NewGuid(), Name = "Design", Description = "UI/UX and graphic design", CourseCount = 12 },
-            new() { Id = Guid.NewGuid(), Name = "Business", Description = "Business strategy and management", CourseCount = 15 }
+            new() { Id = Guid.NewGuid(), Name = "Business", Description = "Business strategy and management", CourseCount = 15 },
+            new() { Id = Guid.NewGuid(), Name = "Mobile Development", Description = "iOS, Android, and cross-platform development", CourseCount = 10 },
+            new() { Id = Guid.NewGuid(), Name = "Marketing", Description = "Digital marketing and advertising", CourseCount = 8 }
         };
     }
 }
