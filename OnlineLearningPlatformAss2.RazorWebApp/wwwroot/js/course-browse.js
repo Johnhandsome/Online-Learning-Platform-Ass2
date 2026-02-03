@@ -98,37 +98,26 @@ class CourseBrowser {
             console.log('Filter parameters:', { searchTerm, categoryId, sortBy });
 
             if (searchTerm) {
-                params.append('searchTerm', searchTerm);
+                params.append('SearchTerm', searchTerm);
             }
 
             if (categoryId) {
-                params.append('categoryId', categoryId);
+                params.append('CategoryId', categoryId);
             }
 
             if (sortBy) {
-                params.append('sortBy', sortBy);
+                params.append('SortBy', sortBy);
             }
 
-            // First test with debug endpoint
-            const debugUrl = `/Course/Browse?handler=DebugCourses&${params.toString()}`;
-            console.log('Testing debug URL:', debugUrl);
-            
-            try {
-                const debugResponse = await fetch(debugUrl);
-                const debugData = await debugResponse.json();
-                console.log('Debug data:', debugData);
-            } catch (debugError) {
-                console.warn('Debug endpoint failed:', debugError);
-            }
-
-            const url = `/Course/Browse?handler=Courses&${params.toString()}`;
+            // Remove redundant debug call that might slow things down
+            const url = `/Course/Browse?handler=Courses&${params.toString()}&t=${new Date().getTime()}`;
             console.log('Fetching courses with URL:', url);
             
             const response = await fetch(url, {
                 method: 'GET',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'text/html,application/xhtml+xml'
+                    'Accept': 'text/html'
                 }
             });
 
