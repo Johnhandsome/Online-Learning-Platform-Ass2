@@ -1,10 +1,13 @@
 @using OnlineLearningPlatformAss2.Service.DTOs.Course
 @{
-    var courses = ViewBag.Courses as IEnumerable<CourseViewModel> ?? new List<CourseViewModel>();
-    var totalCourses = ViewBag.TotalCourses ?? 0;
-    var searchTerm = ViewBag.SearchTerm as string;
-    var selectedCategoryName = ViewBag.SelectedCategoryName as string;
+    var courses = (ViewData["Courses"] as IEnumerable<CourseViewModel>) ?? (ViewBag.Courses as IEnumerable<CourseViewModel>) ?? new List<CourseViewModel>();
+    var totalCourses = (ViewData["TotalCourses"] as int?) ?? (ViewBag.TotalCourses as int?) ?? 0;
+    var searchTerm = (ViewData["SearchTerm"] as string) ?? (ViewBag.SearchTerm as string);
+    var selectedCategoryName = (ViewData["SelectedCategoryName"] as string) ?? (ViewBag.SelectedCategoryName as string);
 }
+
+<!-- Debug info for development -->
+<!-- Courses count: @courses.Count(), Total: @totalCourses, Search: "@searchTerm" -->
 
 @if (courses.Any())
 {
@@ -146,7 +149,18 @@ else
         <h3>No courses found</h3>
         @if (!string.IsNullOrEmpty(searchTerm) || !string.IsNullOrEmpty(selectedCategoryName))
         {
-            <p>Try adjusting your search criteria or browse all courses.</p>
+            <p>
+                We couldn't find any courses 
+                @if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    <text>matching "<strong>@searchTerm</strong>"</text>
+                }
+                @if (!string.IsNullOrEmpty(selectedCategoryName) && selectedCategoryName != "All Categories")
+                {
+                    <text> in <strong>@selectedCategoryName</strong></text>
+                }
+                . Try adjusting your search criteria.
+            </p>
             <div class="no-results-actions">
                 <button type="button" class="btn btn-outline-primary" onclick="clearAllFilters()">
                     Clear Filters
@@ -159,6 +173,10 @@ else
         else
         {
             <p>No courses are currently available. Please check back later.</p>
+            <div class="alert alert-info mt-3">
+                <strong>Debug Info:</strong> This should not happen with sample data. 
+                Check console for errors or contact support.
+            </div>
         }
     </div>
 }

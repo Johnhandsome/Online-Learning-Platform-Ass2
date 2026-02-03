@@ -92,38 +92,61 @@ class CourseBrowser {
             const params = new URLSearchParams();
             
             const searchTerm = this.searchInput?.value.trim();
+            const categoryId = this.categoryFilter?.value;
+            const sortBy = this.sortFilter?.value;
+
+            console.log('Filter parameters:', { searchTerm, categoryId, sortBy });
+
             if (searchTerm) {
                 params.append('searchTerm', searchTerm);
             }
 
-            const categoryId = this.categoryFilter?.value;
             if (categoryId) {
                 params.append('categoryId', categoryId);
             }
 
-            const sortBy = this.sortFilter?.value;
             if (sortBy) {
                 params.append('sortBy', sortBy);
             }
 
-            const url = `/Course/Browse?handler=Courses&${params.toString()}`;
+            // First test with debug endpoint
+            const debugUrl = `/Course/Browse?handler=DebugCourses&${params.toString()}`;
+            console.log('Testing debug URL:', debugUrl);
             
-            console.log('Fetching courses with URL:', url); // Debug log
+            try {
+                const debugResponse = await fetch(debugUrl);
+                const debugData = await debugResponse.json();
+                console.log('Debug data:', debugData);
+            } catch (debugError) {
+                console.warn('Debug endpoint failed:', debugError);
+            }
+
+            const url = `/Course/Browse?handler=Courses&${params.toString()}`;
+            console.log('Fetching courses with URL:', url);
             
             const response = await fetch(url, {
                 method: 'GET',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Content-Type': 'application/json'
+                    'Accept': 'text/html,application/xhtml+xml'
                 }
             });
+
+            console.log('Response status:', response.status);
+            console.log('Response headers:', [...response.headers.entries()]);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const html = await response.text();
-            console.log('Received HTML length:', html.length); // Debug log
+            console.log('Received HTML length:', html.length);
+            console.log('First 200 chars:', html.substring(0, 200));
+            
+            // Check if we got valid HTML
+            if (html.length < 100) {
+                console.warn('Received very short response, might be an error:', html);
+            }
             
             this.courseGrid.innerHTML = html;
 
@@ -136,10 +159,10 @@ class CourseBrowser {
             // Update results count
             this.updateResultsCount();
 
-            // Smooth scroll to results (không scroll v? ??u trang)
+            // Smooth scroll to results
             this.smoothScrollToResults();
 
-            console.log('Filter completed successfully'); // Debug log
+            console.log('Filter completed successfully');
 
         } catch (error) {
             console.error('Error filtering courses:', error);
@@ -293,11 +316,19 @@ class CourseBrowser {
     }
 
     showError(message) {
-        // Show error message
+        // Show error message with fallback option
         const errorHtml = `
             <div class="alert alert-danger" role="alert">
                 <i class="bi bi-exclamation-triangle me-2"></i>
                 ${message}
+            </div>
+            <div class="text-center mt-3">
+                <button class="btn btn-primary" onclick="location.reload()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Reload Page
+                </button>
+                <button class="btn btn-outline-secondary ms-2" onclick="window.fallbackLoadCourses()">
+                    <i class="bi bi-gear me-1"></i>Load Sample Data
+                </button>
             </div>
         `;
         this.courseGrid.innerHTML = errorHtml;
@@ -368,9 +399,50 @@ function clearAllFilters() {
     }
 }
 
-// Make instance globally accessible
-document.addEventListener('DOMContentLoaded', () => {
-    if (document.getElementById('courseGrid')) {
-        window.courseBrowserInstance = new CourseBrowser();
-    }
-});
+// Fallback function to load sample data
+window.fallbackLoadCourses = function() {
+    const sampleCoursesHtml = `
+        <div class="course-grid">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="course-card">
+                        <div class="course-image">
+                            <div class="course-placeholder"><i class="bi bi-book"></i></div>
+                            <div class="course-badge"><span class="badge bg-primary">Web Development</span></div>
+                        </div>
+                        <div class="course-content">
+                            <h3 class="course-title"><a href="#">Advanced JavaScript ES6+</a></h3>
+                            <p class="course-description">Master modern JavaScript features and advanced concepts</p>
+                            <div class="course-footer">
+                                <div class="course-price"><span class="price">$39.99</span></div>
+                                <a href="#" class="btn btn-primary">Enroll Now</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="course-card">
+                        <div class="course-image">
+                            <div class="course-placeholder"><i class="bi bi-book"></i></div>
+                            <div class="course-badge"><span class="badge bg-primary">Web Development</span></div>
+                        </div>
+                        <div class="course-content">
+                            <h3 class="course-title"><a href="#">Advanced React Development</a></h3>
+                            <p class="course-description">Take your React skills to the next level</p>
+                            <div class="course-footer">
+                                <div class="course-price"><span class="price">$69.99</span></div>
+                                <a href="#" class="btn btn-primary">Enroll Now</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="results-summary">
+            <p>Showing 2 sample courses (Fallback Mode)</p>
+        </div>
+    `;
+    
+    document.getElementById('courseGrid').innerHTML = sampleCoursesHtml;
+    document.getElementById('resultsCount').textContent = '2';
+};

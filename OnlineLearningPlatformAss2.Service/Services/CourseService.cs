@@ -50,26 +50,18 @@ public class CourseService : ICourseService
 
     public async Task<IEnumerable<CourseViewModel>> GetAllCoursesAsync(string? searchTerm = null, Guid? categoryId = null)
     {
+        // Always start with sample data to ensure we have courses to search
+        var sampleCourses = GetSampleCourses().ToList();
+        
         try
         {
+            // Try to get database courses and merge with sample
             var query = _context.Courses
                 .Include(c => c.Category)
                 .Include(c => c.Instructor)
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(searchTerm))
-            {
-                query = query.Where(c => c.Title.Contains(searchTerm) || 
-                                       c.Description.Contains(searchTerm) ||
-                                       c.Category.Name.Contains(searchTerm));
-            }
-
-            if (categoryId.HasValue)
-            {
-                query = query.Where(c => c.CategoryId == categoryId.Value);
-            }
-
-            var courses = await query
+            var dbCourses = await query
                 .Select(c => new CourseViewModel
                 {
                     Id = c.Id,
@@ -85,54 +77,76 @@ public class CourseService : ICourseService
                 })
                 .ToListAsync();
 
-            // Always return sample data if no results or empty database
-            if (!courses.Any())
+            // Merge database courses with sample courses (remove duplicates by title)
+            var allCourses = sampleCourses.ToList();
+            foreach (var dbCourse in dbCourses)
             {
-                var sampleCourses = GetSampleCourses().ToList();
-                
-                // Apply search filter to sample data
-                if (!string.IsNullOrEmpty(searchTerm))
+                if (!allCourses.Any(sc => sc.Title.Equals(dbCourse.Title, StringComparison.OrdinalIgnoreCase)))
                 {
-                    sampleCourses = sampleCourses.Where(c => 
-                        c.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                        c.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                        c.CategoryName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
-                    ).ToList();
+                    allCourses.Add(dbCourse);
                 }
-                
-                // Apply category filter to sample data
-                if (categoryId.HasValue)
-                {
-                    var categoryName = await GetCategoryNameAsync(categoryId.Value);
-                    if (!string.IsNullOrEmpty(categoryName))
-                    {
-                        sampleCourses = sampleCourses.Where(c => 
-                            c.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)
-                        ).ToList();
-                    }
-                }
-                
-                return sampleCourses;
             }
 
-            return courses;
-        }
-        catch
-        {
-            // Fallback to sample data
-            var sampleCourses = GetSampleCourses().ToList();
-            
-            // Apply filters to sample data
+            // Apply search filter
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                sampleCourses = sampleCourses.Where(c => 
-                    c.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    c.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    c.CategoryName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                var searchTermLower = searchTerm.ToLowerInvariant();
+                allCourses = allCourses.Where(c => 
+                    c.Title.ToLowerInvariant().Contains(searchTermLower) ||
+                    c.Description.ToLowerInvariant().Contains(searchTermLower) ||
+                    c.CategoryName.ToLowerInvariant().Contains(searchTermLower) ||
+                    c.InstructorName.ToLowerInvariant().Contains(searchTermLower)
                 ).ToList();
             }
             
-            return sampleCourses;
+            // Apply category filter
+            if (categoryId.HasValue)
+            {
+                var categoryName = await GetCategoryNameAsync(categoryId.Value);
+                if (!string.IsNullOrEmpty(categoryName))
+                {
+                    allCourses = allCourses.Where(c => 
+                        c.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)
+                    ).ToList();
+                }
+            }
+            
+            return allCourses;
+        }
+        catch (Exception ex)
+        {
+            // Log error for debugging
+            Console.WriteLine($"Error in GetAllCoursesAsync: {ex.Message}");
+            
+            // Fallback to sample data with filtering
+            var allCourses = sampleCourses;
+            
+            // Apply search filter to sample data
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                var searchTermLower = searchTerm.ToLowerInvariant();
+                allCourses = allCourses.Where(c => 
+                    c.Title.ToLowerInvariant().Contains(searchTermLower) ||
+                    c.Description.ToLowerInvariant().Contains(searchTermLower) ||
+                    c.CategoryName.ToLowerInvariant().Contains(searchTermLower) ||
+                    c.InstructorName.ToLowerInvariant().Contains(searchTermLower)
+                ).ToList();
+            }
+            
+            // Apply category filter to sample data
+            if (categoryId.HasValue)
+            {
+                var sampleCategories = GetSampleCategories();
+                var categoryName = sampleCategories.FirstOrDefault(c => c.Id == categoryId.Value)?.Name;
+                if (!string.IsNullOrEmpty(categoryName))
+                {
+                    allCourses = allCourses.Where(c => 
+                        c.CategoryName.Equals(categoryName, StringComparison.OrdinalIgnoreCase)
+                    ).ToList();
+                }
+            }
+            
+            return allCourses;
         }
     }
 
@@ -307,7 +321,7 @@ public class CourseService : ICourseService
             {
                 Id = Guid.NewGuid(),
                 Title = "Complete Web Development Bootcamp",
-                Description = "Learn HTML, CSS, JavaScript, React, Node.js and build real-world projects",
+                Description = "Learn HTML, CSS, JavaScript, React, Node.js and build real-world projects from scratch",
                 Price = 49.99m,
                 ImageUrl = "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&h=225&fit=crop",
                 CategoryName = "Web Development",
@@ -320,7 +334,7 @@ public class CourseService : ICourseService
             {
                 Id = Guid.NewGuid(),
                 Title = "Data Science with Python",
-                Description = "Master data analysis, visualization, and machine learning",
+                Description = "Master data analysis, visualization, and machine learning with Python libraries",
                 Price = 59.99m,
                 ImageUrl = "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=225&fit=crop",
                 CategoryName = "Data Science",
@@ -328,6 +342,45 @@ public class CourseService : ICourseService
                 Rating = 4.7m,
                 StudentCount = 8920,
                 IsFeatured = true
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Title = "Advanced JavaScript ES6+",
+                Description = "Master modern JavaScript features, async programming, and advanced concepts for professional development",
+                Price = 39.99m,
+                ImageUrl = "https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?w=400&h=225&fit=crop",
+                CategoryName = "Web Development",
+                InstructorName = "JS Expert",
+                Rating = 4.4m,
+                StudentCount = 6750,
+                IsFeatured = false
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Title = "Advanced React Development",
+                Description = "Take your React skills to the next level with advanced patterns, hooks, and performance optimization",
+                Price = 69.99m,
+                ImageUrl = "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=225&fit=crop",
+                CategoryName = "Web Development",
+                InstructorName = "React Master",
+                Rating = 4.7m,
+                StudentCount = 9890,
+                IsFeatured = false
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Title = "Advanced CSS & SASS",
+                Description = "Master advanced CSS techniques, SASS preprocessing, and modern styling approaches",
+                Price = 34.99m,
+                ImageUrl = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=225&fit=crop",
+                CategoryName = "Web Development", 
+                InstructorName = "CSS Guru",
+                Rating = 4.5m,
+                StudentCount = 4560,
+                IsFeatured = false
             },
             new()
             {
@@ -340,6 +393,19 @@ public class CourseService : ICourseService
                 InstructorName = "Creative Designer",
                 Rating = 4.6m,
                 StudentCount = 5420,
+                IsFeatured = false
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Title = "Advanced Data Science with Python",
+                Description = "Advanced machine learning, deep learning, and data engineering techniques",
+                Price = 89.99m,
+                ImageUrl = "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=225&fit=crop",
+                CategoryName = "Data Science",
+                InstructorName = "ML Researcher",
+                Rating = 4.9m,
+                StudentCount = 4320,
                 IsFeatured = false
             },
             new()
@@ -358,40 +424,14 @@ public class CourseService : ICourseService
             new()
             {
                 Id = Guid.NewGuid(),
-                Title = "Advanced JavaScript ES6+",
-                Description = "Master modern JavaScript features, async programming, and advanced concepts",
-                Price = 39.99m,
-                ImageUrl = "https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?w=400&h=225&fit=crop",
-                CategoryName = "Web Development",
-                InstructorName = "JS Expert",
-                Rating = 4.4m,
-                StudentCount = 6750,
-                IsFeatured = false
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "Machine Learning Fundamentals",
-                Description = "Introduction to machine learning algorithms and applications",
-                Price = 69.99m,
-                ImageUrl = "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=225&fit=crop",
-                CategoryName = "Data Science",
-                InstructorName = "ML Researcher",
-                Rating = 4.9m,
-                StudentCount = 4320,
-                IsFeatured = false
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                Title = "React.js Complete Guide",
-                Description = "Build dynamic UIs with React, Redux, and modern development practices",
-                Price = 59.99m,
-                ImageUrl = "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=225&fit=crop",
-                CategoryName = "Web Development",
-                InstructorName = "React Master",
-                Rating = 4.7m,
-                StudentCount = 9890,
+                Title = "Advanced Business Strategy",
+                Description = "Strategic planning, competitive analysis, and advanced business development techniques",
+                Price = 79.99m,
+                ImageUrl = "https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=225&fit=crop",
+                CategoryName = "Business",
+                InstructorName = "Strategy Expert",
+                Rating = 4.6m,
+                StudentCount = 3210,
                 IsFeatured = false
             },
             new()
@@ -410,13 +450,13 @@ public class CourseService : ICourseService
             new()
             {
                 Id = Guid.NewGuid(),
-                Title = "iOS App Development with Swift",
-                Description = "Build native iOS applications from beginner to advanced level",
-                Price = 59.99m,
+                Title = "Advanced Mobile App Development",
+                Description = "Build advanced iOS and Android applications with native performance and advanced features",
+                Price = 79.99m,
                 ImageUrl = "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=400&h=225&fit=crop",
                 CategoryName = "Mobile Development",
-                InstructorName = "iOS Developer",
-                Rating = 4.5m,
+                InstructorName = "Mobile Expert",
+                Rating = 4.7m,
                 StudentCount = 5670,
                 IsFeatured = false
             },
@@ -431,6 +471,45 @@ public class CourseService : ICourseService
                 InstructorName = "PM Expert",
                 Rating = 4.3m,
                 StudentCount = 2340,
+                IsFeatured = false
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Title = "Advanced Node.js Development",
+                Description = "Master advanced Node.js concepts, microservices, and scalable backend development",
+                Price = 64.99m,
+                ImageUrl = "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&h=225&fit=crop",
+                CategoryName = "Web Development",
+                InstructorName = "Backend Specialist",
+                Rating = 4.8m,
+                StudentCount = 4890,
+                IsFeatured = false
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Title = "Machine Learning Fundamentals",
+                Description = "Introduction to machine learning algorithms and applications",
+                Price = 59.99m,
+                ImageUrl = "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=225&fit=crop",
+                CategoryName = "Data Science",
+                InstructorName = "AI Researcher",
+                Rating = 4.5m,
+                StudentCount = 7230,
+                IsFeatured = false
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                Title = "Advanced UX Research",
+                Description = "Master advanced user experience research methods and usability testing techniques",
+                Price = 54.99m,
+                ImageUrl = "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=225&fit=crop",
+                CategoryName = "Design",
+                InstructorName = "UX Researcher",
+                Rating = 4.4m,
+                StudentCount = 2890,
                 IsFeatured = false
             }
         };

@@ -85,6 +85,10 @@
                     <div class="col-lg-2 col-md-6 text-end">
                         <div class="results-count">
                             <span id="resultsCount">@Model.TotalCourses</span> courses
+                            @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                            {
+                                <small class="d-block text-muted">for "@Model.SearchTerm"</small>
+                            }
                         </div>
                     </div>
                 </div>
