@@ -463,4 +463,109 @@ public class CourseService : ICourseService
             .FirstOrDefaultAsync(e => e.UserId == userId && e.CourseId == courseId);
         return enrollment?.Id;
     }
+
+    // --- Curriculum Management ---
+
+    public async Task<bool> AddModuleAsync(Guid courseId, string title, string description, int orderIndex, Guid instructorId)
+    {
+        var course = await _context.Courses.FindAsync(courseId);
+        if (course == null || course.InstructorId != instructorId) return false;
+
+        var module = new Module
+        {
+            Id = Guid.NewGuid(),
+            CourseId = courseId,
+            Title = title,
+            Description = description,
+            OrderIndex = orderIndex
+        };
+
+        _context.Modules.Add(module);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> UpdateModuleAsync(Guid moduleId, string title, string description, int orderIndex, Guid instructorId)
+    {
+        var module = await _context.Modules
+            .Include(m => m.Course)
+            .FirstOrDefaultAsync(m => m.Id == moduleId);
+
+        if (module == null || module.Course.InstructorId != instructorId) return false;
+
+        module.Title = title;
+        module.Description = description;
+        module.OrderIndex = orderIndex;
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> DeleteModuleAsync(Guid moduleId, Guid instructorId)
+    {
+        var module = await _context.Modules
+            .Include(m => m.Course)
+            .FirstOrDefaultAsync(m => m.Id == moduleId);
+
+        if (module == null || module.Course.InstructorId != instructorId) return false;
+
+        _context.Modules.Remove(module);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> AddLessonAsync(Guid moduleId, string title, string content, string? videoUrl, int orderIndex, Guid instructorId)
+    {
+        var module = await _context.Modules
+            .Include(m => m.Course)
+            .FirstOrDefaultAsync(m => m.Id == moduleId);
+
+        if (module == null || module.Course.InstructorId != instructorId) return false;
+
+        var lesson = new Lesson
+        {
+            Id = Guid.NewGuid(),
+            ModuleId = moduleId,
+            Title = title,
+            Content = content,
+            VideoUrl = videoUrl,
+            OrderIndex = orderIndex
+        };
+
+        _context.Lessons.Add(lesson);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> UpdateLessonAsync(Guid lessonId, string title, string content, string? videoUrl, int orderIndex, Guid instructorId)
+    {
+        var lesson = await _context.Lessons
+            .Include(l => l.Module)
+            .ThenInclude(m => m.Course)
+            .FirstOrDefaultAsync(l => l.Id == lessonId);
+
+        if (lesson == null || lesson.Module.Course.InstructorId != instructorId) return false;
+
+        lesson.Title = title;
+        lesson.Content = content;
+        lesson.VideoUrl = videoUrl;
+        lesson.OrderIndex = orderIndex;
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> DeleteLessonAsync(Guid lessonId, Guid instructorId)
+    {
+        var lesson = await _context.Lessons
+            .Include(l => l.Module)
+            .ThenInclude(m => m.Course)
+            .FirstOrDefaultAsync(l => l.Id == lessonId);
+
+        if (lesson == null || lesson.Module.Course.InstructorId != instructorId) return false;
+
+        _context.Lessons.Remove(lesson);
+        await _context.SaveChangesAsync();
+        return true;
+    }
 }

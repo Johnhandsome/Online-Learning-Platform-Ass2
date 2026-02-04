@@ -12,6 +12,7 @@ public class CourseDetailViewModel
     public bool IsEnrolled { get; set; }
     public bool IsInWishlist { get; set; }
     public decimal Rating { get; set; } = 0m;
+    public bool IsFeatured { get; set; }
     public int ReviewCount { get; set; }
     public int StudentCount { get; set; }
     public string Level { get; set; } = "All Levels";
