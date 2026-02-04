@@ -35,7 +35,7 @@ public class MyOrdersModel : PageModel
             Orders = await _orderService.GetUserOrdersAsync(userId);
             Stats = await _orderService.GetOrderStatsAsync(userId);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             TempData["ErrorMessage"] = "Unable to load orders. Please try again.";
             Orders = new List<OrderViewModel>();

@@ -16,7 +16,7 @@ public class BecomeInstructorModel : PageModel
         _userService = userService;
     }
 
-    public async Task<IActionResult> OnGetAsync()
+    public IActionResult OnGetAsync()
     {
         // Check if already an instructor
         var role = User.FindFirstValue(ClaimTypes.Role);
