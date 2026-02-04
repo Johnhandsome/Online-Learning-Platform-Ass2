@@ -19,6 +19,7 @@ public class CourseDetailViewModel
     public List<string> Requirements { get; set; } = new();
     public bool HasCertificate { get; set; } = true;
     public List<ModuleViewModel> Modules { get; set; } = new(); // Changed to List for indexing
+    public List<ReviewViewModel> Reviews { get; set; } = new();
     
     // Helper properties
     public string FormattedPrice => Price == 0 ? "Free" : Price.ToString("C");

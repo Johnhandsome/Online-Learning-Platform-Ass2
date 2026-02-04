@@ -54,6 +54,31 @@ public class DetailsModel : PageModel
         return Page();
     }
 
+    [BindProperty]
+    public SubmitReviewDto ReviewForm { get; set; } = new();
+
+    public async Task<IActionResult> OnPostSubmitReviewAsync()
+    {
+        if (!User.Identity?.IsAuthenticated == true)
+        {
+            return RedirectToPage("/User/Login");
+        }
+
+        if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+        {
+            return RedirectToPage("/User/Login");
+        }
+
+        if (ReviewForm.Rating < 1 || ReviewForm.Rating > 5)
+        {
+            return Page();
+        }
+
+        await _courseService.SubmitReviewAsync(userId, ReviewForm);
+        
+        return RedirectToPage(new { id = ReviewForm.CourseId });
+    }
+
     public async Task<IActionResult> OnPostEnrollAsync([FromBody] EnrollRequest request)
     {
         if (!User.Identity?.IsAuthenticated == true)

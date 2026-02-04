@@ -192,157 +192,119 @@
                         </div>
                     </div>
 
-                    <!-- Course curriculum -->
-                    <div class="content-section">
-                        <h3>Course curriculum</h3>
-                        <div class="curriculum-info">
-                            <span>@Model.Course.Modules.Count sections • @Model.Course.TotalLessons lessons • @Model.Course.FormattedDuration total length</span>
+                    <!-- Student Feedback Section -->
+                    <div id="reviews" class="content-section mt-5">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3 class="mb-0">Student Feedback</h3>
+                            <div class="rating-summary d-flex align-items-center gap-3">
+                                <div class="rating-huge h1 mb-0 text-primary fw-bold">@Model.Course.Rating.ToString("F1")</div>
+                                <div>
+                                    <div class="stars-large text-warning">@Model.Course.RatingDisplay</div>
+                                    <div class="small text-muted">Course Rating</div>
+                                </div>
+                            </div>
                         </div>
-                        
-                        <div class="curriculum-accordion">
-                            @for (int moduleIndex = 0; moduleIndex < Model.Course.Modules.Count; moduleIndex++)
-                            {
-                                var module = Model.Course.Modules[moduleIndex];
-                                <div class="curriculum-module">
-                                    <div class="module-header" data-bs-toggle="collapse" data-bs-target="#module-@moduleIndex">
-                                        <div class="module-info">
-                                            <h5>@module.Title</h5>
-                                            <span class="module-meta">@module.Lessons.Count lessons • @module.FormattedDuration</span>
-                                        </div>
-                                        <div class="expand-icon">
-                                            <i class="bi bi-chevron-down"></i>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="collapse @(moduleIndex == 0 ? "show" : "")" id="module-@moduleIndex">
-                                        <div class="module-content">
-                                            @foreach (var lesson in module.Lessons)
-                                            {
-                                                <div class="lesson-item">
-                                                    <div class="lesson-info">
-                                                        <i class="bi bi-play-circle lesson-icon"></i>
-                                                        <span class="lesson-title">@lesson.Title</span>
-                                                        @if (lesson.IsPreview)
-                                                        {
-                                                            <span class="preview-badge">Preview</span>
-                                                        }
-                                                    </div>
-                                                    <span class="lesson-duration">@lesson.FormattedDuration</span>
+
+                        @if (Model.IsEnrolled)
+                        {
+                            <div class="review-form-container mb-5">
+                                <div class="card border-0 shadow-sm bg-light">
+                                    <div class="card-body p-4">
+                                        <h5 class="card-title mb-3">Add a Review</h5>
+                                        <form asp-page-handler="SubmitReview" method="post">
+                                            <input type="hidden" name="ReviewForm.CourseId" value="@Model.Course.Id" />
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-bold">How would you rate this course?</label>
+                                                <div class="star-rating-input">
+                                                    @for (int i = 5; i >= 1; i--)
+                                                    {
+                                                        <input type="radio" id="star@i" name="ReviewForm.Rating" value="@i" required />
+                                                        <label for="star@i" title="@i stars"><i class="bi bi-star-fill"></i></label>
+                                                    }
                                                 </div>
-                                            }
-                                        </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-bold">Your Comments</label>
+                                                <textarea name="ReviewForm.Comment" class="form-control border-0 shadow-none" rows="3" placeholder="What did you think of the course content, instructor, and overall experience?"></textarea>
+                                            </div>
+                                            <div class="text-end">
+                                                <button type="submit" class="btn btn-primary px-4">Submit Review</button>
+                                            </div>
+                                        </form>
                                     </div>
                                 </div>
-                            }
-                        </div>
-                    </div>
+                            </div>
+                        }
 
-                    <!-- Requirements -->
-                    <div class="content-section">
-                        <h3>Requirements</h3>
-                        <ul class="requirements-list">
-                            @foreach (var requirement in Model.Course.Requirements)
+                        <div class="reviews-list">
+                            @if (Model.Course.Reviews.Any())
                             {
-                                <li>@requirement</li>
+                                @foreach (var review in Model.Course.Reviews)
+                                {
+                                    <div class="review-item py-4 border-bottom">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="reviewer-avatar rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold" style="width: 48px; height: 48px;">
+                                                    @review.Username.Substring(0, 1).ToUpper()
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-0">@review.Username</h6>
+                                                    <div class="text-warning small">
+                                                        @for(int i=0; i<review.Rating; i++) { <i class="bi bi-star-fill"></i> }
+                                                        @for(int i=review.Rating; i<5; i++) { <i class="bi bi-star"></i> }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <span class="small text-muted">@review.CreatedAt.ToString("MMM dd, yyyy")</span>
+                                        </div>
+                                        <p class="review-comment text-muted mb-0">@review.Comment</p>
+                                    </div>
+                                }
                             }
-                        </ul>
-                    </div>
-
-                    <!-- Description -->
-                    <div class="content-section">
-                        <h3>Description</h3>
-                        <div class="course-description">
-                            <p>@Model.Course.Description</p>
-                            <p>This comprehensive course is designed to take you from a complete beginner to a confident developer. You'll learn by building real-world projects and get hands-on experience with the latest technologies and best practices.</p>
-                            <p>Our step-by-step approach ensures you understand each concept before moving to the next. By the end of this course, you'll have the skills and confidence to build your own projects and start your career as a professional developer.</p>
-                        </div>
-                    </div>
-
-                    <!-- Instructor -->
-                    <div class="content-section">
-                        <h3>About the instructor</h3>
-                        <div class="instructor-card">
-                            <div class="instructor-avatar">
-                                <i class="bi bi-person-circle"></i>
-                            </div>
-                            <div class="instructor-info">
-                                <h4>@Model.Course.InstructorName</h4>
-                                <p class="instructor-title">Senior Web Developer & Instructor</p>
-                                <div class="instructor-stats">
-                                    <div class="stat">
-                                        <i class="bi bi-star-fill"></i>
-                                        <span>4.9 Instructor Rating</span>
-                                    </div>
-                                    <div class="stat">
-                                        <i class="bi bi-award"></i>
-                                        <span>15,450 Reviews</span>
-                                    </div>
-                                    <div class="stat">
-                                        <i class="bi bi-people"></i>
-                                        <span>89,342 Students</span>
-                                    </div>
-                                    <div class="stat">
-                                        <i class="bi bi-play-circle"></i>
-                                        <span>12 Courses</span>
-                                    </div>
+                            else
+                            {
+                                <div class="text-center py-5 bg-light rounded-3">
+                                    <i class="bi bi-chat-left-text text-muted h2 d-block mb-3"></i>
+                                    <p class="text-muted mb-0">No reviews yet. Be the first to share your learning experience!</p>
                                 </div>
-                                <p class="instructor-bio">
-                                    Experienced developer with over 8 years in the industry. Specializes in modern web technologies and has helped thousands of students launch successful careers in tech.
-                                </p>
-                            </div>
+                            }
                         </div>
                     </div>
                 </div>
 
                 <div class="col-lg-4">
-                    <!-- Sticky sidebar for mobile -->
-                    <div class="d-lg-none mb-4">
-                        <!-- Course preview card for mobile -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Related Courses -->
-    @if (Model.RelatedCourses.Any())
-    {
-        <section class="related-courses">
-            <div class="container">
-                <h3>More courses in @Model.Course.CategoryName</h3>
-                <div class="row">
-                    @foreach (var course in Model.RelatedCourses)
+                    <!-- Related Courses Sidebar -->
+                    @if (Model.RelatedCourses.Any())
                     {
-                        <div class="col-lg-4 col-md-6">
-                            <div class="course-card">
-                                <div class="course-image">
-                                    @if (!string.IsNullOrEmpty(course.ImageUrl))
-                                    {
-                                        <img src="@course.ImageUrl" alt="@course.Title">
-                                    }
-                                    else
-                                    {
-                                        <div class="course-placeholder">
-                                            <i class="bi bi-play-circle"></i>
+                        <div class="content-section">
+                            <h4 class="mb-4">More in @Model.Course.CategoryName</h4>
+                            <div class="related-courses-sidebar">
+                                @foreach (var course in Model.RelatedCourses)
+                                {
+                                    <div class="card mb-3 border-0 shadow-sm">
+                                        <div class="row g-0">
+                                            <div class="col-4">
+                                                <img src="@(course.ImageUrl ?? "https://via.placeholder.com/100")" class="img-fluid rounded-start h-100 object-fit-cover" alt="@course.Title">
+                                            </div>
+                                            <div class="col-8">
+                                                <div class="card-body p-2">
+                                                    <h6 class="card-title mb-1 small"><a asp-page="/Course/Details" asp-route-id="@course.Id" class="text-decoration-none text-dark">@course.Title</a></h6>
+                                                    <div class="text-warning small" style="font-size: 10px;">
+                                                        @course.RatingDisplay <span class="text-muted">(@course.Rating.ToString("F1"))</span>
+                                                    </div>
+                                                    <div class="fw-bold small text-primary">@course.FormattedPrice</div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    }
-                                </div>
-                                <div class="course-content">
-                                    <h5><a asp-page="/Course/Details" asp-route-id="@course.Id">@course.Title</a></h5>
-                                    <p class="instructor">@course.InstructorName</p>
-                                    <div class="course-rating">
-                                        <span class="stars">@course.RatingDisplay</span>
-                                        <span class="rating">(@course.Rating.ToString("F1"))</span>
                                     </div>
-                                    <div class="price">@course.FormattedPrice</div>
-                                </div>
+                                }
                             </div>
                         </div>
                     }
                 </div>
             </div>
-        </section>
-    }
+        </div>
+    </section>
 }
 else
 {
