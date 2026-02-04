@@ -30,11 +30,24 @@ public class OnlineLearningContext(DbContextOptions<OnlineLearningContext> optio
     public DbSet<UserAssessment> UserAssessments { get; set; }
     public DbSet<UserAnswer> UserAnswers { get; set; }
     public DbSet<CourseReview> CourseReviews { get; set; }
+    public DbSet<Wishlist> Wishlists { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         
+        modelBuilder.Entity<Wishlist>()
+            .HasOne(w => w.User)
+            .WithMany()
+            .HasForeignKey(w => w.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Wishlist>()
+            .HasOne(w => w.Course)
+            .WithMany()
+            .HasForeignKey(w => w.CourseId)
+            .OnDelete(DeleteBehavior.Cascade);
+            
         modelBuilder.Entity<CourseReview>()
             .HasOne(cr => cr.User)
             .WithMany()

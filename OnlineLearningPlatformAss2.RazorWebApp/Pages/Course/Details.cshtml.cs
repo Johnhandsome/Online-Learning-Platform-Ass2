@@ -79,6 +79,28 @@ public class DetailsModel : PageModel
         return RedirectToPage(new { id = ReviewForm.CourseId });
     }
 
+    public async Task<IActionResult> OnPostToggleWishlistAsync([FromBody] WishlistRequest request)
+    {
+        if (!User.Identity?.IsAuthenticated == true)
+        {
+            return new JsonResult(new { success = false, message = "Please login first" });
+        }
+
+        if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
+        {
+            return new JsonResult(new { success = false, message = "Invalid user" });
+        }
+
+        var isAdded = await _courseService.ToggleWishlistAsync(userId, request.CourseId);
+        
+        return new JsonResult(new { success = true, isAdded = isAdded, message = isAdded ? "Added to wishlist" : "Removed from wishlist" });
+    }
+
+    public class WishlistRequest
+    {
+        public Guid CourseId { get; set; }
+    }
+
     public async Task<IActionResult> OnPostEnrollAsync([FromBody] EnrollRequest request)
     {
         if (!User.Identity?.IsAuthenticated == true)

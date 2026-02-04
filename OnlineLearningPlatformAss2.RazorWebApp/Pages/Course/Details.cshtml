@@ -124,8 +124,8 @@
                                         </a>
                                     }
                                     <button class="btn btn-outline-secondary w-100 mb-3" id="wishlistBtn" onclick="toggleWishlist('@Model.Course.Id')">
-                                        <i class="bi bi-heart me-2" id="wishlistIcon"></i>
-                                        <span id="wishlistText">Add to Wishlist</span>
+                                        <i class="bi @(Model.Course.IsInWishlist ? "bi-heart-fill" : "bi-heart") me-2" id="wishlistIcon"></i>
+                                        <span id="wishlistText">@(Model.Course.IsInWishlist ? "Remove from Wishlist" : "Add to Wishlist")</span>
                                     </button>
                                 </div>
                             }

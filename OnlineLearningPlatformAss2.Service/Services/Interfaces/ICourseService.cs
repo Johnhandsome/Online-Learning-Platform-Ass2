@@ -15,4 +15,6 @@ public interface ICourseService
     Task<Guid?> GetEnrollmentIdAsync(Guid userId, Guid courseId);
     Task<bool> SubmitReviewAsync(Guid userId, SubmitReviewDto review);
     Task<IEnumerable<ReviewViewModel>> GetCourseReviewsAsync(Guid courseId);
+    Task<bool> ToggleWishlistAsync(Guid userId, Guid courseId);
+    Task<IEnumerable<CourseViewModel>> GetWishlistAsync(Guid userId);
 }

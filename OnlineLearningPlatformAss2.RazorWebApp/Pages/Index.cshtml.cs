@@ -18,14 +18,17 @@ public class IndexModel : PageModel
     }
 
     public List<CourseViewModel> Courses { get; set; } = new();
+    public List<CourseViewModel> EnrolledCourses { get; set; } = new();
     public List<LearningPathViewModel> FeaturedPaths { get; set; } = new();
     public List<CategoryViewModel> Categories { get; set; } = new();
     public string? SelectedCategory { get; set; }
     public bool ViewAll { get; set; }
     public string? SearchTerm { get; set; }
+    public bool IsAuthenticated { get; set; }
 
     public async Task OnGetAsync(string? category = null, bool viewAll = false, string? searchTerm = null)
     {
+        IsAuthenticated = User.Identity?.IsAuthenticated == true;
         SelectedCategory = category;
         ViewAll = viewAll;
         SearchTerm = searchTerm;
@@ -39,6 +42,17 @@ public class IndexModel : PageModel
         
         // Get featured learning paths from database
         await LoadLearningPathsAsync();
+
+        // Get enrolled courses if authenticated
+        if (IsAuthenticated)
+        {
+            var userIdString = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (Guid.TryParse(userIdString, out var userId))
+            {
+                var enrolled = await _courseService.GetEnrolledCoursesAsync(userId);
+                EnrolledCourses = enrolled.Take(4).ToList();
+            }
+        }
     }
 
     private async Task LoadCoursesAsync()

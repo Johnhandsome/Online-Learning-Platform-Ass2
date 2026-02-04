@@ -10,6 +10,7 @@ public class CourseDetailViewModel
     public string CategoryName { get; set; } = null!;
     public string InstructorName { get; set; } = null!;
     public bool IsEnrolled { get; set; }
+    public bool IsInWishlist { get; set; }
     public decimal Rating { get; set; } = 4.5m;
     public int ReviewCount { get; set; }
     public int StudentCount { get; set; }

@@ -292,3 +292,15 @@ public class Blog
     
     public User Author { get; set; } = null!;
 }
+
+public class Wishlist
+{
+    public Guid Id { get; set; }
+    public Guid UserId { get; set; }
+    public Guid CourseId { get; set; }
+    public DateTime AddedAt { get; set; } = DateTime.UtcNow;
+    
+    // Navigation properties
+    public User User { get; set; } = null!;
+    public Course Course { get; set; } = null!;
+}

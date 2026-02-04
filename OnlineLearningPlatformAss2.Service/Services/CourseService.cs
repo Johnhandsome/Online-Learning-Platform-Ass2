@@ -96,10 +96,14 @@ public class CourseService : ICourseService
             return null;
 
         var isEnrolled = false;
+        var isInWishlist = false;
         if (userId.HasValue)
         {
             isEnrolled = await _context.Enrollments
                 .AnyAsync(e => e.UserId == userId.Value && e.CourseId == id);
+                
+            isInWishlist = await _context.Wishlists
+                .AnyAsync(w => w.UserId == userId.Value && w.CourseId == id);
         }
 
         var studentCount = await _context.Enrollments.CountAsync(e => e.CourseId == id);
@@ -120,6 +124,7 @@ public class CourseService : ICourseService
             Level = "All Levels",
             Language = "English",
             IsEnrolled = isEnrolled,
+            IsInWishlist = isInWishlist,
             WhatYouWillLearn = new List<string> { "Foundational concepts", "Real-world projects", "Best practices" },
             Requirements = new List<string> { "Basic knowledge of the field" },
             HasCertificate = true,
@@ -147,6 +152,55 @@ public class CourseService : ICourseService
                 CreatedAt = r.CreatedAt
             }).ToList()
         };
+    }
+
+    public async Task<bool> ToggleWishlistAsync(Guid userId, Guid courseId)
+    {
+        var existing = await _context.Wishlists
+            .FirstOrDefaultAsync(w => w.UserId == userId && w.CourseId == courseId);
+
+        if (existing != null)
+        {
+            _context.Wishlists.Remove(existing);
+        }
+        else
+        {
+            _context.Wishlists.Add(new Wishlist
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                CourseId = courseId,
+                AddedAt = DateTime.UtcNow
+            });
+        }
+
+        await _context.SaveChangesAsync();
+        return existing == null; // returns true if added, false if removed
+    }
+
+    public async Task<IEnumerable<CourseViewModel>> GetWishlistAsync(Guid userId)
+    {
+        return await _context.Wishlists
+            .Include(w => w.Course)
+            .ThenInclude(c => c.Category)
+            .Include(w => w.Course)
+            .ThenInclude(c => c.Instructor)
+            .Where(w => w.UserId == userId)
+            .OrderByDescending(w => w.AddedAt)
+            .Select(w => new CourseViewModel
+            {
+                Id = w.Course.Id,
+                Title = w.Course.Title,
+                Description = w.Course.Description,
+                Price = w.Course.Price,
+                ImageUrl = w.Course.ImageUrl,
+                CategoryName = w.Course.Category.Name,
+                InstructorName = w.Course.Instructor.Username,
+                Rating = 4.5m, // TODO: calculate real rating if needed in list view
+                StudentCount = 0, // Placeholder
+                IsInWishlist = true
+            })
+            .ToListAsync();
     }
 
     public async Task<bool> SubmitReviewAsync(Guid userId, SubmitReviewDto reviewDto)

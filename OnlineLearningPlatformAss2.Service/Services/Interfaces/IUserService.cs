@@ -12,5 +12,6 @@ public interface IUserService
     Task UpdateAssessmentStatusAsync(Guid userId, bool completed);
     Task<UserDto?> GetUserByIdAsync(Guid userId);
     Task<UserProfileDto?> GetUserProfileAsync(Guid userId);
+    Task UpdateProfileAsync(Guid userId, dynamic updateRequest);
     Task<bool> UserExistsAsync(string usernameOrEmail);
 }

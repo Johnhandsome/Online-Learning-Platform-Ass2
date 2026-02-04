@@ -282,4 +282,27 @@ public class UserService : IUserService
             return false;
         }
     }
+
+    public async Task UpdateProfileAsync(Guid userId, dynamic updateRequest)
+    {
+        var user = await _context.Users
+            .Include(u => u.Profile)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null) return;
+
+        if (user.Profile == null)
+        {
+            user.Profile = new UserProfile { Id = Guid.NewGuid(), UserId = userId };
+            _context.UserProfiles.Add(user.Profile);
+        }
+
+        user.Profile.FirstName = updateRequest.FirstName;
+        user.Profile.LastName = updateRequest.LastName;
+        user.Profile.Phone = updateRequest.Phone;
+        user.Profile.Address = updateRequest.Address;
+        user.Profile.AvatarUrl = updateRequest.AvatarUrl;
+
+        await _context.SaveChangesAsync();
+    }
 }
