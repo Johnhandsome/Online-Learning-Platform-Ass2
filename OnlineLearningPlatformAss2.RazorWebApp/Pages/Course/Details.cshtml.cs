@@ -2,17 +2,22 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using OnlineLearningPlatformAss2.Service.Services.Interfaces;
 using OnlineLearningPlatformAss2.Service.DTOs.Course;
+using OnlineLearningPlatformAss2.Data.Database;
+using OnlineLearningPlatformAss2.Data.Database.Entities;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace OnlineLearningPlatformAss2.RazorWebApp.Pages.Course;
 
 public class DetailsModel : PageModel
 {
     private readonly ICourseService _courseService;
+    private readonly OnlineLearningContext _context;
 
-    public DetailsModel(ICourseService courseService)
+    public DetailsModel(ICourseService courseService, OnlineLearningContext context)
     {
         _courseService = courseService;
+        _context = context;
     }
 
     public CourseDetailViewModel? Course { get; set; }
@@ -49,21 +54,57 @@ public class DetailsModel : PageModel
         return Page();
     }
 
-    public async Task<IActionResult> OnPostEnrollAsync(Guid id)
+    public async Task<IActionResult> OnPostEnrollAsync([FromBody] EnrollRequest request)
     {
         if (!User.Identity?.IsAuthenticated == true)
         {
-            return RedirectToPage("/User/Login");
+            return new JsonResult(new { success = false, message = "Please login first", requiresLogin = true });
         }
 
         if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
         {
-            return RedirectToPage("/User/Login");
+            return new JsonResult(new { success = false, message = "Invalid user", requiresLogin = true });
         }
 
-        // For now, just redirect to course learning page
-        // In a real app, you'd create enrollment record here
-        TempData["SuccessMessage"] = "Successfully enrolled in the course!";
-        return RedirectToPage("/Course/Learn", new { id = id });
+        try
+        {
+            // Check if already enrolled
+            var existingEnrollment = await _context.Enrollments
+                .FirstOrDefaultAsync(e => e.UserId == userId && e.CourseId == request.CourseId);
+
+            if (existingEnrollment != null)
+            {
+                return new JsonResult(new { success = false, message = "Already enrolled in this course", alreadyEnrolled = true });
+            }
+
+            // Create new enrollment
+            var enrollment = new Enrollment
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                CourseId = request.CourseId,
+                EnrolledAt = DateTime.UtcNow,
+                Status = "Active"
+            };
+
+            _context.Enrollments.Add(enrollment);
+            await _context.SaveChangesAsync();
+
+            return new JsonResult(new { 
+                success = true, 
+                message = "Successfully enrolled in the course!",
+                enrollmentId = enrollment.Id,
+                learnUrl = $"/Course/Learn?id={request.CourseId}"
+            });
+        }
+        catch (Exception ex)
+        {
+            return new JsonResult(new { success = false, message = "Failed to enroll. Please try again." });
+        }
+    }
+
+    public class EnrollRequest
+    {
+        public Guid CourseId { get; set; }
     }
 }

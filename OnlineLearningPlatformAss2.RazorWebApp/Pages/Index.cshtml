@@ -43,15 +43,15 @@
                     <div class="hero-trust">
                         <div class="trust-stats">
                             <div class="stat-item">
-                                <span class="stat-number">50K+</span>
-                                <span class="stat-label">Students</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-number">1000+</span>
+                                <span class="stat-number">@Model.Courses.Count+</span>
                                 <span class="stat-label">Courses</span>
                             </div>
                             <div class="stat-item">
-                                <span class="stat-number">4.8</span>
+                                <span class="stat-number">@Model.Categories.Count+</span>
+                                <span class="stat-label">Categories</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">4.5</span>
                                 <span class="stat-label">? Rating</span>
                             </div>
                         </div>
@@ -248,7 +248,7 @@
                 {
                     <div class="learning-path-card">
                         <div class="path-header">
-                            <div class="path-badge">@path.BadgeText</div>
+                            <div class="path-badge">Featured</div>
                             <h4 class="path-title">@path.Title</h4>
                             <p class="path-description">@path.Description</p>
                         </div>
@@ -256,8 +256,8 @@
                         <div class="path-progress">
                             @for (int i = 0; i < Math.Min(3, path.CourseCount); i++)
                             {
-                                <div class="progress-item @(i < 2 ? "completed" : "current")">
-                                    <i class="bi bi-@(i < 2 ? "check-circle-fill" : "circle")"></i>
+                                <div class="progress-item">
+                                    <i class="bi bi-circle"></i>
                                     <span>Course @(i + 1)</span>
                                 </div>
                             }
@@ -283,77 +283,13 @@
             }
             else
             {
-                <!-- Default/Placeholder Learning Paths -->
-                <div class="learning-path-card">
-                    <div class="path-header">
-                        <div class="path-badge">Popular</div>
-                        <h4 class="path-title">Full Stack Web Developer</h4>
-                        <p class="path-description">Master both front-end and back-end development with modern technologies.</p>
+                <!-- Empty State -->
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="bi bi-signpost-split"></i>
                     </div>
-                    
-                    <div class="path-progress">
-                        <div class="progress-item completed">
-                            <i class="bi bi-check-circle-fill"></i>
-                            <span>HTML & CSS Fundamentals</span>
-                        </div>
-                        <div class="progress-item completed">
-                            <i class="bi bi-check-circle-fill"></i>
-                            <span>JavaScript Essentials</span>
-                        </div>
-                        <div class="progress-item current">
-                            <i class="bi bi-circle"></i>
-                            <span>React Development</span>
-                        </div>
-                        <div class="progress-more">
-                            <span>+4 more courses</span>
-                        </div>
-                    </div>
-                    
-                    <div class="path-footer">
-                        <div class="path-price">
-                            <span class="price">$299</span>
-                            <span class="courses-count">7 courses</span>
-                        </div>
-                        <a asp-page="/LearningPath/Browse" class="btn btn-primary">
-                            Start Path
-                        </a>
-                    </div>
-                </div>
-                
-                <div class="learning-path-card">
-                    <div class="path-header">
-                        <div class="path-badge">New</div>
-                        <h4 class="path-title">Data Science Mastery</h4>
-                        <p class="path-description">From Python basics to machine learning and AI applications.</p>
-                    </div>
-                    
-                    <div class="path-progress">
-                        <div class="progress-item completed">
-                            <i class="bi bi-check-circle-fill"></i>
-                            <span>Python for Data Science</span>
-                        </div>
-                        <div class="progress-item current">
-                            <i class="bi bi-circle"></i>
-                            <span>Data Analysis & Visualization</span>
-                        </div>
-                        <div class="progress-item">
-                            <i class="bi bi-circle"></i>
-                            <span>Machine Learning</span>
-                        </div>
-                        <div class="progress-more">
-                            <span>+3 more courses</span>
-                        </div>
-                    </div>
-                    
-                    <div class="path-footer">
-                        <div class="path-price">
-                            <span class="price">$399</span>
-                            <span class="courses-count">6 courses</span>
-                        </div>
-                        <a asp-page="/LearningPath/Browse" class="btn btn-primary">
-                            Start Path
-                        </a>
-                    </div>
+                    <h4>No learning paths yet</h4>
+                    <p>Learning paths are being created. Check back soon!</p>
                 </div>
             }
         </div>
@@ -401,49 +337,5 @@
         </div>
     </section>
 }
-
-<!-- Stats Section -->
-<section class="stats-section">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="bi bi-people"></i>
-                    </div>
-                    <h3 class="stat-number">50,000+</h3>
-                    <p class="stat-label">Active Students</p>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="bi bi-book"></i>
-                    </div>
-                    <h3 class="stat-number">1,000+</h3>
-                    <p class="stat-label">Expert Courses</p>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="bi bi-award"></i>
-                    </div>
-                    <h3 class="stat-number">25,000+</h3>
-                    <p class="stat-label">Certificates Earned</p>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="bi bi-star-fill"></i>
-                    </div>
-                    <h3 class="stat-number">4.8</h3>
-                    <p class="stat-label">Average Rating</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
 
 <partial name="_Chatbot" />
