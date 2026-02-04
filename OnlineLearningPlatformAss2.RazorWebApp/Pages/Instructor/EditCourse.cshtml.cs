@@ -63,7 +63,10 @@ public class EditCourseModel : PageModel
             return Page();
         }
 
-        var success = await _courseService.UpdateCourseAsync(CourseForm.Id, CourseForm);
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdString, out var userId)) return RedirectToPage("/User/Login");
+
+        var success = await _courseService.UpdateCourseAsync(CourseForm.Id, CourseForm, userId);
         if (success)
         {
             TempData["SuccessMessage"] = "Course updated successfully!";

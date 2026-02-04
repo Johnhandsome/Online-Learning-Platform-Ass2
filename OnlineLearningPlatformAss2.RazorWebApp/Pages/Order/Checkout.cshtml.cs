@@ -45,6 +45,19 @@ public class CheckoutModel : PageModel
         {
             var course = await _courseService.GetCourseDetailsAsync(id);
             if (course == null) return NotFound();
+            
+            // Check if already enrolled
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (Guid.TryParse(userIdString, out var userId))
+            {
+                var enrolled = await _courseService.GetEnrolledCoursesAsync(userId);
+                if (enrolled.Any(c => c.Id == id))
+                {
+                    TempData["InfoMessage"] = "You are already enrolled in this course.";
+                    return RedirectToPage("/Course/Details", new { id = id });
+                }
+            }
+
             ItemTitle = course.Title;
             ItemPrice = course.Price;
         }

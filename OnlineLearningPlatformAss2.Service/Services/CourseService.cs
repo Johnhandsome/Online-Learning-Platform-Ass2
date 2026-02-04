@@ -107,7 +107,7 @@ public class CourseService : ICourseService
         }
 
         var studentCount = await _context.Enrollments.CountAsync(e => e.CourseId == id);
-        var averageRating = course.Reviews.Any() ? (decimal)course.Reviews.Average(r => r.Rating) : 4.5m;
+        var averageRating = course.Reviews.Any() ? (decimal)course.Reviews.Average(r => r.Rating) : 0m;
 
         return new CourseDetailViewModel
         {
@@ -217,17 +217,17 @@ public class CourseService : ICourseService
                 ImageUrl = c.ImageUrl,
                 CategoryName = c.Category.Name,
                 InstructorName = c.Instructor.Username,
-                Rating = 4.5m, // TODO: Real rating
+                Rating = c.Reviews.Any() ? (decimal)c.Reviews.Average(r => r.Rating) : 0,
                 StudentCount = _context.Enrollments.Count(e => e.CourseId == c.Id),
                 IsFeatured = c.IsFeatured
             })
             .ToListAsync();
     }
 
-    public async Task<bool> UpdateCourseAsync(Guid courseId, CourseUpdateDto dto)
+    public async Task<bool> UpdateCourseAsync(Guid courseId, CourseUpdateDto dto, Guid instructorId)
     {
         var course = await _context.Courses.FindAsync(courseId);
-        if (course == null) return false;
+        if (course == null || course.InstructorId != instructorId) return false;
 
         course.Title = dto.Title;
         course.Description = dto.Description;
@@ -286,6 +286,32 @@ public class CourseService : ICourseService
                 CreatedAt = r.CreatedAt
             })
             .ToListAsync();
+    }
+
+    public async Task<bool> EnrollUserAsync(Guid userId, Guid courseId)
+    {
+        var course = await _context.Courses.FindAsync(courseId);
+        if (course == null) return false;
+
+        // Business Rule: Instructor cannot enroll in their own course
+        if (course.InstructorId == userId) return false;
+
+        // Business Rule: Cannot enroll if already enrolled
+        var isEnrolled = await _context.Enrollments.AnyAsync(e => e.UserId == userId && e.CourseId == courseId);
+        if (isEnrolled) return false;
+
+        var enrollment = new Enrollment
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            CourseId = courseId,
+            EnrolledAt = DateTime.UtcNow,
+            Status = "Active"
+        };
+
+        _context.Enrollments.Add(enrollment);
+        await _context.SaveChangesAsync();
+        return true;
     }
 
     public async Task<IEnumerable<CourseViewModel>> GetEnrolledCoursesAsync(Guid userId)
