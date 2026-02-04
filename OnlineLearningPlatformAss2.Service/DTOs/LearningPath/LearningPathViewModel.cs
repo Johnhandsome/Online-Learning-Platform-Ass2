@@ -11,6 +11,7 @@ public class LearningPathViewModel
     public string Status { get; set; } = null!;
     public bool IsCustomPath { get; set; }
     public int CourseCount { get; set; }
+    public bool IsEnrolled { get; set; }
     public DateTime CreatedAt { get; set; }
     public string Level { get; set; } = "All Levels";
     public IEnumerable<CourseInPathViewModel> Courses { get; set; } = new List<CourseInPathViewModel>();

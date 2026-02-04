@@ -122,10 +122,12 @@
                                         </div>
                                     }
                                     <div class="course-overlay">
-                                        <a href="#" class="btn btn-primary btn-sm">Continue Learning</a>
+                                        <a asp-page="/Course/Learn" asp-route-id="@course.Id" class="btn btn-primary btn-sm">Continue Learning</a>
                                     </div>
                                     <div class="course-status">
-                                        <span class="status-badge in-progress">In Progress</span>
+                                        <span class="status-badge @(course.Progress >= 100 ? "completed" : course.Progress > 0 ? "in-progress" : "not-started")">
+                                            @(course.Progress >= 100 ? "Completed" : course.Progress > 0 ? "In Progress" : "Not Started")
+                                        </span>
                                     </div>
                                 </div>
                                 
@@ -140,29 +142,29 @@
                                     <div class="progress-section">
                                         <div class="progress-info">
                                             <span class="progress-text">Progress</span>
-                                            <span class="progress-percentage">65%</span>
+                                            <span class="progress-percentage">@course.Progress%</span>
                                         </div>
                                         <div class="progress">
-                                            <div class="progress-bar" style="width: 65%"></div>
-                                        </div>
-                                        <div class="progress-details">
-                                            <small class="text-muted">8 of 12 sections completed</small>
+                                            <div class="progress-bar" style="width: @course.Progress%"></div>
                                         </div>
                                     </div>
                                     
                                     <!-- Course Actions -->
                                     <div class="course-actions">
-                                        <a href="#" class="btn btn-primary btn-sm">Continue</a>
+                                        <a asp-page="/Course/Learn" asp-route-id="@course.Id" class="btn btn-primary btn-sm">
+                                            @(course.Progress > 0 ? "Continue" : "Start")
+                                        </a>
                                         <div class="dropdown">
                                             <button class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
                                                 <i class="bi bi-three-dots"></i>
                                             </button>
                                             <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="#"><i class="bi bi-star me-2"></i>Rate Course</a></li>
-                                                <li><a class="dropdown-item" href="#"><i class="bi bi-share me-2"></i>Share</a></li>
-                                                <li><a class="dropdown-item" href="#"><i class="bi bi-download me-2"></i>Download Certificate</a></li>
-                                                <li><hr class="dropdown-divider"></li>
-                                                <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-x-circle me-2"></i>Unenroll</a></li>
+                                                <li><a class="dropdown-item" href="javascript:void(0)" onclick="alert('Rating feature coming soon!')"><i class="bi bi-star me-2"></i>Rate Course</a></li>
+                                                <li><a class="dropdown-item" href="javascript:void(0)" onclick="alert('Sharing feature coming soon!')"><i class="bi bi-share me-2"></i>Share</a></li>
+                                                @if (course.Progress >= 100)
+                                                {
+                                                    <li><a class="dropdown-item" href="javascript:void(0)" onclick="alert('Downloading certificate...')"><i class="bi bi-download me-2"></i>Download Certificate</a></li>
+                                                }
                                             </ul>
                                         </div>
                                     </div>

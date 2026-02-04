@@ -173,17 +173,40 @@ public class OrderService : IOrderService
             }
             else if (order.LearningPathId.HasValue)
             {
-                var exists = await _context.UserLearningPathEnrollments.AnyAsync(e => e.UserId == order.UserId && e.PathId == order.LearningPathId.Value);
+                var pathId = order.LearningPathId.Value;
+                var exists = await _context.UserLearningPathEnrollments.AnyAsync(e => e.UserId == order.UserId && e.PathId == pathId);
                 if (!exists)
                 {
                     _context.UserLearningPathEnrollments.Add(new UserLearningPathEnrollment
                     {
                         Id = Guid.NewGuid(),
                         UserId = order.UserId,
-                        PathId = order.LearningPathId.Value,
+                        PathId = pathId,
                         EnrolledAt = DateTime.UtcNow,
                         Status = "Active"
                     });
+
+                    // Also enroll in all courses within this path
+                    var courseIds = await _context.PathCourses
+                        .Where(pc => pc.PathId == pathId)
+                        .Select(pc => pc.CourseId)
+                        .ToListAsync();
+
+                    foreach (var courseId in courseIds)
+                    {
+                        var courseEnrolled = await _context.Enrollments.AnyAsync(e => e.UserId == order.UserId && e.CourseId == courseId);
+                        if (!courseEnrolled)
+                        {
+                            _context.Enrollments.Add(new Enrollment
+                            {
+                                Id = Guid.NewGuid(),
+                                UserId = order.UserId,
+                                CourseId = courseId,
+                                EnrolledAt = DateTime.UtcNow,
+                                Status = "Active"
+                            });
+                        }
+                    }
                 }
             }
 

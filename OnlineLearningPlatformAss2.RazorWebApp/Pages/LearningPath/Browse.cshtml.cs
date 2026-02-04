@@ -21,13 +21,23 @@ public class BrowseModel : PageModel
     public async Task OnGetAsync()
     {
         IsAuthenticated = User.Identity?.IsAuthenticated == true;
+        Guid? userId = null;
+
+        if (IsAuthenticated)
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (Guid.TryParse(userIdString, out var id))
+            {
+                userId = id;
+            }
+        }
 
         // Get all published learning paths
-        var allPaths = await _learningPathService.GetPublishedPathsAsync();
+        var allPaths = await _learningPathService.GetPublishedPathsAsync(userId);
         LearningPaths = allPaths.ToList();
 
         // Get featured paths
-        var featured = await _learningPathService.GetFeaturedLearningPathsAsync();
+        var featured = await _learningPathService.GetFeaturedLearningPathsAsync(userId);
         FeaturedPaths = featured.ToList();
     }
 }

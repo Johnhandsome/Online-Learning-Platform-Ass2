@@ -31,22 +31,21 @@ public class LearnModel : PageModel
         try
         {
             var enrollmentId = await _courseService.GetEnrollmentIdAsync(userId, id);
-            
-            if (enrollmentId.HasValue)
+
+            if (CourseLearn == null && enrollmentId.HasValue)
             {
                 CourseLearn = await _courseService.GetCourseLearnAsync(enrollmentId.Value);
             }
             
             if (CourseLearn == null)
             {
-                ErrorMessage = "You are not enrolled in this course.";
-                CourseLearn = CreateSampleLearnSession(id);
+                ErrorMessage = "You are not enrolled in this course. Please purchase the course or learning path to access this content.";
+                return Page(); // Still return page but without CourseLearn data
             }
         }
         catch (Exception ex)
         {
             ErrorMessage = $"Error loading course: {ex.Message}";
-            CourseLearn = CreateSampleLearnSession(id);
         }
 
         return Page();

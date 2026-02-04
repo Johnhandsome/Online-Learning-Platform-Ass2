@@ -12,12 +12,12 @@ public interface ILearningPathService
     /// <summary>
     /// Get featured learning paths (by popularity)
     /// </summary>
-    Task<IEnumerable<LearningPathViewModel>> GetFeaturedLearningPathsAsync();
+    Task<IEnumerable<LearningPathViewModel>> GetFeaturedLearningPathsAsync(Guid? userId = null);
 
     /// <summary>
     /// Get all published learning paths
     /// </summary>
-    Task<IEnumerable<LearningPathViewModel>> GetPublishedPathsAsync();
+    Task<IEnumerable<LearningPathViewModel>> GetPublishedPathsAsync(Guid? userId = null);
 
     /// <summary>
     /// Get all learning paths a user is enrolled in with progress

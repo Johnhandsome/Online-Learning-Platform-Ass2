@@ -172,13 +172,15 @@ public class AssessmentService : IAssessmentService
                     Title = c.Title,
                     Description = c.Description,
                     Category = c.Category.Name,
-                    Level = "Intermediate", // Default level
+                    Level = "Intermediate", 
                     Price = c.Price,
                     ImageUrl = c.ImageUrl,
                     InstructorName = c.Instructor.Username,
-                    MatchScore = 85, // Default match score
-                    MatchReason = $"Recommended based on your interest in {c.Category.Name}"
+                    // Match score based on interest rank
+                    MatchScore = 95 - (recommendedCategories.IndexOf(c.Category.Name) * 10),
+                    MatchReason = $"This course aligns with your interest in {c.Category.Name}."
                 })
+                .OrderByDescending(c => c.MatchScore)
                 .ToListAsync();
 
             return courses;
@@ -270,42 +272,56 @@ public class AssessmentService : IAssessmentService
     {
         var skillLevels = new Dictionary<string, string>();
 
-        // Analyze programming skill level
-        var programmingOption = selectedOptions.FirstOrDefault(o => o.Category == "Programming");
-        if (programmingOption != null)
+        // Group by category and take the most frequent or highest skill level
+        var skillGroups = selectedOptions
+            .Where(o => !string.IsNullOrEmpty(o.SkillLevel) && o.SkillLevel != "None")
+            .GroupBy(o => o.Category ?? "General");
+
+        foreach (var group in skillGroups)
         {
-            skillLevels["Programming"] = programmingOption.SkillLevel;
+            // Simple logic: Use the most common skill level for that category
+            var topLevel = group.GroupBy(x => x.SkillLevel)
+                                .OrderByDescending(g => g.Count())
+                                .First().Key;
+            
+            skillLevels[group.Key] = topLevel;
         }
 
-        // Add other skill analysis logic here
+        // If specific categories are missing but we have a general programming level
+        if (!skillLevels.ContainsKey("Programming"))
+        {
+            var progOption = selectedOptions.FirstOrDefault(o => o.Category == "Programming");
+            if (progOption != null) skillLevels["Programming"] = progOption.SkillLevel;
+        }
+
         return skillLevels;
     }
 
     private List<string> AnalyzeRecommendedCategories(List<Data.Database.Entities.AssessmentOption> selectedOptions)
     {
-        var categories = new List<string>();
+        // Count interest hits per category
+        var categoryScores = selectedOptions
+            .Where(o => !string.IsNullOrEmpty(o.Category))
+            .GroupBy(o => o.Category)
+            .Select(g => new { Category = g.Key, Count = g.Count() })
+            .OrderByDescending(x => x.Count)
+            .ToList();
 
-        // Extract categories from selected options
-        foreach (var option in selectedOptions)
+        // Filters out meta-categories
+        var metaCategories = new[] { "Programming", "Career Development", "Time Management", "Learning Style", "Academic", "Professional Growth", "Personal Development" };
+        
+        var recommendations = categoryScores
+            .Where(c => !metaCategories.Contains(c.Category))
+            .Select(c => c.Category)
+            .ToList();
+
+        // Fallback if no specific tech categories were found
+        if (!recommendations.Any())
         {
-            if (!string.IsNullOrEmpty(option.Category) && 
-                option.Category != "Programming" && 
-                option.Category != "Career Development" &&
-                option.Category != "Time Management" &&
-                option.Category != "Learning Style" &&
-                !categories.Contains(option.Category))
-            {
-                categories.Add(option.Category);
-            }
+            recommendations.AddRange(new[] { "Web Development", "Data Science", "Design" });
         }
 
-        // If no specific categories, add defaults
-        if (!categories.Any())
-        {
-            categories.AddRange(new[] { "Web Development", "Data Science", "Design", "Business" });
-        }
-
-        return categories;
+        return recommendations;
     }
 
     private string GenerateSummary(Dictionary<string, string> skillLevels, List<string> recommendedCategories)
