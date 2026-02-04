@@ -45,6 +45,7 @@ public class Course
     public Guid InstructorId { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsFeatured { get; set; }
+    public string Status { get; set; } = "Published"; // Pending, Published, Rejected
     
     // Navigation properties
     public Category Category { get; set; } = null!;

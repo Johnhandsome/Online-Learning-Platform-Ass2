@@ -29,6 +29,9 @@ public class DatabaseSeedService
         // Seed Sample Users (Instructors)
         await SeedInstructorsAsync();
 
+        // Seed Admin User
+        await SeedAdminAsync();
+        
         // Seed Comprehensive Course Data
         await SeedComprehensiveCoursesAsync();
 
@@ -490,7 +493,8 @@ public class DatabaseSeedService
                         CategoryId = category.Id,
                         InstructorId = instructor.Id,
                         CreatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 90)),
-                        ImageUrl = data.ImageUrl
+                        ImageUrl = data.ImageUrl,
+                        Status = "Published"
                     };
 
                     courses.Add(course);
@@ -719,6 +723,27 @@ public class DatabaseSeedService
             }
 
             await _context.Orders.AddRangeAsync(orders);
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    private async Task SeedAdminAsync()
+    {
+        if (!await _context.Users.AnyAsync(u => u.Username == "admin"))
+        {
+            var adminRole = await _context.Roles.FirstAsync(r => r.Name == "Admin");
+            var admin = new User
+            {
+                Id = Guid.NewGuid(),
+                Username = "admin",
+                Email = "admin@learnhub.com",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin123"),
+                CreateAt = DateTime.UtcNow,
+                RoleId = adminRole.Id,
+                IsActive = true
+            };
+
+            await _context.Users.AddAsync(admin);
             await _context.SaveChangesAsync();
         }
     }

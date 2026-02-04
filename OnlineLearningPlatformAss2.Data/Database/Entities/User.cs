@@ -16,6 +16,8 @@ public class User
     [Column("assessment_completed_at")]
     public DateTime? AssessmentCompletedAt { get; set; }
 
+    public bool IsActive { get; set; } = true;
+
     public Guid? RoleId { get; set; }
     public Role? Role { get; set; }
 

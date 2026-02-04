@@ -130,7 +130,11 @@
               <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                 <i class="bi bi-person-circle me-1"></i>@User.Identity.Name
               </a>
-              <ul class="dropdown-menu dropdown-menu-end">
+                @if (User.IsInRole("Admin"))
+                {
+                  <li><a class="dropdown-item fw-bold text-danger" asp-page="/Admin/Dashboard">Admin Control Center</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                }
                 @if (User.IsInRole("Instructor"))
                 {
                   <li><a class="dropdown-item fw-bold text-primary" asp-page="/Instructor/Dashboard">Instructor Dashboard</a></li>

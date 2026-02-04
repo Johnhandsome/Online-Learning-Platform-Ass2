@@ -45,6 +45,7 @@ public class CourseService : ICourseService
         var query = _context.Courses
             .Include(c => c.Category)
             .Include(c => c.Instructor)
+            .Where(c => c.Status == "Published")
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -90,6 +91,7 @@ public class CourseService : ICourseService
             .ThenInclude(m => m.Lessons)
             .Include(c => c.Reviews)
             .ThenInclude(r => r.User)
+            .Where(c => c.Status == "Published")
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (course == null)
