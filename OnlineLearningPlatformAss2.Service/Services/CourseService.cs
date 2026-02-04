@@ -203,6 +203,43 @@ public class CourseService : ICourseService
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<CourseViewModel>> GetInstructorCoursesAsync(Guid instructorId)
+    {
+        return await _context.Courses
+            .Include(c => c.Category)
+            .Where(c => c.InstructorId == instructorId)
+            .Select(c => new CourseViewModel
+            {
+                Id = c.Id,
+                Title = c.Title,
+                Description = c.Description,
+                Price = c.Price,
+                ImageUrl = c.ImageUrl,
+                CategoryName = c.Category.Name,
+                InstructorName = c.Instructor.Username,
+                Rating = 4.5m, // TODO: Real rating
+                StudentCount = _context.Enrollments.Count(e => e.CourseId == c.Id),
+                IsFeatured = c.IsFeatured
+            })
+            .ToListAsync();
+    }
+
+    public async Task<bool> UpdateCourseAsync(Guid courseId, CourseUpdateDto dto)
+    {
+        var course = await _context.Courses.FindAsync(courseId);
+        if (course == null) return false;
+
+        course.Title = dto.Title;
+        course.Description = dto.Description;
+        course.Price = dto.Price;
+        course.ImageUrl = dto.ImageUrl;
+        course.CategoryId = dto.CategoryId;
+        course.IsFeatured = dto.IsFeatured;
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
     public async Task<bool> SubmitReviewAsync(Guid userId, SubmitReviewDto reviewDto)
     {
         // Check if enrolled

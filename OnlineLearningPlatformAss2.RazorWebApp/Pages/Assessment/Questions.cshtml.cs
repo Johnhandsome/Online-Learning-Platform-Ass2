@@ -24,9 +24,20 @@ public class QuestionsModel : PageModel
     [BindProperty]
     public Dictionary<Guid, Guid> Answers { get; set; } = new();
 
-    public async Task OnGetAsync()
+    public async Task<IActionResult> OnGetAsync()
     {
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (Guid.TryParse(userIdString, out var userId))
+        {
+            if (await _userService.HasCompletedAssessmentAsync(userId))
+            {
+                TempData["InfoMessage"] = "You have already completed the skill assessment. You can browse your recommended courses below.";
+                return RedirectToPage("/Index");
+            }
+        }
+
         Questions = await _assessmentService.GetAssessmentQuestionsAsync();
+        return Page();
     }
 
     public async Task<IActionResult> OnPostAsync()

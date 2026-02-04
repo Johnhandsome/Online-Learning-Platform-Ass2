@@ -148,16 +148,16 @@
                             <div class="share-section">
                                 <h6>Share this course</h6>
                                 <div class="share-buttons">
-                                    <a href="#" class="share-btn facebook">
+                                    <a href="https://www.facebook.com/sharer/sharer.php?u=@(HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + HttpContext.Request.Path)" target="_blank" class="share-btn facebook">
                                         <i class="bi bi-facebook"></i>
                                     </a>
-                                    <a href="#" class="share-btn twitter">
+                                    <a href="https://twitter.com/intent/tweet?url=@(HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + HttpContext.Request.Path)" target="_blank" class="share-btn twitter">
                                         <i class="bi bi-twitter"></i>
                                     </a>
-                                    <a href="#" class="share-btn linkedin">
+                                    <a href="https://www.linkedin.com/sharing/share-offsite/?url=@(HttpContext.Request.Scheme + "://" + HttpContext.Request.Host + HttpContext.Request.Path)" target="_blank" class="share-btn linkedin">
                                         <i class="bi bi-linkedin"></i>
                                     </a>
-                                    <a href="#" class="share-btn link" onclick="copyToClipboard()">
+                                    <a href="javascript:void(0)" class="share-btn link" onclick="copyToClipboard()">
                                         <i class="bi bi-link-45deg"></i>
                                     </a>
                                 </div>
@@ -355,8 +355,6 @@ else
         // AJAX Enrollment
         function enrollInCourse(courseId) {
             window.location.href = `/Order/Checkout?id=${courseId}&type=Course`;
-        }
-            }
         }
 
         // Toggle wishlist (AJAX)

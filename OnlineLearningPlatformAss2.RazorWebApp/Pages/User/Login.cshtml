@@ -16,12 +16,13 @@
                 <div class="auth-card">
                     <!-- Header -->
                     <div class="auth-header text-center">
-                        <div class="auth-logo mb-4">
+                        <a asp-page="/Index" class="auth-logo mb-4 text-decoration-none">
                             <i class="bi bi-mortarboard-fill"></i>
                             <span>LearnHub</span>
-                        </div>
+                        </a>
                         <h1 class="auth-title">Welcome back</h1>
-                        <p class="auth-subtitle">Sign in to continue your learning journey</p>
+                        <p class="auth-subtitle mb-2">Sign in to continue your learning journey</p>
+                        <a asp-page="/Index" class="text-muted small d-block mb-4">Continue as Guest</a>
                     </div>
 
                     <!-- Alerts -->

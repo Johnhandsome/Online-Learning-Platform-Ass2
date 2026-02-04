@@ -23,10 +23,20 @@
                     <div class="hero-buttons">
                         @if (User.Identity?.IsAuthenticated == true)
                         {
-                            <a asp-page="/Assessment/Start" class="btn btn-primary btn-lg">
-                                <i class="bi bi-clipboard-check me-2"></i>
-                                Take Skill Assessment
-                            </a>
+                            @if (!Model.HasCompletedAssessment)
+                            {
+                                <a asp-page="/Assessment/Start" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-clipboard-check me-2"></i>
+                                    Take Skill Assessment
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-page="/Course/MyCourses" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-journal-bookmark me-2"></i>
+                                    My Learning
+                                </a>
+                            }
                             <a asp-page="/Index" asp-route-viewAll="true" class="btn btn-outline-secondary btn-lg">Explore Courses</a>
                         }
                         else
@@ -64,16 +74,19 @@
                          alt="Students learning together" 
                          class="hero-image img-fluid">
                     
-                    <!-- Floating elements -->
-                    <div class="floating-card assessment-card">
-                        <div class="card-icon">
-                            <i class="bi bi-clipboard-check"></i>
+                    @if (!Model.HasCompletedAssessment)
+                    {
+                        <!-- Floating elements -->
+                        <div class="floating-card assessment-card">
+                            <div class="card-icon">
+                                <i class="bi bi-clipboard-check"></i>
+                            </div>
+                            <div class="card-content">
+                                <h6>Skill Assessment</h6>
+                                <p>Get personalized recommendations</p>
+                            </div>
                         </div>
-                        <div class="card-content">
-                            <h6>Skill Assessment</h6>
-                            <p>Get personalized recommendations</p>
-                        </div>
-                    </div>
+                    }
                 </div>
             </div>
         </div>
@@ -114,7 +127,7 @@
 }
 
 <!-- Assessment CTA Section (for authenticated users) -->
-@if (User.Identity?.IsAuthenticated == true)
+@if (User.Identity?.IsAuthenticated == true && !Model.HasCompletedAssessment)
 {
     <section class="assessment-banner">
         <div class="container">
@@ -330,7 +343,7 @@
 </section>
 
 <!-- Assessment CTA Section (for non-authenticated users) -->
-@if (User.Identity?.IsAuthenticated != true)
+@if (User.Identity?.IsAuthenticated != true && !Model.HasCompletedAssessment)
 {
     <section class="cta-section">
         <div class="container">

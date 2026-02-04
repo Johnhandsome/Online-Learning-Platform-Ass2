@@ -53,6 +53,11 @@
                                     Complete Purchase - $@Model.ItemPrice
                                 </button>
                             </div>
+                            <div class="text-center mt-3">
+                                <a asp-page="/Course/Details" asp-route-id="@Model.ItemId" class="text-muted">
+                                    <i class="bi bi-arrow-left me-1"></i> Cancel and Return
+                                </a>
+                            </div>
                             <p class="text-center text-muted mt-3 small">
                                 This is a secure checkout. By completing your purchase, you agree to our Terms of Service.
                             </p>

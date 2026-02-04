@@ -44,6 +44,7 @@ public class Course
     public Guid CategoryId { get; set; }
     public Guid InstructorId { get; set; }
     public DateTime CreatedAt { get; set; }
+    public bool IsFeatured { get; set; }
     
     // Navigation properties
     public Category Category { get; set; } = null!;

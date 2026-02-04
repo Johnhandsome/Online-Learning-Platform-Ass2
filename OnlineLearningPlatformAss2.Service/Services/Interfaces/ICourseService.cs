@@ -17,4 +17,6 @@ public interface ICourseService
     Task<IEnumerable<ReviewViewModel>> GetCourseReviewsAsync(Guid courseId);
     Task<bool> ToggleWishlistAsync(Guid userId, Guid courseId);
     Task<IEnumerable<CourseViewModel>> GetWishlistAsync(Guid userId);
+    Task<IEnumerable<CourseViewModel>> GetInstructorCoursesAsync(Guid instructorId);
+    Task<bool> UpdateCourseAsync(Guid courseId, CourseUpdateDto dto);
 }

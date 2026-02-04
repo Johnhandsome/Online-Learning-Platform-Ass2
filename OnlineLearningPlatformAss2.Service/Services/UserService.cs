@@ -305,4 +305,19 @@ public class UserService : IUserService
 
         await _context.SaveChangesAsync();
     }
+
+    public async Task<bool> UpgradeToInstructorAsync(Guid userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null) return false;
+
+        var instructorRole = await _context.Roles
+            .FirstOrDefaultAsync(r => r.Name.ToLower() == "instructor");
+
+        if (instructorRole == null) return false;
+
+        user.RoleId = instructorRole.Id;
+        await _context.SaveChangesAsync();
+        return true;
+    }
 }

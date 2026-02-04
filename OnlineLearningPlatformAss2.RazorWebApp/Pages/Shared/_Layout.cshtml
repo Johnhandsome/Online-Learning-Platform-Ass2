@@ -1,3 +1,14 @@
+@using OnlineLearningPlatformAss2.Service.Services.Interfaces
+@using System.Security.Claims
+@inject IUserService UserService
+@{
+    var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    bool hasCompletedAssessment = false;
+    if (!string.IsNullOrEmpty(userIdString) && Guid.TryParse(userIdString, out var userId))
+    {
+        hasCompletedAssessment = UserService.HasCompletedAssessmentAsync(userId).GetAwaiter().GetResult();
+    }
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -35,14 +46,17 @@
 
 <body>
 <!-- Top Banner -->
-<div class="top-banner">
-  <div class="container">
-    <div class="d-flex align-items-center justify-content-center">
-      <i class="bi bi-stars me-2"></i>
-      <span>New to learning? <a href="/Assessment/Start">Take our skill assessment</a> to get personalized recommendations!</span>
+@if (!hasCompletedAssessment)
+{
+    <div class="top-banner">
+      <div class="container">
+        <div class="d-flex align-items-center justify-content-center">
+          <i class="bi bi-stars me-2"></i>
+          <span>New to learning? <a href="/Assessment/Start">Take our skill assessment</a> to get personalized recommendations!</span>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
+}
 
 <!-- Navigation -->
 <header>
@@ -117,6 +131,15 @@
                 <i class="bi bi-person-circle me-1"></i>@User.Identity.Name
               </a>
               <ul class="dropdown-menu dropdown-menu-end">
+                @if (User.IsInRole("Instructor"))
+                {
+                  <li><a class="dropdown-item fw-bold text-primary" asp-page="/Instructor/Dashboard">Instructor Dashboard</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                }
+                else
+                {
+                  <li><a class="dropdown-item" asp-page="/Instructor/BecomeInstructor">Become an Instructor</a></li>
+                }
                 <li><a class="dropdown-item" asp-page="/LearningPath/MyPaths">My Paths</a></li>
                 <li><a class="dropdown-item" asp-page="/Order/MyOrders">My Orders</a></li>
                 <li><hr class="dropdown-divider"></li>
