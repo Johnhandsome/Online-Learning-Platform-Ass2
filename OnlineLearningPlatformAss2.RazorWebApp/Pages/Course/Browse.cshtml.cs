@@ -40,6 +40,17 @@ public class BrowseModel : PageModel
         await LoadCoursesAsync();
     }
 
+    public async Task<IActionResult> OnGetCourseGridAsync()
+    {
+        await LoadCoursesAsync();
+        return Partial("_CourseGrid", new ViewDataDictionary(ViewData) { 
+            { "Courses", Courses }, 
+            { "TotalCourses", TotalCourses },
+            { "SearchTerm", SearchTerm },
+            { "SelectedCategoryName", SelectedCategoryName }
+        });
+    }
+
     private async Task LoadCoursesAsync()
     {
         try

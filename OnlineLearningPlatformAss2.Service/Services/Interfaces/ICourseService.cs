@@ -11,4 +11,6 @@ public interface ICourseService
     Task<IEnumerable<CourseViewModel>> GetEnrolledCoursesAsync(Guid userId);
     Task<IEnumerable<CategoryViewModel>> GetAllCategoriesAsync();
     Task<CourseLearnViewModel?> GetCourseLearnAsync(Guid enrollmentId);
+    Task<bool> UpdateLessonProgressAsync(Guid enrollmentId, Guid lessonId, bool isCompleted);
+    Task<Guid?> GetEnrollmentIdAsync(Guid userId, Guid courseId);
 }

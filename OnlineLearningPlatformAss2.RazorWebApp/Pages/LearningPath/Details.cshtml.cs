@@ -41,23 +41,13 @@ public class DetailsModel : PageModel
         return Page();
     }
 
-    public async Task<IActionResult> OnPostEnrollAsync(Guid id)
+    public IActionResult OnPostEnroll(Guid id)
     {
         if (!User.Identity?.IsAuthenticated == true)
         {
             return RedirectToPage("/User/Login");
         }
 
-        if (!Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var userId))
-        {
-            return RedirectToPage("/User/Login");
-        }
-
-        // For demo purposes, simulate enrollment
-        TempData["SuccessMessage"] = "Successfully enrolled in the learning path!";
-        
-        // In a real application, you would create an enrollment record here
-        
-        return RedirectToPage("/LearningPath/MyPaths");
+        return RedirectToPage("/Order/Checkout", new { id, type = "LearningPath" });
     }
 }

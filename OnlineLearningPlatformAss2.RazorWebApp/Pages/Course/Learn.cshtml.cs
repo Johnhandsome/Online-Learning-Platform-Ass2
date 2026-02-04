@@ -30,13 +30,16 @@ public class LearnModel : PageModel
 
         try
         {
-            // For demo purposes, create a sample enrollment ID
-            var enrollmentId = Guid.NewGuid();
-            CourseLearn = await _courseService.GetCourseLearnAsync(enrollmentId);
+            var enrollmentId = await _courseService.GetEnrollmentIdAsync(userId, id);
+            
+            if (enrollmentId.HasValue)
+            {
+                CourseLearn = await _courseService.GetCourseLearnAsync(enrollmentId.Value);
+            }
             
             if (CourseLearn == null)
             {
-                // Create a sample learning session
+                ErrorMessage = "You are not enrolled in this course.";
                 CourseLearn = CreateSampleLearnSession(id);
             }
         }
@@ -47,6 +50,38 @@ public class LearnModel : PageModel
         }
 
         return Page();
+    }
+
+    public async Task<IActionResult> OnPostCompleteLessonAsync([FromBody] CompleteLessonRequest request)
+    {
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdString, out var userId))
+        {
+            return new JsonResult(new { success = false, message = "User not found" });
+        }
+
+        var enrollmentId = await _courseService.GetEnrollmentIdAsync(userId, request.CourseId);
+        if (!enrollmentId.HasValue)
+        {
+            return new JsonResult(new { success = false, message = "Enrollment not found" });
+        }
+
+        var success = await _courseService.UpdateLessonProgressAsync(enrollmentId.Value, request.LessonId, true);
+        
+        // Fetch updated progress
+        var updatedLearn = await _courseService.GetCourseLearnAsync(enrollmentId.Value);
+
+        return new JsonResult(new { 
+            success, 
+            progress = updatedLearn?.Progress ?? 0,
+            isCourseCompleted = updatedLearn?.Progress >= 100
+        });
+    }
+
+    public class CompleteLessonRequest
+    {
+        public Guid CourseId { get; set; }
+        public Guid LessonId { get; set; }
     }
 
     private CourseLearnViewModel CreateSampleLearnSession(Guid courseId)

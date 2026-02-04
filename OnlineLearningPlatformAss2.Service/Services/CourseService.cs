@@ -2,6 +2,7 @@ using OnlineLearningPlatformAss2.Service.Services.Interfaces;
 using OnlineLearningPlatformAss2.Service.DTOs.Course;
 using OnlineLearningPlatformAss2.Service.DTOs.Category;
 using OnlineLearningPlatformAss2.Data.Database;
+using OnlineLearningPlatformAss2.Data.Database.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace OnlineLearningPlatformAss2.Service.Services;
@@ -139,12 +140,22 @@ public class CourseService : ICourseService
 
     public async Task<IEnumerable<CourseViewModel>> GetEnrolledCoursesAsync(Guid userId)
     {
-        var enrolledCourses = await _context.Enrollments
+        var enrollments = await _context.Enrollments
             .Include(e => e.Course)
             .ThenInclude(c => c.Category)
             .Include(e => e.Course.Instructor)
+            .Include(e => e.LessonProgresses)
+            .Include(e => e.Course.Modules)
+            .ThenInclude(m => m.Lessons)
             .Where(e => e.UserId == userId)
-            .Select(e => new CourseViewModel
+            .ToListAsync();
+
+        var enrolledCourses = enrollments.Select(e => {
+            var totalLessons = e.Course.Modules.Sum(m => m.Lessons.Count);
+            var completedLessons = e.LessonProgresses.Count(lp => lp.IsCompleted);
+            var progress = totalLessons > 0 ? (int)((decimal)completedLessons / totalLessons * 100) : 0;
+
+            return new CourseViewModel
             {
                 Id = e.Course.Id,
                 Title = e.Course.Title,
@@ -156,9 +167,9 @@ public class CourseService : ICourseService
                 Rating = 4.5m,
                 StudentCount = _context.Enrollments.Count(en => en.CourseId == e.CourseId),
                 EnrollmentDate = e.EnrolledAt,
-                Progress = 0
-            })
-            .ToListAsync();
+                Progress = progress
+            };
+        });
 
         return enrolledCourses;
     }
@@ -184,10 +195,15 @@ public class CourseService : ICourseService
             .Include(e => e.Course)
             .ThenInclude(c => c.Modules)
             .ThenInclude(m => m.Lessons)
+            .Include(e => e.LessonProgresses)
             .FirstOrDefaultAsync(e => e.Id == enrollmentId);
 
         if (enrollment == null)
             return null;
+
+        var totalLessons = enrollment.Course.Modules.Sum(m => m.Lessons.Count);
+        var completedLessons = enrollment.LessonProgresses.Count(lp => lp.IsCompleted);
+        var progress = totalLessons > 0 ? (int)((decimal)completedLessons / totalLessons * 100) : 0;
 
         return new CourseLearnViewModel
         {
@@ -195,7 +211,7 @@ public class CourseService : ICourseService
             CourseId = enrollment.Course.Id,
             CourseTitle = enrollment.Course.Title,
             CurrentLessonId = enrollment.Course.Modules.FirstOrDefault()?.Lessons.FirstOrDefault()?.Id,
-            Progress = 0,
+            Progress = progress,
             Modules = enrollment.Course.Modules.Select(m => new ModuleViewModel
             {
                 Id = m.Id,
@@ -210,9 +226,65 @@ public class CourseService : ICourseService
                     VideoUrl = l.VideoUrl,
                     Duration = 15,
                     OrderIndex = l.OrderIndex,
-                    IsCompleted = false
+                    IsCompleted = enrollment.LessonProgresses.Any(lp => lp.LessonId == l.Id && lp.IsCompleted)
                 }).OrderBy(l => l.OrderIndex).ToList()
             }).OrderBy(m => m.OrderIndex).ToList()
         };
+    }
+
+    public async Task<bool> UpdateLessonProgressAsync(Guid enrollmentId, Guid lessonId, bool isCompleted)
+    {
+        var enrollment = await _context.Enrollments
+            .Include(e => e.LessonProgresses)
+            .FirstOrDefaultAsync(e => e.Id == enrollmentId);
+
+        if (enrollment == null) return false;
+
+        var progress = enrollment.LessonProgresses.FirstOrDefault(p => p.LessonId == lessonId);
+        if (progress == null)
+        {
+            progress = new LessonProgress
+            {
+                Id = Guid.NewGuid(),
+                EnrollmentId = enrollmentId,
+                LessonId = lessonId,
+                IsCompleted = isCompleted,
+                LastAccessedAt = DateTime.UtcNow
+            };
+            _context.LessonProgresses.Add(progress);
+        }
+        else
+        {
+            progress.IsCompleted = isCompleted;
+            progress.LastAccessedAt = DateTime.UtcNow;
+        }
+
+        // Check if all lessons are completed to update enrollment status
+        var course = await _context.Courses
+            .Include(c => c.Modules)
+            .ThenInclude(m => m.Lessons)
+            .FirstOrDefaultAsync(c => c.Id == enrollment.CourseId);
+
+        if (course != null)
+        {
+            var totalLessons = course.Modules.Sum(m => m.Lessons.Count);
+            var completedCount = enrollment.LessonProgresses.Count(p => p.IsCompleted) + (isCompleted && !enrollment.LessonProgresses.Any(p => p.LessonId == lessonId && p.IsCompleted) ? 1 : 0);
+            
+            if (completedCount >= totalLessons)
+            {
+                enrollment.Status = "Completed";
+                enrollment.CompletedAt = DateTime.UtcNow;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<Guid?> GetEnrollmentIdAsync(Guid userId, Guid courseId)
+    {
+        var enrollment = await _context.Enrollments
+            .FirstOrDefaultAsync(e => e.UserId == userId && e.CourseId == courseId);
+        return enrollment?.Id;
     }
 }

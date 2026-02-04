@@ -391,59 +391,9 @@ else
         }
 
         // AJAX Enrollment
-        async function enrollInCourse(courseId) {
-            const enrollBtn = document.getElementById('enrollBtn');
-            const enrollBtnText = document.getElementById('enrollBtnText');
-            const originalText = enrollBtnText.textContent;
-
-            // Disable button and show loading
-            enrollBtn.disabled = true;
-            enrollBtnText.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Enrolling...';
-
-            try {
-                const response = await fetch('?handler=Enroll', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
-                    },
-                    body: JSON.stringify({ courseId: courseId })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    // Show success message
-                    showToast('success', result.message);
-
-                    // Update UI to show enrolled state
-                    setTimeout(() => {
-                        const enrollmentSection = document.getElementById('enrollmentSection');
-                        enrollmentSection.innerHTML = `
-                            <div class="enrolled-badge">
-                                <i class="bi bi-check-circle-fill"></i>
-                                Enrolled
-                            </div>
-                            <a href="${result.learnUrl}" class="btn btn-success btn-lg w-100">
-                                <i class="bi bi-play-circle me-2"></i>
-                                Start Learning
-                            </a>
-                        `;
-                    }, 1000);
-                } else {
-                    if (result.requiresLogin) {
-                        window.location.href = '/User/Login';
-                    } else {
-                        showToast('error', result.message);
-                        enrollBtn.disabled = false;
-                        enrollBtnText.textContent = originalText;
-                    }
-                }
-            } catch (error) {
-                console.error('Enrollment error:', error);
-                showToast('error', 'Failed to enroll. Please try again.');
-                enrollBtn.disabled = false;
-                enrollBtnText.textContent = originalText;
+        function enrollInCourse(courseId) {
+            window.location.href = `/Order/Checkout?id=${courseId}&type=Course`;
+        }
             }
         }
 

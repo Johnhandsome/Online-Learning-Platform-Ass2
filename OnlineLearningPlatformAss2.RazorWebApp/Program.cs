@@ -9,9 +9,18 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 
-// Add Entity Framework with In-Memory Database
-builder.Services.AddDbContext<OnlineLearningContext>(options =>
-    options.UseInMemoryDatabase("OnlineLearningPlatformDb"));
+// Add Entity Framework with SQL Server or In-Memory Database
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrEmpty(connectionString) || connectionString.Contains("Memory", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddDbContext<OnlineLearningContext>(options =>
+        options.UseInMemoryDatabase("OnlineLearningPlatformDb"));
+}
+else
+{
+    builder.Services.AddDbContext<OnlineLearningContext>(options =>
+        options.UseSqlServer(connectionString, b => b.MigrationsAssembly("OnlineLearningPlatformAss2.Data")));
+}
 
 // Add Authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

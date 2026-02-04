@@ -128,7 +128,7 @@
 
     <!-- Course Grid -->
     <section class="browse-content">
-        <div class="container">
+        <div class="container" id="courseGridContainer">
             @await Html.PartialAsync("_CourseGrid", new ViewDataDictionary(ViewData) { 
                 { "Courses", Model.Courses }, 
                 { "TotalCourses", Model.TotalCourses },
@@ -141,9 +141,9 @@
 
 @section Scripts {
     <script>
-        // Simple form-based filtering - NO AJAX
+        // AJAX-based filtering
         document.addEventListener('DOMContentLoaded', () => {
-            const form = document.getElementById('filterForm');
+            const container = document.getElementById('courseGridContainer');
             const searchInput = document.getElementById('searchInput');
             const categoryFilter = document.getElementById('categoryFilter');
             const sortFilter = document.getElementById('sortFilter');
@@ -151,10 +151,44 @@
             
             let searchTimeout;
             
+            async function updateGrid() {
+                // Show loading state
+                container.style.opacity = '0.5';
+                container.style.pointerEvents = 'none';
+
+                const params = new URLSearchParams({
+                    handler: 'CourseGrid',
+                    SearchTerm: searchInput.value,
+                    CategoryId: categoryFilter.value,
+                    SortBy: sortFilter.value
+                });
+
+                try {
+                    const response = await fetch(`?${params.toString()}`);
+                    if (response.ok) {
+                        const html = await response.text();
+                        container.innerHTML = html;
+                        
+                        // Update URL without reload
+                        const newUrl = `?${new URLSearchParams({
+                            SearchTerm: searchInput.value,
+                            CategoryId: categoryFilter.value,
+                            SortBy: sortFilter.value
+                        }).toString()}`;
+                        window.history.pushState({ path: newUrl }, '', newUrl);
+                    }
+                } catch (error) {
+                    console.error('Error filtering courses:', error);
+                } finally {
+                    container.style.opacity = '1';
+                    container.style.pointerEvents = 'auto';
+                }
+            }
+            
             // Auto-submit on input change with debounce
             searchInput?.addEventListener('input', () => {
                 clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => form.submit(), 500);
+                searchTimeout = setTimeout(() => updateGrid(), 500);
                 
                 // Show/hide clear button
                 if (searchClear) {
@@ -162,24 +196,30 @@
                 }
             });
             
-            // Submit on Enter
-            searchInput?.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    form.submit();
-                }
-            });
-            
             // Clear search
             searchClear?.addEventListener('click', () => {
                 searchInput.value = '';
                 searchClear.style.display = 'none';
-                form.submit();
+                updateGrid();
             });
             
             // Auto-submit on filter change
-            categoryFilter?.addEventListener('change', () => form.submit());
-            sortFilter?.addEventListener('change', () => form.submit());
+            categoryFilter?.addEventListener('change', () => updateGrid());
+            sortFilter?.addEventListener('change', () => updateGrid());
+
+            // Handle back/forward buttons
+            window.addEventListener('popstate', () => {
+                location.reload(); // Simplest way to handle history for now
+            });
         });
+
+        // Add clearAllFilters to global scope for the partial view
+        window.clearAllFilters = function() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('categoryFilter').value = '';
+            // Trigger change manually or call updateGrid
+            const event = new Event('change');
+            document.getElementById('categoryFilter').dispatchEvent(event);
+        };
     </script>
 }

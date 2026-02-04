@@ -3,6 +3,7 @@ using OnlineLearningPlatformAss2.Service.DTOs.User;
 using OnlineLearningPlatformAss2.Service.Results;
 using OnlineLearningPlatformAss2.Data.Database;
 using OnlineLearningPlatformAss2.Data.Database.Entities;
+using OnlineLearningPlatformAss2.Service.DTOs.Course;
 using Microsoft.EntityFrameworkCore;
 using BCrypt.Net;
 
@@ -201,6 +202,65 @@ public class UserService : IUserService
                 user.Email,
                 user.Role?.Name,
                 user.CreateAt
+            );
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public async Task<UserProfileDto?> GetUserProfileAsync(Guid userId)
+    {
+        try
+        {
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .Include(u => u.Profile)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+                return null;
+
+            var enrolledCourses = await _context.Enrollments
+                .Include(e => e.Course)
+                .ThenInclude(c => c.Category)
+                .Include(e => e.Course.Instructor)
+                .Where(e => e.UserId == userId)
+                .OrderByDescending(e => e.EnrolledAt)
+                .ToListAsync();
+
+            var recentCourses = enrolledCourses.Take(3).Select(e => new CourseViewModel
+            {
+                Id = e.Course.Id,
+                Title = e.Course.Title,
+                Description = e.Course.Description,
+                Price = e.Course.Price,
+                ImageUrl = e.Course.ImageUrl,
+                CategoryName = e.Course.Category.Name,
+                InstructorName = e.Course.Instructor.Username,
+                Rating = 4.5m, // Constant for demo
+                EnrollmentDate = e.EnrolledAt,
+                Progress = 0 // Will implement progress calculation later
+            }).ToList();
+
+            return new UserProfileDto(
+                user.Id,
+                user.Username,
+                user.Email,
+                user.Role?.Name,
+                user.CreateAt,
+                user.Profile?.FirstName,
+                user.Profile?.LastName,
+                user.Profile?.Phone,
+                user.Profile?.Address,
+                user.Profile?.DateOfBirth,
+                user.Profile?.AvatarUrl,
+                enrolledCourses.Count,
+                enrolledCourses.Count(e => e.Status == "Completed"),
+                enrolledCourses.Any() ? 0 : 0, // Placeholder for overall progress
+                user.HasCompletedAssessment,
+                recentCourses
             );
         }
         catch

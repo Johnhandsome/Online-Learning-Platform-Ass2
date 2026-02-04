@@ -120,6 +120,8 @@
                 <li><a class="dropdown-item" asp-page="/LearningPath/MyPaths">My Paths</a></li>
                 <li><a class="dropdown-item" asp-page="/Order/MyOrders">My Orders</a></li>
                 <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" asp-page="/User/Profile">My Profile</a></li>
+                <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item text-danger" asp-page="/User/Logout">Log Out</a></li>
               </ul>
             </li>
@@ -265,6 +267,26 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            const targetId = this.getAttribute('href');
+            if (targetId === '#' || targetId === '') return;
+            
+            try {
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    e.preventDefault();
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            } catch (err) {
+                // Ignore invalid selectors
+            }
+        });
+    });
 });
 </script>
 

@@ -75,6 +75,7 @@ public class OrderService : IOrderService
         {
             Id = Guid.NewGuid(),
             UserId = userId,
+            CourseId = courseId,
             TotalAmount = course.Price,
             Status = "Pending",
             CreatedAt = DateTime.UtcNow
@@ -110,6 +111,7 @@ public class OrderService : IOrderService
         {
             Id = Guid.NewGuid(),
             UserId = userId,
+            LearningPathId = pathId,
             TotalAmount = learningPath.Price,
             Status = "Pending",
             CreatedAt = DateTime.UtcNow
@@ -152,6 +154,38 @@ public class OrderService : IOrderService
             // Update order status
             order.Status = "Completed";
             order.CompletedAt = DateTime.UtcNow;
+
+            // Handle automatic enrollment
+            if (order.CourseId.HasValue)
+            {
+                var exists = await _context.Enrollments.AnyAsync(e => e.UserId == order.UserId && e.CourseId == order.CourseId.Value);
+                if (!exists)
+                {
+                    _context.Enrollments.Add(new Enrollment
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = order.UserId,
+                        CourseId = order.CourseId.Value,
+                        EnrolledAt = DateTime.UtcNow,
+                        Status = "Active"
+                    });
+                }
+            }
+            else if (order.LearningPathId.HasValue)
+            {
+                var exists = await _context.UserLearningPathEnrollments.AnyAsync(e => e.UserId == order.UserId && e.PathId == order.LearningPathId.Value);
+                if (!exists)
+                {
+                    _context.UserLearningPathEnrollments.Add(new UserLearningPathEnrollment
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = order.UserId,
+                        PathId = order.LearningPathId.Value,
+                        EnrolledAt = DateTime.UtcNow,
+                        Status = "Active"
+                    });
+                }
+            }
 
             await _context.SaveChangesAsync();
             return true;
