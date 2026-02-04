@@ -51,6 +51,7 @@ public class Course
     public ICollection<Module> Modules { get; set; } = new List<Module>();
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
     public ICollection<PathCourse> PathCourses { get; set; } = new List<PathCourse>();
+    public ICollection<CourseReview> Reviews { get; set; } = new List<CourseReview>();
 }
 
 public class Module

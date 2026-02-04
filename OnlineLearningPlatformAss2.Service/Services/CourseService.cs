@@ -88,6 +88,8 @@ public class CourseService : ICourseService
             .Include(c => c.Instructor)
             .Include(c => c.Modules)
             .ThenInclude(m => m.Lessons)
+            .Include(c => c.Reviews)
+            .ThenInclude(r => r.User)
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (course == null)
@@ -101,6 +103,7 @@ public class CourseService : ICourseService
         }
 
         var studentCount = await _context.Enrollments.CountAsync(e => e.CourseId == id);
+        var averageRating = course.Reviews.Any() ? (decimal)course.Reviews.Average(r => r.Rating) : 4.5m;
 
         return new CourseDetailViewModel
         {
@@ -111,14 +114,14 @@ public class CourseService : ICourseService
             ImageUrl = course.ImageUrl,
             CategoryName = course.Category.Name,
             InstructorName = course.Instructor.Username,
-            Rating = 4.5m,
-            ReviewCount = 0,
+            Rating = averageRating,
+            ReviewCount = course.Reviews.Count,
             StudentCount = studentCount,
             Level = "All Levels",
             Language = "English",
             IsEnrolled = isEnrolled,
-            WhatYouWillLearn = new List<string>(),
-            Requirements = new List<string>(),
+            WhatYouWillLearn = new List<string> { "Foundational concepts", "Real-world projects", "Best practices" },
+            Requirements = new List<string> { "Basic knowledge of the field" },
             HasCertificate = true,
             Modules = course.Modules.Select(m => new ModuleViewModel
             {
@@ -134,8 +137,64 @@ public class CourseService : ICourseService
                     OrderIndex = l.OrderIndex,
                     IsPreview = l.OrderIndex <= 2
                 }).OrderBy(l => l.OrderIndex).ToList()
-            }).OrderBy(m => m.OrderIndex).ToList()
+            }).OrderBy(m => m.OrderIndex).ToList(),
+            Reviews = course.Reviews.OrderByDescending(r => r.CreatedAt).Select(r => new ReviewViewModel
+            {
+                Id = r.Id,
+                Username = r.User.Username,
+                Rating = r.Rating,
+                Comment = r.Comment,
+                CreatedAt = r.CreatedAt
+            }).ToList()
         };
+    }
+
+    public async Task<bool> SubmitReviewAsync(Guid userId, SubmitReviewDto reviewDto)
+    {
+        // Check if enrolled
+        var isEnrolled = await _context.Enrollments.AnyAsync(e => e.UserId == userId && e.CourseId == reviewDto.CourseId);
+        if (!isEnrolled) return false;
+
+        // Check if already reviewed
+        var existingReview = await _context.CourseReviews.FirstOrDefaultAsync(r => r.UserId == userId && r.CourseId == reviewDto.CourseId);
+        if (existingReview != null)
+        {
+            existingReview.Rating = reviewDto.Rating;
+            existingReview.Comment = reviewDto.Comment;
+            existingReview.CreatedAt = DateTime.UtcNow;
+        }
+        else
+        {
+            _context.CourseReviews.Add(new CourseReview
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                CourseId = reviewDto.CourseId,
+                Rating = reviewDto.Rating,
+                Comment = reviewDto.Comment,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<IEnumerable<ReviewViewModel>> GetCourseReviewsAsync(Guid courseId)
+    {
+        return await _context.CourseReviews
+            .Include(r => r.User)
+            .Where(r => r.CourseId == courseId)
+            .OrderByDescending(r => r.CreatedAt)
+            .Select(r => new ReviewViewModel
+            {
+                Id = r.Id,
+                Username = r.User.Username,
+                Rating = r.Rating,
+                Comment = r.Comment,
+                CreatedAt = r.CreatedAt
+            })
+            .ToListAsync();
     }
 
     public async Task<IEnumerable<CourseViewModel>> GetEnrolledCoursesAsync(Guid userId)

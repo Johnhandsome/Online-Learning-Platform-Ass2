@@ -29,11 +29,24 @@ public class OnlineLearningContext(DbContextOptions<OnlineLearningContext> optio
     public DbSet<AssessmentOption> AssessmentOptions { get; set; }
     public DbSet<UserAssessment> UserAssessments { get; set; }
     public DbSet<UserAnswer> UserAnswers { get; set; }
+    public DbSet<CourseReview> CourseReviews { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         
+        modelBuilder.Entity<CourseReview>()
+            .HasOne(cr => cr.User)
+            .WithMany()
+            .HasForeignKey(cr => cr.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<CourseReview>()
+            .HasOne(cr => cr.Course)
+            .WithMany(c => c.Reviews)
+            .HasForeignKey(cr => cr.CourseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // Apply configurations from separate classes if any
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(OnlineLearningContext).Assembly);
 
