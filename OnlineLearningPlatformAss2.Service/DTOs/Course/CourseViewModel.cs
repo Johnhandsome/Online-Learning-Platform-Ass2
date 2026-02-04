@@ -11,7 +11,7 @@ public class CourseViewModel
     public string InstructorName { get; set; } = null!;
     public bool IsEnrolled { get; set; }
     public bool IsInWishlist { get; set; }
-    public decimal Rating { get; set; } = 4.5m;
+    public decimal Rating { get; set; } = 0m;
     public int StudentCount { get; set; }
     public bool IsFeatured { get; set; }
     public DateTime? EnrollmentDate { get; set; }

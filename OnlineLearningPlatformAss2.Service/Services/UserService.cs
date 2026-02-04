@@ -239,7 +239,7 @@ public class UserService : IUserService
                 ImageUrl = e.Course.ImageUrl,
                 CategoryName = e.Course.Category.Name,
                 InstructorName = e.Course.Instructor.Username,
-                Rating = 4.5m, // Constant for demo
+                Rating = 0m, // Placeholder
                 EnrollmentDate = e.EnrolledAt,
                 Progress = 0 // Will implement progress calculation later
             }).ToList();

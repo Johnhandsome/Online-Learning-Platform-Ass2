@@ -11,7 +11,7 @@ public class CourseDetailViewModel
     public string InstructorName { get; set; } = null!;
     public bool IsEnrolled { get; set; }
     public bool IsInWishlist { get; set; }
-    public decimal Rating { get; set; } = 4.5m;
+    public decimal Rating { get; set; } = 0m;
     public int ReviewCount { get; set; }
     public int StudentCount { get; set; }
     public string Level { get; set; } = "All Levels";

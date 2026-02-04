@@ -115,36 +115,25 @@ public class DetailsModel : PageModel
 
         try
         {
-            // Check if already enrolled
-            var existingEnrollment = await _context.Enrollments
-                .FirstOrDefaultAsync(e => e.UserId == userId && e.CourseId == request.CourseId);
+            var success = await _courseService.EnrollUserAsync(userId, request.CourseId);
 
-            if (existingEnrollment != null)
+            if (!success)
             {
-                return new JsonResult(new { success = false, message = "Already enrolled in this course", alreadyEnrolled = true });
+                var course = await _courseService.GetCourseDetailsAsync(request.CourseId);
+                if (course != null && course.InstructorName == User.Identity?.Name)
+                {
+                    return new JsonResult(new { success = false, message = "You cannot enroll in your own course." });
+                }
+                return new JsonResult(new { success = false, message = "Enrollment failed. You might already be enrolled." });
             }
-
-            // Create new enrollment
-            var enrollment = new Enrollment
-            {
-                Id = Guid.NewGuid(),
-                UserId = userId,
-                CourseId = request.CourseId,
-                EnrolledAt = DateTime.UtcNow,
-                Status = "Active"
-            };
-
-            _context.Enrollments.Add(enrollment);
-            await _context.SaveChangesAsync();
 
             return new JsonResult(new { 
                 success = true, 
                 message = "Successfully enrolled in the course!",
-                enrollmentId = enrollment.Id,
                 learnUrl = $"/Course/Learn?id={request.CourseId}"
             });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return new JsonResult(new { success = false, message = "Failed to enroll. Please try again." });
         }

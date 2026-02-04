@@ -71,6 +71,9 @@ public class OrderService : IOrderService
         if (existingEnrollment)
             throw new InvalidOperationException("User is already enrolled in this course");
 
+        if (course.InstructorId == userId)
+            throw new InvalidOperationException("You cannot purchase your own course.");
+
         var order = new Order
         {
             Id = Guid.NewGuid(),

@@ -31,7 +31,7 @@ public class CourseService : ICourseService
                 ImageUrl = c.ImageUrl,
                 CategoryName = c.Category.Name,
                 InstructorName = c.Instructor.Username,
-                Rating = 4.5m,
+                Rating = c.Reviews.Any() ? (decimal)c.Reviews.Average(r => r.Rating) : 0m,
                 StudentCount = _context.Enrollments.Count(e => e.CourseId == c.Id),
                 IsFeatured = true
             })
@@ -72,7 +72,7 @@ public class CourseService : ICourseService
                 ImageUrl = c.ImageUrl,
                 CategoryName = c.Category.Name,
                 InstructorName = c.Instructor.Username,
-                Rating = 4.5m,
+                Rating = c.Reviews.Any() ? (decimal)c.Reviews.Average(r => r.Rating) : 0m,
                 StudentCount = _context.Enrollments.Count(e => e.CourseId == c.Id),
                 IsFeatured = false
             })
