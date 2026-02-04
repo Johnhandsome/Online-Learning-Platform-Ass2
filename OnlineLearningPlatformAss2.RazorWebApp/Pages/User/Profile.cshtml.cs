@@ -10,6 +10,7 @@ namespace OnlineLearningPlatformAss2.RazorWebApp.Pages.User;
 [Authorize]
 public class ProfileModel : PageModel
 {
+    private readonly IUserService _userService;
     private readonly ICourseService _courseService;
 
     public ProfileModel(IUserService userService, ICourseService courseService)

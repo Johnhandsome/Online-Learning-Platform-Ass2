@@ -80,6 +80,39 @@
     </div>
 </section>
 
+<!-- Continue Learning Section -->
+@if (Model.IsAuthenticated && Model.EnrolledCourses.Any())
+{
+    <section class="continue-learning shadow-sm bg-light py-5 border-top border-bottom">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="mb-0 fw-bold">Continue Learning</h3>
+                <a asp-page="/Course/MyCourses" class="btn btn-link text-decoration-none p-0">View all learning <i class="bi bi-arrow-right small"></i></a>
+            </div>
+            <div class="row g-4">
+                @foreach (var course in Model.EnrolledCourses)
+                {
+                    <div class="col-lg-3 col-md-6">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body">
+                                <span class="badge bg-primary bg-opacity-10 text-primary mb-2" style="font-size: 10px;">@course.CategoryName</span>
+                                <h6 class="card-title fw-bold mb-3 text-truncate">@course.Title</h6>
+                                <div class="progress mb-2" style="height: 4px;">
+                                    <div class="progress-bar bg-success" style="width: @course.Progress%"></div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted" style="font-size: 11px;">@course.Progress% complete</small>
+                                    <a asp-page="/Course/Learn" asp-route-id="@course.Id" class="btn btn-sm btn-primary px-3 rounded-pill">Resume</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
 <!-- Assessment CTA Section (for authenticated users) -->
 @if (User.Identity?.IsAuthenticated == true)
 {

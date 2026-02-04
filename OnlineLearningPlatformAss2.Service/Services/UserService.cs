@@ -293,8 +293,8 @@ public class UserService : IUserService
 
         if (user.Profile == null)
         {
-            user.Profile = new UserProfile { Id = Guid.NewGuid(), UserId = userId };
-            _context.UserProfiles.Add(user.Profile);
+            user.Profile = new Profile { Id = Guid.NewGuid(), UserId = userId };
+            _context.Profiles.Add(user.Profile);
         }
 
         user.Profile.FirstName = updateRequest.FirstName;
