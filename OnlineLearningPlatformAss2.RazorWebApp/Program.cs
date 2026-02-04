@@ -40,6 +40,8 @@ builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<ILearningPathService, LearningPathService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IQuizService, QuizService>();
+builder.Services.AddScoped<IDiscussionService, DiscussionService>();
 builder.Services.AddScoped<DatabaseSeedService>();
 
 var app = builder.Build();

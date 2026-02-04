@@ -31,6 +31,7 @@ public class OnlineLearningContext(DbContextOptions<OnlineLearningContext> optio
     public DbSet<UserAnswer> UserAnswers { get; set; }
     public DbSet<CourseReview> CourseReviews { get; set; }
     public DbSet<Wishlist> Wishlists { get; set; }
+    public DbSet<LessonComment> LessonComments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

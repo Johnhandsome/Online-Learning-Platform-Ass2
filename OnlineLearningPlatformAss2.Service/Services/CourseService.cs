@@ -452,6 +452,9 @@ public class CourseService : ICourseService
             {
                 enrollment.Status = "Completed";
                 enrollment.CompletedAt = DateTime.UtcNow;
+                
+                // Issue Certificate
+                await IssueCertificateAsync(enrollment.UserId, enrollment.CourseId);
             }
         }
 
@@ -567,6 +570,29 @@ public class CourseService : ICourseService
         if (lesson == null || lesson.Module.Course.InstructorId != instructorId) return false;
 
         _context.Lessons.Remove(lesson);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> IssueCertificateAsync(Guid userId, Guid courseId)
+    {
+        // Check if certificate already exists
+        var exists = await _context.Certificates.AnyAsync(c => c.UserId == userId && c.CourseId == courseId);
+        if (exists) return true;
+
+        var course = await _context.Courses.FindAsync(courseId);
+        if (course == null) return false;
+
+        var certificate = new Certificate
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            CourseId = courseId,
+            IssuedAt = DateTime.UtcNow,
+            CertificateUrl = $"/Certificates/View/{Guid.NewGuid()}" // Synthetic URL for now
+        };
+
+        _context.Certificates.Add(certificate);
         await _context.SaveChangesAsync();
         return true;
     }

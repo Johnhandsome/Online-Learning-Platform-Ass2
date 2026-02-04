@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Authorization;
 using OnlineLearningPlatformAss2.Service.Services.Interfaces;
 using OnlineLearningPlatformAss2.Service.DTOs.Course;
+using OnlineLearningPlatformAss2.Service.DTOs.Quiz;
+using OnlineLearningPlatformAss2.Service.DTOs.Discussion;
 using System.Security.Claims;
 
 namespace OnlineLearningPlatformAss2.RazorWebApp.Pages.Course;
@@ -11,10 +13,14 @@ namespace OnlineLearningPlatformAss2.RazorWebApp.Pages.Course;
 public class LearnModel : PageModel
 {
     private readonly ICourseService _courseService;
+    private readonly IQuizService _quizService;
+    private readonly IDiscussionService _discussionService;
 
-    public LearnModel(ICourseService courseService)
+    public LearnModel(ICourseService courseService, IQuizService quizService, IDiscussionService discussionService)
     {
         _courseService = courseService;
+        _quizService = quizService;
+        _discussionService = discussionService;
     }
 
     public CourseLearnViewModel? CourseLearn { get; set; }
@@ -75,6 +81,37 @@ public class LearnModel : PageModel
             progress = updatedLearn?.Progress ?? 0,
             isCourseCompleted = updatedLearn?.Progress >= 100
         });
+    }
+
+    public async Task<IActionResult> OnGetQuizAsync(Guid lessonId)
+    {
+        var quiz = await _quizService.GetQuizForLessonAsync(lessonId);
+        if (quiz == null) return NotFound();
+        return new JsonResult(quiz);
+    }
+
+    public async Task<IActionResult> OnPostSubmitQuizAsync([FromBody] QuizSubmissionDto submission)
+    {
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdString, out var userId)) return Unauthorized();
+
+        var result = await _quizService.SubmitAttemptAsync(userId, submission);
+        return new JsonResult(result);
+    }
+
+    public async Task<IActionResult> OnGetCommentsAsync(Guid lessonId)
+    {
+        var comments = await _discussionService.GetLessonCommentsAsync(lessonId);
+        return new JsonResult(comments);
+    }
+
+    public async Task<IActionResult> OnPostPostCommentAsync([FromBody] CommentRequest request)
+    {
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdString, out var userId)) return Unauthorized();
+
+        var comment = await _discussionService.PostCommentAsync(userId, request);
+        return new JsonResult(comment);
     }
 
     public class CompleteLessonRequest

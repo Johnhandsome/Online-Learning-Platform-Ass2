@@ -145,10 +145,42 @@
                                 <i class="bi bi-check-circle me-2"></i>
                                 Mark as Complete
                             </button>
+                            <button class="btn btn-outline-primary d-none" id="checkKnowledgeBtn" onclick="loadQuiz()">
+                                <i class="bi bi-question-diamond me-2"></i>
+                                Check Knowledge
+                            </button>
                             <a href="#" id="certificateBtn" class="btn btn-primary @(Model.CourseLearn.Progress < 100 ? "d-none" : "")" onclick="alert('Congratulations! Your certificate is being generated.')">
                                 <i class="bi bi-patch-check me-2"></i>
                                 View Certificate
                             </a>
+                        </div>
+
+                            </div>
+                        </div>
+
+                        <!-- Q&A Section -->
+                        <div class="discussion-section mt-5 border-top pt-5">
+                            <h4 class="fw-bold mb-4">Questions & Answers</h4>
+                            
+                            <!-- Post Comment Form -->
+                            <div class="card border-0 bg-light p-4 mb-4 rounded-3">
+                                <h6 class="fw-bold mb-3">Ask a question</h6>
+                                <div class="mb-3">
+                                    <textarea id="commentInput" class="form-control border-0 shadow-sm" rows="3" placeholder="What's on your mind regarding this lesson?"></textarea>
+                                </div>
+                                <div class="text-end">
+                                    <button class="btn btn-primary rounded-pill px-4" id="postCommentBtn" onclick="submitComment()">Post Question</button>
+                                </div>
+                            </div>
+
+                            <!-- Comments List -->
+                            <div id="commentsList" class="mt-4">
+                                <!-- Comments will be loaded here -->
+                                <div class="text-center py-5 text-muted">
+                                    <div class="spinner-border spinner-border-sm mb-3"></div>
+                                    <p>Loading discussions...</p>
+                                </div>
+                            </div>
                         </div>
                     }
                 </div>
@@ -173,9 +205,21 @@
         let currentCourseId = '@Model.CourseLearn.CourseId';
         let currentLessonId = '@Model.CourseLearn.CurrentLessonId';
 
-        function selectLesson(lessonId, lessonTitle, videoUrl, description) {
+        async function selectLesson(lessonId, lessonTitle, videoUrl, description) {
             currentLessonId = lessonId;
             
+            // Reset Quiz View
+            document.getElementById('quizSection').classList.add('d-none');
+            document.getElementById('checkKnowledgeBtn').classList.add('d-none');
+
+            // Check if lesson has quiz
+            try {
+                const quizResp = await fetch(`?handler=Quiz&lessonId=${lessonId}`);
+                if (quizResp.ok) {
+                    document.getElementById('checkKnowledgeBtn').classList.remove('d-none');
+                }
+            } catch (e) {}
+
             // Remove current class from all lessons
             document.querySelectorAll('.lesson-item').forEach(item => {
                 item.classList.remove('current');
@@ -188,6 +232,9 @@
             // Update UI
             document.getElementById('lessonTitle').textContent = lessonTitle;
             document.getElementById('lessonDescription').textContent = description;
+            
+            // Load Comments
+            loadComments();
             
             const videoContainer = document.getElementById('videoContainer');
             if (videoUrl && videoUrl !== 'null' && videoUrl !== '') {
@@ -214,6 +261,193 @@
             } else {
                 markBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Mark as Complete';
                 markBtn.classList.replace('btn-outline-success', 'btn-success');
+            }
+        }
+
+        let activeQuiz = null;
+
+        async function loadQuiz() {
+            const btn = document.getElementById('checkKnowledgeBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading Quiz...';
+
+            const response = await fetch(`?handler=Quiz&lessonId=${currentLessonId}`);
+            const quiz = await response.json();
+            activeQuiz = quiz;
+
+            let html = `<h4 class="fw-bold mb-4">${quiz.title}</h4>`;
+            quiz.questions.forEach((q, qIndex) => {
+                html += `
+                    <div class="mb-4 quiz-question" data-question-id="${q.id}">
+                        <h6 class="fw-bold mb-3">${qIndex + 1}. ${q.text}</h6>
+                        <div class="options-list d-grid gap-2">
+                            ${q.options.map(o => `
+                                <div class="form-check custom-option p-0">
+                                    <input class="btn-check" type="radio" name="q-${q.id}" id="opt-${o.id}" value="${o.id}">
+                                    <label class="btn btn-outline-secondary w-100 text-start py-3 px-4" for="opt-${o.id}">
+                                        ${o.text}
+                                    </label>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `<button class="btn btn-primary btn-lg rounded-pill px-5 mt-3" onclick="submitQuiz()">Submit Answers</button>`;
+            
+            document.getElementById('quizContent').innerHTML = html;
+            document.getElementById('quizSection').classList.remove('d-none');
+            document.getElementById('quizResult').classList.add('d-none');
+            
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-question-diamond me-2"></i>Check Knowledge';
+            
+            // Scroll to quiz
+            document.getElementById('quizSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function submitQuiz() {
+            const submission = {
+                quizId: activeQuiz.id,
+                answers: []
+            };
+
+            const questions = document.querySelectorAll('.quiz-question');
+            for(let q of questions) {
+                const questionId = q.dataset.questionId;
+                const selected = q.querySelector('input:checked');
+                if(!selected) {
+                    alert('Please answer all questions before submitting.');
+                    return;
+                }
+                submission.answers.push({
+                    questionId: questionId,
+                    selectedOptionId: selected.value
+                });
+            }
+
+            const response = await fetch('?handler=SubmitQuiz', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify(submission)
+            });
+
+            const result = await response.json();
+            
+            const resultDiv = document.getElementById('quizResult');
+            resultDiv.classList.remove('d-none');
+            resultDiv.innerHTML = `
+                <div class="alert ${result.passed ? 'alert-success' : 'alert-danger'} p-4 rounded-3 border-0">
+                    <div class="d-flex align-items-center">
+                        <i class="bi ${result.passed ? 'bi-trophy' : 'bi-exclamation-circle'} fs-1 me-4"></i>
+                        <div>
+                            <h4 class="fw-bold mb-1">${result.passed ? 'Excellent Job!' : 'Keep Practicing!'}</h4>
+                            <p class="mb-0">You scored <strong>${result.score}%</strong>. You answered ${Math.round(result.score * result.totalQuestions / 100)} out of ${result.totalQuestions} questions correctly.</p>
+                        </div>
+                    </div>
+                    ${result.passed ? '<p class="mt-3 mb-0 small"><i class="bi bi-check2-circle me-1"></i>You have passed the knowledge check for this lesson.</p>' : '<button class="btn btn-sm btn-outline-danger mt-3" onclick="loadQuiz()">Try Again</button>'}
+                </div>
+            `;
+            resultDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function loadComments() {
+            const list = document.getElementById('commentsList');
+            const response = await fetch(`?handler=Comments&lessonId=${currentLessonId}`);
+            const comments = await response.json();
+
+            if (comments.length === 0) {
+                list.innerHTML = '<div class="text-center py-5 text-muted"><p>No questions yet. Be the first to ask!</p></div>';
+                return;
+            }
+
+            list.innerHTML = comments.map(c => renderComment(c)).join('');
+        }
+
+        function renderComment(c, isReply = false) {
+            return `
+                <div class="comment-item ${isReply ? 'ms-5 border-start ps-4 mt-3' : 'mb-4'}" id="comment-${c.id}">
+                    <div class="d-flex mb-2">
+                        <div class="avatar-sm bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; flex-shrink: 0;">
+                            <span class="small fw-bold text-primary">${c.username[0].toUpperCase()}</span>
+                        </div>
+                        <div class="w-100">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="fw-bold mb-0">${c.username} ${c.isInstructor ? '<span class="badge bg-primary ms-1" style="font-size: 0.65rem;">INSTRUCTOR</span>' : ''}</h6>
+                                <span class="text-muted smaller">${new Date(c.createdAt).toLocaleDateString()}</span>
+                            </div>
+                            <p class="mb-2 mt-1">${c.content}</p>
+                            <div class="comment-actions">
+                                <button class="btn btn-link text-decoration-none p-0 smaller me-3" onclick="showReplyForm('${c.id}')">Reply</button>
+                            </div>
+                            <div id="reply-form-${c.id}" class="mt-3 d-none">
+                                <textarea class="form-control form-control-sm mb-2" rows="2" placeholder="Write a reply..."></textarea>
+                                <div class="text-end">
+                                    <button class="btn btn-sm btn-link text-decoration-none text-muted" onclick="hideReplyForm('${c.id}')">Cancel</button>
+                                    <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="submitReply('${c.id}')">Post Reply</button>
+                                </div>
+                            </div>
+                            <div class="replies">
+                                ${c.replies.map(r => renderComment(r, true)).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function submitComment() {
+            const input = document.getElementById('commentInput');
+            const btn = document.getElementById('postCommentBtn');
+            const content = input.value.trim();
+            if(!content) return;
+
+            btn.disabled = true;
+            const response = await fetch('?handler=PostComment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify({ lessonId: currentLessonId, content: content })
+            });
+
+            if(response.ok) {
+                input.value = '';
+                loadComments();
+            }
+            btn.disabled = false;
+        }
+
+        function showReplyForm(id) {
+            document.getElementById(`reply-form-${id}`).classList.remove('d-none');
+        }
+
+        function hideReplyForm(id) {
+            document.getElementById(`reply-form-${id}`).classList.add('d-none');
+        }
+
+        async function submitReply(parentId) {
+            const form = document.getElementById(`reply-form-${parentId}`);
+            const input = form.querySelector('textarea');
+            const content = input.value.trim();
+            if(!content) return;
+
+            const response = await fetch('?handler=PostComment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify({ lessonId: currentLessonId, content: content, parentId: parentId })
+            });
+
+            if(response.ok) {
+                loadComments();
             }
         }
         

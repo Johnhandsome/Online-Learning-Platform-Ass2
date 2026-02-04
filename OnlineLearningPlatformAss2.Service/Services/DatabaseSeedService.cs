@@ -40,6 +40,9 @@ public class DatabaseSeedService
 
         // Seed Sample Users and Orders
         await SeedSampleUsersAndOrdersAsync();
+
+        // Seed Quizzes for some lessons
+        await SeedQuizzesAsync();
     }
 
     private async Task SeedRolesAsync()
@@ -820,5 +823,56 @@ public class DatabaseSeedService
     {
         var baseTitles = new[] { "Introduction", "Overview", "Practical Examples", "Hands-on Practice", "Exercise", "Quiz", "Review", "Deep Dive" };
         return baseTitles[Random.Shared.Next(baseTitles.Length)];
+    }
+
+    private async Task SeedQuizzesAsync()
+    {
+        if (!await _context.Quizzes.AnyAsync())
+        {
+            var webCourse = await _context.Courses
+                .Include(c => c.Modules)
+                .ThenInclude(m => m.Lessons)
+                .FirstOrDefaultAsync(c => c.Title.Contains("Complete Web Development Bootcamp"));
+
+            if (webCourse != null && webCourse.Modules.Any())
+            {
+                var firstLesson = webCourse.Modules.First().Lessons.First();
+                
+                var quiz = new Quiz
+                {
+                    Id = Guid.NewGuid(),
+                    Title = "Introduction to Web Development Quiz",
+                    LessonId = firstLesson.Id
+                };
+
+                var q1 = new Question
+                {
+                    Id = Guid.NewGuid(),
+                    QuizId = quiz.Id,
+                    Text = "Which tag is used for the largest heading in HTML?"
+                };
+
+                q1.Options.Add(new Option { Id = Guid.NewGuid(), QuestionId = q1.Id, Text = "<h6>", IsCorrect = false });
+                q1.Options.Add(new Option { Id = Guid.NewGuid(), QuestionId = q1.Id, Text = "<h1>", IsCorrect = true });
+                q1.Options.Add(new Option { Id = Guid.NewGuid(), QuestionId = q1.Id, Text = "<head>", IsCorrect = false });
+
+                var q2 = new Question
+                {
+                    Id = Guid.NewGuid(),
+                    QuizId = quiz.Id,
+                    Text = "What does CSS stand for?"
+                };
+
+                q2.Options.Add(new Option { Id = Guid.NewGuid(), QuestionId = q2.Id, Text = "Cascading Style Sheets", IsCorrect = true });
+                q2.Options.Add(new Option { Id = Guid.NewGuid(), QuestionId = q2.Id, Text = "Computer Style Sheets", IsCorrect = false });
+                q2.Options.Add(new Option { Id = Guid.NewGuid(), QuestionId = q2.Id, Text = "Creative Style Sheets", IsCorrect = false });
+
+                quiz.Questions.Add(q1);
+                quiz.Questions.Add(q2);
+
+                _context.Quizzes.Add(quiz);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

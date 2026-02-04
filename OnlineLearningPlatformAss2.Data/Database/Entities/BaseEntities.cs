@@ -306,3 +306,19 @@ public class Wishlist
     public User User { get; set; } = null!;
     public Course Course { get; set; } = null!;
 }
+
+public class LessonComment
+{
+    public Guid Id { get; set; }
+    public Guid LessonId { get; set; }
+    public Guid UserId { get; set; }
+    public string Content { get; set; } = null!;
+    public DateTime CreatedAt { get; set; }
+    public Guid? ParentId { get; set; }
+    
+    // Navigation properties
+    public Lesson Lesson { get; set; } = null!;
+    public User User { get; set; } = null!;
+    public LessonComment? Parent { get; set; }
+    public ICollection<LessonComment> Replies { get; set; } = new List<LessonComment>();
+}
