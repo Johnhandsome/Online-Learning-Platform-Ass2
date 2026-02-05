@@ -34,7 +34,10 @@ public class DashboardModel : PageModel
         
         TotalStudents = MyCourses.Sum(c => c.StudentCount);
         TotalEarnings = MyCourses.Sum(c => c.Price * c.StudentCount * 0.7m); // 70% revenue share example
+        AverageRating = MyCourses.Any(c => c.Rating > 0) ? MyCourses.Where(c => c.Rating > 0).Average(c => c.Rating) : 0;
 
         return Page();
     }
+
+    public decimal AverageRating { get; set; }
 }

@@ -77,6 +77,20 @@ public class LearnModel : PageModel
             return new JsonResult(new { success = false, message = "Enrollment not found" });
         }
 
+        // Check if lesson has a quiz and if it's passed
+        var quiz = await _quizService.GetQuizForLessonAsync(request.LessonId);
+        if (quiz != null)
+        {
+            var passed = await _quizService.HasPassedQuizAsync(userId, quiz.Id);
+            if (!passed)
+            {
+                return new JsonResult(new { 
+                    success = false, 
+                    message = "Bạn cần vượt qua bài kiểm tra (Quiz) của bài học này (đạt ít nhất 80%) trước khi đánh dấu hoàn thành." 
+                });
+            }
+        }
+
         var success = await _courseService.UpdateLessonProgressAsync(enrollmentId.Value, request.LessonId, true);
         
         // Fetch updated progress

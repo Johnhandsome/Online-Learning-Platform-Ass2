@@ -74,6 +74,13 @@ public class OrderService : IOrderService
         if (course.InstructorId == userId)
             throw new InvalidOperationException("You cannot purchase your own course.");
 
+        // Check for existing pending orders
+        var existingOrder = await _context.Orders
+            .AnyAsync(o => o.UserId == userId && o.CourseId == courseId && o.Status == "Pending");
+
+        if (existingOrder)
+            throw new InvalidOperationException("You already have a pending order for this course. Please complete it in your checkout page.");
+
         var order = new Order
         {
             Id = Guid.NewGuid(),
@@ -109,6 +116,13 @@ public class OrderService : IOrderService
 
         if (existingEnrollment)
             throw new InvalidOperationException("User is already enrolled in this learning path");
+
+        // Check for existing pending orders
+        var existingOrder = await _context.Orders
+            .AnyAsync(o => o.UserId == userId && o.LearningPathId == pathId && o.Status == "Pending");
+
+        if (existingOrder)
+            throw new InvalidOperationException("You already have a pending order for this learning path.");
 
         var order = new Order
         {
