@@ -5,6 +5,7 @@ using OnlineLearningPlatformAss2.Service.Services.Interfaces;
 using OnlineLearningPlatformAss2.Service.DTOs.Course;
 using OnlineLearningPlatformAss2.Service.DTOs.Quiz;
 using OnlineLearningPlatformAss2.Service.DTOs.Discussion;
+using OnlineLearningPlatformAss2.Service.DTOs.Review;
 using System.Security.Claims;
 
 namespace OnlineLearningPlatformAss2.RazorWebApp.Pages.Course;
@@ -15,15 +16,18 @@ public class LearnModel : PageModel
     private readonly ICourseService _courseService;
     private readonly IQuizService _quizService;
     private readonly IDiscussionService _discussionService;
+    private readonly IReviewService _reviewService;
 
-    public LearnModel(ICourseService courseService, IQuizService quizService, IDiscussionService discussionService)
+    public LearnModel(ICourseService courseService, IQuizService quizService, IDiscussionService discussionService, IReviewService reviewService)
     {
         _courseService = courseService;
         _quizService = quizService;
         _discussionService = discussionService;
+        _reviewService = reviewService;
     }
 
     public CourseLearnViewModel? CourseLearn { get; set; }
+    public bool HasReviewed { get; set; }
     public string? ErrorMessage { get; set; }
 
     public async Task<IActionResult> OnGetAsync(Guid id)
@@ -38,15 +42,17 @@ public class LearnModel : PageModel
         {
             var enrollmentId = await _courseService.GetEnrollmentIdAsync(userId, id);
 
-            if (CourseLearn == null && enrollmentId.HasValue)
+            if (enrollmentId.HasValue)
             {
                 CourseLearn = await _courseService.GetCourseLearnAsync(enrollmentId.Value);
+                HasReviewed = await _reviewService.HasUserReviewedAsync(userId, enrollmentId.Value); // Check by enrollment or course? Actually Review is by Course.
+                // Re-check ReviewService: it uses courseId.
+                HasReviewed = await _reviewService.HasUserReviewedAsync(userId, id);
             }
             
             if (CourseLearn == null)
             {
                 ErrorMessage = "You are not enrolled in this course. Please purchase the course or learning path to access this content.";
-                return Page(); // Still return page but without CourseLearn data
             }
         }
         catch (Exception ex)
@@ -112,6 +118,15 @@ public class LearnModel : PageModel
 
         var comment = await _discussionService.PostCommentAsync(userId, request);
         return new JsonResult(comment);
+    }
+
+    public async Task<IActionResult> OnPostSubmitReviewAsync([FromBody] ReviewRequest request)
+    {
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!Guid.TryParse(userIdString, out var userId)) return Unauthorized();
+
+        var result = await _reviewService.AddReviewAsync(userId, request);
+        return new JsonResult(new { success = result });
     }
 
     public class CompleteLessonRequest

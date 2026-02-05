@@ -3,7 +3,7 @@
 
 @{
     ViewData["Title"] = Model.CourseLearn?.CourseTitle ?? "Course Learning";
-    Layout = null; // Use a clean layout for learning
+    Layout = null;
 }
 
 <!DOCTYPE html>
@@ -13,12 +13,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - LearnHub</title>
     
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <!-- Course Learning Styles -->
-    <link rel="stylesheet" href="~/css/course-learn.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/course-learn.css" asp-append-version="true" />
 </head>
 
 <body>
@@ -32,39 +29,36 @@
     @if (Model.CourseLearn != null)
     {
         <div class="learning-container">
-            <!-- Sidebar with Course Content -->
             <div class="sidebar">
-                <!-- Course Header -->
                 <div class="course-header">
                     <h1 class="course-title">@Model.CourseLearn.CourseTitle</h1>
                     <div class="progress-info">
-                        <small class="text-muted">@Model.CourseLearn.Progress% complete</small>
+                        <small class="text-muted" id="progressText">@Model.CourseLearn.Progress% complete</small>
                         <div class="progress-bar-container">
                             <div id="courseProgressBar" class="progress-bar bg-success" role="progressbar" style="width: @Model.CourseLearn.Progress%" aria-valuenow="@Model.CourseLearn.Progress" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Modules and Lessons -->
                 <div class="modules-list">
-                    @for (int moduleIndex = 0; moduleIndex < Model.CourseLearn.Modules.Count; moduleIndex++)
+                    @for (int i = 0; i < Model.CourseLearn.Modules.Count; i++)
                     {
-                        var module = Model.CourseLearn.Modules.ToList()[moduleIndex];
+                        var module = Model.CourseLearn.Modules[i];
                         <div class="module-item">
                             <button class="module-header" type="button" data-bs-toggle="collapse" 
-                                    data-bs-target="#module-@moduleIndex" aria-expanded="@(moduleIndex == 0 ? "true" : "false")">
+                                    data-bs-target="#module-@i" aria-expanded="@(i == 0 ? "true" : "false")">
                                 <div>
                                     <h3 class="module-title">@module.Title</h3>
-                                    <div class="module-meta">@module.Lessons.Count() lessons  @module.FormattedDuration</div>
+                                    <div class="module-meta">@module.Lessons.Count lessons • @module.FormattedDuration</div>
                                 </div>
                                 <i class="bi bi-chevron-down"></i>
                             </button>
                             
-                            <div class="collapse @(moduleIndex == 0 ? "show" : "")" id="module-@moduleIndex">
+                            <div class="collapse @(i == 0 ? "show" : "")" id="module-@i">
                                 <div class="lessons-list">
                                     @foreach (var lesson in module.Lessons)
                                     {
-                                        <div class="lesson-item @(lesson.IsCurrent ? "current" : "") @(lesson.IsCompleted ? "completed" : "")" id="lesson-@lesson.Id" onclick="selectLesson(\'@lesson.Id\', \'@lesson.Title\', \'@lesson.VideoUrl\', \'@lesson.Content\')">
+                                        <div class="lesson-item @(lesson.IsCurrent ? "current" : "") @(lesson.IsCompleted ? "completed" : "")" id="lesson-@lesson.Id" onclick="selectLesson('@lesson.Id', '@JavaScriptEncoder.Default.Encode(lesson.Title)', '@lesson.VideoUrl', '@JavaScriptEncoder.Default.Encode(lesson.Content)')">
                                             <div class="lesson-title-section">
                                                 <div class="lesson-icon @(lesson.IsCompleted ? "completed" : lesson.IsCurrent ? "current" : "pending")">
                                                     @if (lesson.IsCompleted)
@@ -91,40 +85,25 @@
                     }
                 </div>
 
-                <!-- Navigation -->
                 <div class="navigation-controls">
                     <a href="javascript:history.back()" class="back-btn">
                         <i class="bi bi-arrow-left"></i>
                         Back to Course
                     </a>
-                    <div class="nav-buttons">
-                        <button class="btn btn-outline-secondary btn-sm me-2" onclick="previousLesson()">
-                            <i class="bi bi-skip-backward"></i>
-                        </button>
-                        <button class="btn btn-outline-secondary btn-sm" onclick="nextLesson()">
-                            <i class="bi bi-skip-forward"></i>
-                        </button>
-                    </div>
                 </div>
             </div>
 
-            <!-- Main Content Area -->
             <div class="content-area">
-                <!-- Video Player -->
                 <div class="video-container" id="videoContainer">
                     @if (!string.IsNullOrEmpty(Model.CourseLearn.CurrentLesson?.VideoUrl))
                     {
-                        <iframe class="video-player"
-                                src="@Model.CourseLearn.CurrentLesson.VideoUrl"
-                                frameborder="0"
-                                allowfullscreen>
-                        </iframe>
+                        <iframe class="video-player" src="@Model.CourseLearn.CurrentLesson.VideoUrl" frameborder="0" allowfullscreen></iframe>
                     }
                     else
                     {
                         <div class="d-flex align-items-center justify-content-center h-100 text-white">
                             <div class="text-center">
-                                <i class="bi bi-play-circle" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+                                <i class="bi bi-play-circle mb-3" style="font-size: 4rem;"></i>
                                 <h3>No Video Available</h3>
                                 <p>This lesson contains text content only.</p>
                             </div>
@@ -132,7 +111,6 @@
                     }
                 </div>
 
-                <!-- Lesson Information -->
                 <div class="lesson-info">
                     @if (Model.CourseLearn.CurrentLesson != null)
                     {
@@ -145,17 +123,12 @@
                                 <i class="bi bi-check-circle me-2"></i>
                                 Mark as Complete
                             </button>
-                            <button class="btn btn-outline-primary d-none" id="checkKnowledgeBtn" onclick="loadQuiz()">
-                                <i class="bi bi-question-diamond me-2"></i>
-                                Check Knowledge
-                            </button>
-                            <a href="#" id="certificateBtn" class="btn btn-primary @(Model.CourseLearn.Progress < 100 ? "d-none" : "")" onclick="alert('Congratulations! Your certificate is being generated.')">
+                            <a href="/Certificates/View?id=@Model.CourseLearn.EnrollmentId" id="certificateBtn" class="btn btn-primary @(Model.CourseLearn.Progress < 100 ? "d-none" : "")" target="_blank">
                                 <i class="bi bi-patch-check me-2"></i>
                                 View Certificate
                             </a>
                         </div>
 
-                        <!-- Quiz Section -->
                         <div id="quizSection" class="mt-5 d-none">
                             <div class="card border-0 shadow-sm p-4">
                                 <div id="quizContent"></div>
@@ -163,22 +136,17 @@
                             </div>
                         </div>
 
-                        <!-- Q&A Section -->
                         <div class="discussion-section mt-5 border-top pt-5">
                             <h4 class="fw-bold mb-4">Questions & Answers</h4>
-                            
-                            <!-- Post Comment Form -->
                             <div class="card border-0 bg-light p-4 mb-4 rounded-3">
                                 <h6 class="fw-bold mb-3">Ask a question</h6>
                                 <div class="mb-3">
-                                    <textarea id="commentInput" class="form-control border-0 shadow-sm" rows="3" placeholder="What's on your mind regarding this lesson?"></textarea>
+                                    <textarea id="commentInput" class="form-control border-0 shadow-sm" rows="3" placeholder="What's on your mind?"></textarea>
                                 </div>
                                 <div class="text-end">
                                     <button class="btn btn-primary rounded-pill px-4" id="postCommentBtn" onclick="submitComment()">Post Question</button>
                                 </div>
                             </div>
-
-                            <!-- Comments List -->
                             <div id="commentsList" class="mt-4">
                                 <div class="text-center py-5 text-muted">
                                     <div class="spinner-border spinner-border-sm mb-3"></div>
@@ -187,6 +155,40 @@
                             </div>
                         </div>
                     }
+                </div>
+            </div>
+        </div>
+
+        <!-- Review Modal -->
+        <div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header bg-primary text-white border-0">
+                        <h5 class="modal-title fw-bold">Congratulations!</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4 text-center">
+                        <div class="mb-4">
+                            <i class="bi bi-trophy text-warning" style="font-size: 4rem;"></i>
+                            <h4 class="mt-3 fw-bold">Course Completed!</h4>
+                            <p class="text-muted">Would you like to share your experience with others?</p>
+                        </div>
+                        <div class="rating-input mb-4">
+                            <div class="star-rating h2 text-warning">
+                                <i class="bi bi-star rating-star" data-rating="1"></i>
+                                <i class="bi bi-star rating-star" data-rating="2"></i>
+                                <i class="bi bi-star rating-star" data-rating="3"></i>
+                                <i class="bi bi-star rating-star" data-rating="4"></i>
+                                <i class="bi bi-star rating-star" data-rating="5"></i>
+                            </div>
+                            <input type="hidden" id="selectedRating" value="0">
+                        </div>
+                        <div class="mb-3 text-start">
+                            <label class="form-label fw-bold">Your Review (Optional)</label>
+                            <textarea id="reviewComment" class="form-control" rows="3"></textarea>
+                        </div>
+                        <button class="btn btn-primary w-100 rounded-pill py-2 fw-bold" onclick="submitReview()">Submit Review & View Certificate</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -202,358 +204,132 @@
         </div>
     }
 
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
     <script>
-        let currentCourseId = '@Model.CourseLearn?.CourseId';
-        let currentLessonId = '@Model.CourseLearn?.CurrentLessonId';
+        let currentCourseId = '@(Model.CourseLearn?.CourseId)';
+        let currentLessonId = '@(Model.CourseLearn?.CurrentLessonId)';
+        let hasReviewed = @(Model.HasReviewed ? "true" : "false");
 
         async function selectLesson(lessonId, lessonTitle, videoUrl, description) {
             currentLessonId = lessonId;
-            
-            // Reset Quiz View
-            document.getElementById('quizSection').classList.add('d-none');
-            document.getElementById('checkKnowledgeBtn').classList.add('d-none');
-
-            // Check if lesson has quiz
-            try {
-                const quizResp = await fetch(`?handler=Quiz&lessonId=${lessonId}`);
-                if (quizResp.ok) {
-                    document.getElementById('checkKnowledgeBtn').classList.remove('d-none');
-                }
-            } catch (e) {}
-
-            // Remove current class from all lessons
-            document.querySelectorAll('.lesson-item').forEach(item => {
-                item.classList.remove('current');
-            });
-            
-            // Add current class to selected lesson
-            const selectedItem = document.getElementById('lesson-' + lessonId);
-            if (selectedItem) selectedItem.classList.add('current');
-            
-            // Update UI
             document.getElementById('lessonTitle').textContent = lessonTitle;
             document.getElementById('lessonDescription').textContent = description;
             
-            // Load Comments
-            loadComments();
-            
             const videoContainer = document.getElementById('videoContainer');
             if (videoUrl && videoUrl !== 'null' && videoUrl !== '') {
-                videoContainer.innerHTML = `
-                    <iframe class="video-player" src="${videoUrl}" frameborder="0" allowfullscreen></iframe>
-                `;
+                videoContainer.innerHTML = `<iframe class="video-player" src="${videoUrl}" frameborder="0" allowfullscreen></iframe>`;
             } else {
-                videoContainer.innerHTML = `
-                    <div class="d-flex align-items-center justify-content-center h-100 text-white">
-                        <div class="text-center">
-                            <i class="bi bi-play-circle" style="font-size: 4rem; margin-bottom: 1rem;"></i>
-                            <h3>No Video Available</h3>
-                            <p>This lesson contains text content only.</p>
-                        </div>
-                    </div>
-                `;
+                videoContainer.innerHTML = `<div class="d-flex align-items-center justify-content-center h-100 text-white text-center"><div><i class="bi bi-play-circle mb-3" style="font-size: 4rem;"></i><h3>No Video Available</h3></div></div>`;
             }
-
-            // Update button text based on completion
-            const markBtn = document.getElementById('markCompleteBtn');
-            if (selectedItem && selectedItem.classList.contains('completed')) {
-                markBtn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Completed';
-                markBtn.classList.replace('btn-success', 'btn-outline-success');
-            } else {
-                markBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Mark as Complete';
-                markBtn.classList.replace('btn-outline-success', 'btn-success');
-            }
+            
+            document.querySelectorAll('.lesson-item').forEach(item => item.classList.remove('current'));
+            const selectedItem = document.getElementById('lesson-' + lessonId);
+            if (selectedItem) selectedItem.classList.add('current');
+            
+            loadComments();
         }
 
-        let activeQuiz = null;
-
-        async function loadQuiz() {
-            const btn = document.getElementById('checkKnowledgeBtn');
+        async function markAsCompleted() {
+            const btn = document.getElementById('markCompleteBtn');
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading Quiz...';
-
-            const response = await fetch(`?handler=Quiz&lessonId=${currentLessonId}`);
-            const quiz = await response.json();
-            activeQuiz = quiz;
-
-            let html = `<h4 class="fw-bold mb-4">${quiz.title}</h4>`;
-            quiz.questions.forEach((q, qIndex) => {
-                html += `
-                    <div class="mb-4 quiz-question" data-question-id="${q.id}">
-                        <h6 class="fw-bold mb-3">${qIndex + 1}. ${q.text}</h6>
-                        <div class="options-list d-grid gap-2">
-                            ${q.options.map(o => `
-                                <div class="form-check custom-option p-0">
-                                    <input class="btn-check" type="radio" name="q-${q.id}" id="opt-${o.id}" value="${o.id}">
-                                    <label class="btn btn-outline-secondary w-100 text-start py-3 px-4" for="opt-${o.id}">
-                                        ${o.text}
-                                    </label>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            });
-
-            html += `<button class="btn btn-primary btn-lg rounded-pill px-5 mt-3" onclick="submitQuiz()">Submit Answers</button>`;
             
-            document.getElementById('quizContent').innerHTML = html;
-            document.getElementById('quizSection').classList.remove('d-none');
-            document.getElementById('quizResult').classList.add('d-none');
-            
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-question-diamond me-2"></i>Check Knowledge';
-            
-            // Scroll to quiz
-            document.getElementById('quizSection').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        async function submitQuiz() {
-            const submission = {
-                quizId: activeQuiz.id,
-                answers: []
-            };
-
-            const questions = document.querySelectorAll('.quiz-question');
-            for(let q of questions) {
-                const questionId = q.dataset.questionId;
-                const selected = q.querySelector('input:checked');
-                if(!selected) {
-                    alert('Please answer all questions before submitting.');
-                    return;
-                }
-                submission.answers.push({
-                    questionId: questionId,
-                    selectedOptionId: selected.value
-                });
-            }
-
-            const response = await fetch('?handler=SubmitQuiz', {
+            const response = await fetch('?handler=CompleteLesson', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
                 },
-                body: JSON.stringify(submission)
+                body: JSON.stringify({ courseId: currentCourseId, lessonId: currentLessonId })
             });
 
             const result = await response.json();
-            
-            const resultDiv = document.getElementById('quizResult');
-            resultDiv.classList.remove('d-none');
-            resultDiv.innerHTML = `
-                <div class="alert ${result.passed ? 'alert-success' : 'alert-danger'} p-4 rounded-3 border-0">
-                    <div class="d-flex align-items-center">
-                        <i class="bi ${result.passed ? 'bi-trophy' : 'bi-exclamation-circle'} fs-1 me-4"></i>
-                        <div>
-                            <h4 class="fw-bold mb-1">${result.passed ? 'Excellent Job!' : 'Keep Practicing!'}</h4>
-                            <p class="mb-0">You scored <strong>${result.score}%</strong>. You answered ${Math.round(result.score * result.totalQuestions / 100)} out of ${result.totalQuestions} questions correctly.</p>
-                        </div>
-                    </div>
-                    ${result.passed ? '<p class="mt-3 mb-0 small"><i class="bi bi-check2-circle me-1"></i>You have passed the knowledge check for this lesson.</p>' : '<button class="btn btn-sm btn-outline-danger mt-3" onclick="loadQuiz()">Try Again</button>'}
-                </div>
-            `;
-            resultDiv.scrollIntoView({ behavior: 'smooth' });
+            if (result.success) {
+                const lessonItem = document.getElementById('lesson-' + currentLessonId);
+                if (lessonItem) {
+                    lessonItem.classList.add('completed');
+                    const icon = lessonItem.querySelector('.lesson-icon');
+                    icon.className = 'lesson-icon completed';
+                    icon.innerHTML = '<i class="bi bi-check"></i>';
+                }
+
+                const progressBar = document.getElementById('courseProgressBar');
+                if (progressBar) {
+                    progressBar.style.width = result.progress + '%';
+                    document.getElementById('progressText').textContent = result.progress + '% complete';
+                }
+
+                if (result.isCourseCompleted) {
+                    document.getElementById('certificateBtn').classList.remove('d-none');
+                    if (!hasReviewed) {
+                        new bootstrap.Modal(document.getElementById('reviewModal')).show();
+                    }
+                }
+            }
+            btn.disabled = false;
         }
+
+        async function submitReview() {
+            const rating = document.getElementById('selectedRating').value;
+            const comment = document.getElementById('reviewComment').value;
+
+            if (rating == 0) {
+                alert('Please select a rating');
+                return;
+            }
+
+            const response = await fetch('?handler=SubmitReview', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify({ courseId: currentCourseId, rating: parseInt(rating), comment: comment })
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                hasReviewed = true;
+                bootstrap.Modal.getInstance(document.getElementById('reviewModal')).hide();
+                window.open(document.getElementById('certificateBtn').href, '_blank');
+            }
+        }
+
+        // Star Interactions
+        document.querySelectorAll('.rating-star').forEach(star => {
+            star.onclick = function() {
+                const r = this.dataset.rating;
+                document.getElementById('selectedRating').value = r;
+                document.querySelectorAll('.rating-star').forEach(s => {
+                    s.classList.toggle('bi-star-fill', s.dataset.rating <= r);
+                    s.classList.toggle('bi-star', s.dataset.rating > r);
+                });
+            };
+        });
 
         async function loadComments() {
             const list = document.getElementById('commentsList');
             const response = await fetch(`?handler=Comments&lessonId=${currentLessonId}`);
             const comments = await response.json();
-
-            if (comments.length === 0) {
-                list.innerHTML = '<div class="text-center py-5 text-muted"><p>No questions yet. Be the first to ask!</p></div>';
-                return;
-            }
-
-            list.innerHTML = comments.map(c => renderComment(c)).join('');
+            list.innerHTML = comments.length ? comments.map(c => `<div class="mb-3"><strong>${c.username}</strong>: ${c.content}</div>`).join('') : '<p>No comments yet.</p>';
         }
 
-        function renderComment(c, isReply = false) {
-            return `
-                <div class="comment-item ${isReply ? 'ms-5 border-start ps-4 mt-3' : 'mb-4'}" id="comment-${c.id}">
-                    <div class="d-flex mb-2">
-                        <div class="avatar-sm bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; flex-shrink: 0;">
-                            <span class="small fw-bold text-primary">${c.username[0].toUpperCase()}</span>
-                        </div>
-                        <div class="w-100">
-                            <div class="d-flex justify-content-between">
-                                <h6 class="fw-bold mb-0">${c.username} ${c.isInstructor ? '<span class="badge bg-primary ms-1" style="font-size: 0.65rem;">INSTRUCTOR</span>' : ''}</h6>
-                                <span class="text-muted smaller">${new Date(c.createdAt).toLocaleDateString()}</span>
-                            </div>
-                            <p class="mb-2 mt-1">${c.content}</p>
-                            <div class="comment-actions">
-                                <button class="btn btn-link text-decoration-none p-0 smaller me-3" onclick="showReplyForm('${c.id}')">Reply</button>
-                            </div>
-                            <div id="reply-form-${c.id}" class="mt-3 d-none">
-                                <textarea class="form-control form-control-sm mb-2" rows="2" placeholder="Write a reply..."></textarea>
-                                <div class="text-end">
-                                    <button class="btn btn-sm btn-link text-decoration-none text-muted" onclick="hideReplyForm('${c.id}')">Cancel</button>
-                                    <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="submitReply('${c.id}')">Post Reply</button>
-                                </div>
-                            </div>
-                            <div class="replies">
-                                ${c.replies.map(r => renderComment(r, true)).join('')}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-
-        async function submitComment() {
-            const input = document.getElementById('commentInput');
-            const btn = document.getElementById('postCommentBtn');
-            const content = input.value.trim();
-            if(!content) return;
-
-            btn.disabled = true;
-            const response = await fetch('?handler=PostComment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
-                },
-                body: JSON.stringify({ lessonId: currentLessonId, content: content })
-            });
-
-            if(response.ok) {
-                input.value = '';
-                loadComments();
-            }
-            btn.disabled = false;
-        }
-
-        function showReplyForm(id) {
-            document.getElementById(`reply-form-${id}`).classList.remove('d-none');
-        }
-
-        function hideReplyForm(id) {
-            document.getElementById(`reply-form-${id}`).classList.add('d-none');
-        }
-
-        async function submitReply(parentId) {
-            const form = document.getElementById(`reply-form-${parentId}`);
-            const input = form.querySelector('textarea');
-            const content = input.value.trim();
-            if(!content) return;
-
-            const response = await fetch('?handler=PostComment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
-                },
-                body: JSON.stringify({ lessonId: currentLessonId, content: content, parentId: parentId })
-            });
-
-            if(response.ok) {
-                loadComments();
-            }
-        }
-        
-        async function markAsCompleted() {
-            const btn = document.getElementById('markCompleteBtn');
-            const originalHtml = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
-
-            try {
-                const response = await fetch('?handler=CompleteLesson', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
-                    },
-                    body: JSON.stringify({ 
-                        courseId: currentCourseId, 
-                        lessonId: currentLessonId 
-                    })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    // Update UI for the current lesson item in sidebar
-                    const lessonItem = document.getElementById('lesson-' + currentLessonId);
-                    if (lessonItem) {
-                        lessonItem.classList.add('completed');
-                        const icon = lessonItem.querySelector('.lesson-icon');
-                        icon.className = 'lesson-icon completed';
-                        icon.innerHTML = '<i class="bi bi-check"></i>';
-                    }
-
-                    // Update Progress Bar
-                    const progressBar = document.getElementById('courseProgressBar');
-                    if (progressBar) {
-                        progressBar.style.width = result.progress + '%';
-                        progressBar.setAttribute('aria-valuenow', result.progress);
-                    }
-                    const progressText = document.getElementById('progressText');
-                    if (progressText) {
-                        progressText.textContent = result.progress + '% Complete';
-                    }
-
-                    // Update Button
-                    btn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Completed';
-                    btn.classList.replace('btn-success', 'btn-outline-success');
-
-                    // Show certificate button if 100%
-                    const certBtn = document.getElementById('certificateBtn');
-                    if (result.isCourseCompleted && certBtn) {
-                        certBtn.classList.remove('d-none');
-                    }
-
-                    // Move to next lesson
-                    setTimeout(() => nextLesson(), 500);
-                }
-            } catch (error) {
-                console.error('Error marking lesson complete:', error);
-                alert('Failed to save progress.');
-            } finally {
-                btn.disabled = false;
-                if (!btn.innerHTML.includes('Completed')) {
-                    btn.innerHTML = originalHtml;
-                }
-            }
-        }
-        
-        function nextLesson() {
-            const currentItem = document.querySelector('.lesson-item.current');
-            if (currentItem) {
-                let nextItem = currentItem.nextElementSibling;
-                if (nextItem && nextItem.classList.contains('lesson-item')) {
-                    nextItem.click();
-                } else {
-                    // Try to find first lesson in next module
-                    const nextModule = currentItem.closest('.accordion-item').nextElementSibling;
-                    if (nextModule) {
-                        const firstLessonOfNextModule = nextModule.querySelector('.lesson-item');
-                        if (firstLessonOfNextModule) firstLessonOfNextModule.click();
-                    }
-                }
-            }
-        }
-        
-        function previousLesson() {
-            const currentItem = document.querySelector('.lesson-item.current');
-            if (currentItem) {
-                let prevItem = currentItem.previousElementSibling;
-                if (prevItem && prevItem.classList.contains('lesson-item')) {
-                    prevItem.click();
-                } else {
-                    // Try to find last lesson in previous module
-                    const prevModule = currentItem.closest('.accordion-item').previousElementSibling;
-                    if (prevModule) {
-                        const lessons = prevModule.querySelectorAll('.lesson-item');
-                        if (lessons.length > 0) lessons[lessons.length - 1].click();
-                    }
-                }
-            }
-        }
+        loadComments();
     </script>
+
+    <style>
+        .learning-container { display: flex; height: 100vh; overflow: hidden; }
+        .sidebar { width: 350px; border-right: 1px solid #dee2e6; display: flex; flex-direction: column; }
+        .content-area { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+        .video-container { background: #000; aspect-ratio: 16/9; width: 100%; }
+        .video-player { width: 100%; height: 100%; }
+        .lesson-item { padding: 1rem; cursor: pointer; border-bottom: 1px solid #f8f9fa; }
+        .lesson-item:hover { background: #f8f9fa; }
+        .lesson-item.current { background: #e7f1ff; border-left: 4px solid #0d6efd; }
+        .lesson-icon { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 10px; font-size: 12px; }
+        .lesson-icon.pending { border: 1px solid #dee2e6; }
+        .lesson-icon.current { background: #0d6efd; color: #fff; }
+        .lesson-icon.completed { background: #198754; color: #fff; }
+        .star-rating i { cursor: pointer; }
+    </style>
 </body>
 </html>

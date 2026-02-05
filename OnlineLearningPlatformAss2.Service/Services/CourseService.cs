@@ -10,10 +10,12 @@ namespace OnlineLearningPlatformAss2.Service.Services;
 public class CourseService : ICourseService
 {
     private readonly OnlineLearningContext _context;
+    private readonly IReviewService _reviewService;
 
-    public CourseService(OnlineLearningContext context)
+    public CourseService(OnlineLearningContext context, IReviewService reviewService)
     {
         _context = context;
+        _reviewService = reviewService;
     }
 
     public async Task<IEnumerable<CourseViewModel>> GetFeaturedCoursesAsync()
@@ -109,7 +111,7 @@ public class CourseService : ICourseService
         }
 
         var studentCount = await _context.Enrollments.CountAsync(e => e.CourseId == id);
-        var averageRating = course.Reviews.Any() ? (decimal)course.Reviews.Average(r => r.Rating) : 0m;
+        var ratingSummary = await _reviewService.GetRatingSummaryAsync(id);
 
         return new CourseDetailViewModel
         {
@@ -120,8 +122,8 @@ public class CourseService : ICourseService
             ImageUrl = course.ImageUrl,
             CategoryName = course.Category.Name,
             InstructorName = course.Instructor.Username,
-            Rating = averageRating,
-            ReviewCount = course.Reviews.Count,
+            Rating = (decimal)ratingSummary.AverageRating,
+            ReviewCount = ratingSummary.TotalReviews,
             StudentCount = studentCount,
             Level = "All Levels",
             Language = "English",
@@ -145,10 +147,10 @@ public class CourseService : ICourseService
                     IsPreview = l.OrderIndex <= 2
                 }).OrderBy(l => l.OrderIndex).ToList()
             }).OrderBy(m => m.OrderIndex).ToList(),
-            Reviews = course.Reviews.OrderByDescending(r => r.CreatedAt).Select(r => new ReviewViewModel
+            Reviews = (await _reviewService.GetCourseReviewsAsync(id)).Select(r => new ReviewViewModel 
             {
                 Id = r.Id,
-                Username = r.User.Username,
+                Username = r.Username,
                 Rating = r.Rating,
                 Comment = r.Comment,
                 CreatedAt = r.CreatedAt
@@ -244,50 +246,25 @@ public class CourseService : ICourseService
 
     public async Task<bool> SubmitReviewAsync(Guid userId, SubmitReviewDto reviewDto)
     {
-        // Check if enrolled
-        var isEnrolled = await _context.Enrollments.AnyAsync(e => e.UserId == userId && e.CourseId == reviewDto.CourseId);
-        if (!isEnrolled) return false;
-
-        // Check if already reviewed
-        var existingReview = await _context.CourseReviews.FirstOrDefaultAsync(r => r.UserId == userId && r.CourseId == reviewDto.CourseId);
-        if (existingReview != null)
+        return await _reviewService.AddReviewAsync(userId, new OnlineLearningPlatformAss2.Service.DTOs.Review.ReviewRequest
         {
-            existingReview.Rating = reviewDto.Rating;
-            existingReview.Comment = reviewDto.Comment;
-            existingReview.CreatedAt = DateTime.UtcNow;
-        }
-        else
-        {
-            _context.CourseReviews.Add(new CourseReview
-            {
-                Id = Guid.NewGuid(),
-                UserId = userId,
-                CourseId = reviewDto.CourseId,
-                Rating = reviewDto.Rating,
-                Comment = reviewDto.Comment,
-                CreatedAt = DateTime.UtcNow
-            });
-        }
-
-        await _context.SaveChangesAsync();
-        return true;
+            CourseId = reviewDto.CourseId,
+            Rating = reviewDto.Rating,
+            Comment = reviewDto.Comment
+        });
     }
 
     public async Task<IEnumerable<ReviewViewModel>> GetCourseReviewsAsync(Guid courseId)
     {
-        return await _context.CourseReviews
-            .Include(r => r.User)
-            .Where(r => r.CourseId == courseId)
-            .OrderByDescending(r => r.CreatedAt)
-            .Select(r => new ReviewViewModel
-            {
-                Id = r.Id,
-                Username = r.User.Username,
-                Rating = r.Rating,
-                Comment = r.Comment,
-                CreatedAt = r.CreatedAt
-            })
-            .ToListAsync();
+        var reviews = await _reviewService.GetCourseReviewsAsync(courseId);
+        return reviews.Select(r => new ReviewViewModel
+        {
+            Id = r.Id,
+            Username = r.Username,
+            Rating = r.Rating,
+            Comment = r.Comment,
+            CreatedAt = r.CreatedAt
+        });
     }
 
     public async Task<bool> EnrollUserAsync(Guid userId, Guid courseId)
