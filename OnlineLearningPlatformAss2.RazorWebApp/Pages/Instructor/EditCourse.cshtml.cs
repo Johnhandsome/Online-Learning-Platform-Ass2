@@ -87,8 +87,8 @@ public class EditCourseModel : PageModel
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!Guid.TryParse(userIdString, out var userId)) return Unauthorized();
 
-        var success = await _courseService.AddModuleAsync(request.CourseId, request.Title, request.Description ?? "", request.OrderIndex, userId);
-        return new JsonResult(new { success });
+        var resultId = await _courseService.AddModuleAsync(request.CourseId, request.Title, request.Description ?? "", request.OrderIndex, userId);
+        return new JsonResult(new { success = resultId.HasValue, id = resultId });
     }
 
     public async Task<IActionResult> OnPostUpdateModuleAsync([FromBody] ModuleUpdateRequest request)
@@ -115,15 +115,18 @@ public class EditCourseModel : PageModel
         if (!Guid.TryParse(userIdString, out var userId)) return Unauthorized();
 
         bool success;
+        Guid? resultId = null;
         if (request.Id == Guid.Empty)
         {
-            success = await _courseService.AddLessonAsync(request.ModuleId, request.Title, request.Content, request.VideoUrl, request.OrderIndex, userId);
+            resultId = await _courseService.AddLessonAsync(request.ModuleId, request.Title, request.Content, request.VideoUrl, request.OrderIndex, userId);
+            success = resultId.HasValue;
         }
         else
         {
             success = await _courseService.UpdateLessonAsync(request.Id, request.Title, request.Content, request.VideoUrl, request.OrderIndex, userId);
+            resultId = request.Id;
         }
-        return new JsonResult(new { success });
+        return new JsonResult(new { success, id = resultId });
     }
 
     public async Task<IActionResult> OnPostDeleteLessonAsync(Guid id)

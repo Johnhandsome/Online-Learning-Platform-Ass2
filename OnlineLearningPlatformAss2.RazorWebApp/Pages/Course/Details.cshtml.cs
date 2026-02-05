@@ -130,7 +130,7 @@ public class DetailsModel : PageModel
             return new JsonResult(new { 
                 success = true, 
                 message = "Successfully enrolled in the course!",
-                learnUrl = $"/Course/Learn?id={request.CourseId}"
+                learnUrl = $"/Course/Learn/{request.CourseId}"
             });
         }
         catch (Exception)

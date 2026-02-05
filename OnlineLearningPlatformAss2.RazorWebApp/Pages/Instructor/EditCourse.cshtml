@@ -315,14 +315,41 @@
         const url = id ? "?handler=UpdateModule" : "?handler=AddModule";
         const body = id ? { id, title, description, orderIndex } : { courseId, title, description, orderIndex };
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
-            body: JSON.stringify(body)
-        });
+        const saveBtn = event.target;
+        const originalText = saveBtn.innerText;
+        saveBtn.disabled = true;
+        saveBtn.innerText = 'Saving...';
 
-        if (response.ok) { location.reload(); }
-        else { alert('Error saving module'); }
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+                body: JSON.stringify(body)
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                if (id) {
+                    // Update existing module
+                    const card = document.querySelector(`.module-card[data-module-id="${id}"]`);
+                    if (card) {
+                        card.querySelector('h5').innerText = title;
+                        card.querySelector('.badge').innerText = `Module ${orderIndex}`;
+                    }
+                } else {
+                    // Add new module (simple way: reload or append)
+                    // For "Add", partial fetch is better to get the full structure, but let's try direct append for speed
+                    location.reload(); // Still reload for Add to get correct nesting/icons easily, or append
+                }
+                bootstrap.Modal.getInstance(document.getElementById('moduleModal')).hide();
+                showToast('success', 'Module saved successfully');
+            } else {
+                alert('Error saving module');
+            }
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.innerText = originalText;
+        }
     }
 
     async function deleteModule(id) {
@@ -331,7 +358,10 @@
             method: 'POST',
             headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() }
         });
-        if (response.ok) { location.reload(); }
+        if (response.ok) { 
+            document.querySelector(`.module-card[data-module-id="${id}"]`)?.remove();
+            showToast('info', 'Module removed');
+        }
     }
 
     // Lesson Handlers
@@ -351,7 +381,7 @@
         document.getElementById('targetModuleId').value = moduleId;
         document.getElementById('lessonTitle').value = title;
         document.getElementById('lessonVideoUrl').value = videoUrl;
-        document.getElementById('lessonContent').value = ''; // We'd need to fetch or use data-attribute
+        document.getElementById('lessonContent').value = ''; 
         document.getElementById('lessonOrder').value = order;
         document.getElementById('lessonModalLabel').innerText = 'Edit Lesson';
         new bootstrap.Modal(document.getElementById('lessonModal')).show();
@@ -367,14 +397,39 @@
 
         if (!title) { alert('Title is required'); return; }
 
-        const response = await fetch('?handler=UpsertLesson', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
-            body: JSON.stringify({ id: id || "00000000-0000-0000-0000-000000000000", moduleId, title, content, videoUrl, orderIndex })
-        });
+        const saveBtn = event.target;
+        saveBtn.disabled = true;
+        saveBtn.innerText = 'Saving...';
 
-        if (response.ok) { location.reload(); }
-        else { alert('Error saving lesson'); }
+        try {
+            const response = await fetch('?handler=UpsertLesson', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+                body: JSON.stringify({ id: id || "00000000-0000-0000-0000-000000000000", moduleId, title, content, videoUrl, orderIndex })
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                if (id && id !== "00000000-0000-0000-0000-000000000000") {
+                    // Update existing lesson UI
+                    const item = document.getElementById(`lesson-${id}`);
+                    if (item) {
+                        item.querySelector('.fw-bold').innerText = `Lesson ${orderIndex}: ${title}`;
+                        const icon = item.querySelector('i');
+                        icon.className = `bi ${videoUrl ? "bi-play-circle" : "bi-file-text"} text-primary me-3`;
+                    }
+                } else {
+                    location.reload(); 
+                }
+                bootstrap.Modal.getInstance(document.getElementById('lessonModal')).hide();
+                showToast('success', 'Lesson saved');
+            } else {
+                alert('Error saving lesson');
+            }
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.innerText = 'Save Lesson';
+        }
     }
 
     async function deleteLesson(id) {
@@ -383,7 +438,19 @@
             method: 'POST',
             headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() }
         });
-        if (response.ok) { location.reload(); }
+        if (response.ok) { 
+            document.getElementById(`lesson-${id}`)?.remove();
+            showToast('info', 'Lesson removed');
+        }
+    }
+
+    function showToast(type, message) {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'success' ? 'success' : 'info'} position-fixed top-0 start-50 translate-middle-x mt-3 shadow-lg fade show`;
+        toast.style.zIndex = '1060';
+        toast.innerHTML = `<i class="bi bi-info-circle me-2"></i> ${message}`;
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 500); }, 3000);
     }
 </script>
 }

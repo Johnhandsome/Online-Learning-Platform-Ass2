@@ -352,8 +352,51 @@ else
         }
 
         // AJAX Enrollment
-        function enrollInCourse(courseId) {
-            window.location.href = `/Order/Checkout?id=${courseId}&type=Course`;
+        async function enrollInCourse(courseId) {
+            const enrollBtn = document.getElementById('enrollBtn');
+            const enrollBtnText = document.getElementById('enrollBtnText');
+            const isFree = '@(Model.Course.Price == 0)'.toLowerCase() === 'true';
+
+            if (isFree) {
+                if (enrollBtn) {
+                    enrollBtn.disabled = true;
+                    if (enrollBtnText) enrollBtnText.innerText = 'Enrolling...';
+                }
+
+                try {
+                    const response = await fetch('?handler=Enroll', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        },
+                        body: JSON.stringify({ courseId: courseId })
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        showToast('success', 'Successfully enrolled! Redirecting to course...');
+                        setTimeout(() => {
+                            window.location.href = result.learnUrl;
+                        }, 1000);
+                    } else {
+                        if (result.requiresLogin) {
+                            window.location.href = '/User/Login';
+                        } else {
+                            showToast('error', result.message);
+                            if (enrollBtn) {
+                                enrollBtn.disabled = false;
+                                if (enrollBtnText) enrollBtnText.innerText = 'Enroll Now';
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Enrollment error:', error);
+                    window.location.href = `/Order/Checkout?id=${courseId}&type=Course`;
+                }
+            } else {
+                window.location.href = `/Order/Checkout?id=${courseId}&type=Course`;
+            }
         }
 
         // Toggle wishlist (AJAX)

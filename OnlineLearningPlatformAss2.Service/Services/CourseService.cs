@@ -52,11 +52,12 @@ public class CourseService : ICourseService
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
+            var term = searchTerm.Trim().ToLower();
             query = query.Where(c => 
-                c.Title.Contains(searchTerm) ||
-                c.Description.Contains(searchTerm) ||
-                c.Category.Name.Contains(searchTerm) ||
-                c.Instructor.Username.Contains(searchTerm)
+                c.Title.ToLower().Contains(term) ||
+                c.Description.ToLower().Contains(term) ||
+                c.Category.Name.ToLower().Contains(term) ||
+                c.Instructor.Username.ToLower().Contains(term)
             );
         }
         
@@ -448,10 +449,10 @@ public class CourseService : ICourseService
 
     // --- Curriculum Management ---
 
-    public async Task<bool> AddModuleAsync(Guid courseId, string title, string description, int orderIndex, Guid instructorId)
+    public async Task<Guid?> AddModuleAsync(Guid courseId, string title, string description, int orderIndex, Guid instructorId)
     {
         var course = await _context.Courses.FindAsync(courseId);
-        if (course == null || course.InstructorId != instructorId) return false;
+        if (course == null || course.InstructorId != instructorId) return null;
 
         var module = new Module
         {
@@ -464,7 +465,7 @@ public class CourseService : ICourseService
 
         _context.Modules.Add(module);
         await _context.SaveChangesAsync();
-        return true;
+        return module.Id;
     }
 
     public async Task<bool> UpdateModuleAsync(Guid moduleId, string title, string description, int orderIndex, Guid instructorId)
@@ -496,13 +497,13 @@ public class CourseService : ICourseService
         return true;
     }
 
-    public async Task<bool> AddLessonAsync(Guid moduleId, string title, string content, string? videoUrl, int orderIndex, Guid instructorId)
+    public async Task<Guid?> AddLessonAsync(Guid moduleId, string title, string content, string? videoUrl, int orderIndex, Guid instructorId)
     {
         var module = await _context.Modules
             .Include(m => m.Course)
             .FirstOrDefaultAsync(m => m.Id == moduleId);
 
-        if (module == null || module.Course.InstructorId != instructorId) return false;
+        if (module == null || module.Course.InstructorId != instructorId) return null;
 
         var lesson = new Lesson
         {
@@ -516,7 +517,7 @@ public class CourseService : ICourseService
 
         _context.Lessons.Add(lesson);
         await _context.SaveChangesAsync();
-        return true;
+        return lesson.Id;
     }
 
     public async Task<bool> UpdateLessonAsync(Guid lessonId, string title, string content, string? videoUrl, int orderIndex, Guid instructorId)

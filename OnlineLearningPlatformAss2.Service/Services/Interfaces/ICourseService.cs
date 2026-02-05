@@ -18,12 +18,12 @@ public interface ICourseService
     Task<bool> EnrollUserAsync(Guid userId, Guid courseId);
     
     // Module Management
-    Task<bool> AddModuleAsync(Guid courseId, string title, string description, int orderIndex, Guid instructorId);
+    Task<Guid?> AddModuleAsync(Guid courseId, string title, string description, int orderIndex, Guid instructorId);
     Task<bool> UpdateModuleAsync(Guid moduleId, string title, string description, int orderIndex, Guid instructorId);
     Task<bool> DeleteModuleAsync(Guid moduleId, Guid instructorId);
     
     // Lesson Management
-    Task<bool> AddLessonAsync(Guid moduleId, string title, string content, string? videoUrl, int orderIndex, Guid instructorId);
+    Task<Guid?> AddLessonAsync(Guid moduleId, string title, string content, string? videoUrl, int orderIndex, Guid instructorId);
     Task<bool> UpdateLessonAsync(Guid lessonId, string title, string content, string? videoUrl, int orderIndex, Guid instructorId);
     Task<bool> DeleteLessonAsync(Guid lessonId, Guid instructorId);
 

@@ -52,6 +52,28 @@ public class BrowseModel : PageModel
         });
     }
 
+    public async Task<IActionResult> OnGetSearchPreviewAsync(string searchTerm)
+    {
+        var cleanedTerm = (searchTerm ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(cleanedTerm) || cleanedTerm.Length < 2)
+        {
+            return new JsonResult(new { courses = new List<object>() });
+        }
+
+        var courses = await _courseService.GetAllCoursesAsync(cleanedTerm);
+        var preview = courses.Take(5).Select(c => new
+        {
+            id = c.Id,
+            title = c.Title,
+            instructor = c.InstructorName,
+            price = c.FormattedPrice,
+            image = c.ImageUrl,
+            rating = c.Rating
+        });
+
+        return new JsonResult(new { courses = preview });
+    }
+
     private async Task LoadCoursesAsync()
     {
         try

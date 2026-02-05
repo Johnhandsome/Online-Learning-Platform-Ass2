@@ -77,4 +77,39 @@ public class CourseServiceTests
         var cert = await context.Certificates.AnyAsync(c => c.UserId == user.Id && c.CourseId == course.Id);
         cert.Should().BeTrue();
     }
+
+    [Theory]
+    [InlineData("React", 1)]
+    [InlineData("react", 1)]
+    [InlineData("  REACT  ", 1)]
+    [InlineData("NonExistent", 0)]
+    public async Task GetAllCoursesAsync_ShouldSearchCaseInsensitiveAndTrim(string searchTerm, int expectedCount)
+    {
+        // Arrange
+        using var context = GetDbContext();
+        var service = new CourseService(context, new Mock<IReviewService>().Object);
+        var instructor = new User { Id = Guid.NewGuid(), Username = "teacher", Email = "teacher@test.com", PasswordHash = "hash" };
+        var category = new Category { Id = Guid.NewGuid(), Name = "Web Development", Description = "Web Dev Courses" };
+        var course = new Course 
+        { 
+            Id = Guid.NewGuid(), 
+            Title = "React Masterclass", 
+            Description = "Learn React", 
+            InstructorId = instructor.Id, 
+            CategoryId = category.Id,
+            Status = "Published",
+            Price = 100 
+        };
+        
+        context.Users.Add(instructor);
+        context.Categories.Add(category);
+        context.Courses.Add(course);
+        await context.SaveChangesAsync();
+
+        // Act
+        var result = await service.GetAllCoursesAsync(searchTerm);
+
+        // Assert
+        result.Count().Should().Be(expectedCount);
+    }
 }

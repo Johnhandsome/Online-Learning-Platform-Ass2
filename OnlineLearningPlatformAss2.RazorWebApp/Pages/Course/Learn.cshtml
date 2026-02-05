@@ -30,13 +30,22 @@
     {
         <div class="learning-container">
             <div class="sidebar">
-                <div class="course-header">
-                    <h1 class="course-title">@Model.CourseLearn.CourseTitle</h1>
+                <div class="course-header" style="background: #1e1e1e; padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <h1 class="course-title" style="font-size: 1.1rem; color: #fff; margin-bottom: 1rem; line-height: 1.4;">@Model.CourseLearn.CourseTitle</h1>
                     <div class="progress-info">
-                        <small class="text-muted" id="progressText">@Model.CourseLearn.Progress% complete</small>
-                        <div class="progress-bar-container">
-                            <div id="courseProgressBar" class="progress-bar bg-success" role="progressbar" style="width: @Model.CourseLearn.Progress%" aria-valuenow="@Model.CourseLearn.Progress" aria-valuemin="0" aria-valuemax="100"></div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-white-50 small" id="progressText">@Model.CourseLearn.Progress% complete</span>
                         </div>
+                        <div class="progress" style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px;">
+                            <div id="courseProgressBar" class="progress-bar bg-primary" role="progressbar" style="width: @Model.CourseLearn.Progress%" aria-valuenow="@Model.CourseLearn.Progress" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="search-lessons" style="padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); background: #1e1e1e;">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text border-0" style="background: #2d2d2d; color: #888;"><i class="bi bi-search"></i></span>
+                        <input type="text" id="lessonSearch" class="form-control border-0" style="background: #2d2d2d; color: #fff;" placeholder="Search lessons..." oninput="filterLessons()">
                     </div>
                 </div>
 
@@ -224,48 +233,96 @@
             
             document.querySelectorAll('.lesson-item').forEach(item => item.classList.remove('current'));
             const selectedItem = document.getElementById('lesson-' + lessonId);
-            if (selectedItem) selectedItem.classList.add('current');
+            if (selectedItem) {
+                selectedItem.classList.add('current');
+                // Ensure the module is expanded
+                const moduleContent = selectedItem.closest('.collapse');
+                if (moduleContent && !moduleContent.classList.contains('show')) {
+                    new bootstrap.Collapse(moduleContent).show();
+                }
+            }
             
             loadComments();
         }
 
-        async function markAsCompleted() {
-            const btn = document.getElementById('markCompleteBtn');
-            btn.disabled = true;
-            
-            const response = await fetch('?handler=CompleteLesson', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
-                },
-                body: JSON.stringify({ courseId: currentCourseId, lessonId: currentLessonId })
+        function filterLessons() {
+            const term = document.getElementById('lessonSearch').value.toLowerCase();
+            const lessons = document.querySelectorAll('.lesson-item');
+            const modules = document.querySelectorAll('.module-item');
+
+            lessons.forEach(lesson => {
+                const title = lesson.querySelector('.lesson-title').textContent.toLowerCase();
+                const isMatch = title.includes(term);
+                lesson.style.display = isMatch ? 'flex' : 'none';
             });
 
-            const result = await response.json();
-            if (result.success) {
-                const lessonItem = document.getElementById('lesson-' + currentLessonId);
-                if (lessonItem) {
-                    lessonItem.classList.add('completed');
-                    const icon = lessonItem.querySelector('.lesson-icon');
-                    icon.className = 'lesson-icon completed';
-                    icon.innerHTML = '<i class="bi bi-check"></i>';
-                }
-
-                const progressBar = document.getElementById('courseProgressBar');
-                if (progressBar) {
-                    progressBar.style.width = result.progress + '%';
-                    document.getElementById('progressText').textContent = result.progress + '% complete';
-                }
-
-                if (result.isCourseCompleted) {
-                    document.getElementById('certificateBtn').classList.remove('d-none');
-                    if (!hasReviewed) {
-                        new bootstrap.Modal(document.getElementById('reviewModal')).show();
+            modules.forEach(module => {
+                const hasVisibleLessons = Array.from(module.querySelectorAll('.lesson-item')).some(l => l.style.display !== 'none');
+                module.style.display = hasVisibleLessons || term === '' ? 'block' : 'none';
+                if (term !== '' && hasVisibleLessons) {
+                    const collapse = module.querySelector('.collapse');
+                    if (collapse && !collapse.classList.contains('show')) {
+                        new bootstrap.Collapse(collapse).show();
                     }
                 }
+            });
+        }
+
+        async function markAsCompleted() {
+            const btn = document.getElementById('markCompleteBtn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Marking...';
+            
+            try {
+                const response = await fetch('?handler=CompleteLesson', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({ courseId: currentCourseId, lessonId: currentLessonId })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    const lessonItem = document.getElementById('lesson-' + currentLessonId);
+                    if (lessonItem) {
+                        lessonItem.classList.add('completed');
+                        const icon = lessonItem.querySelector('.lesson-icon');
+                        icon.className = 'lesson-icon completed';
+                        icon.innerHTML = '<i class="bi bi-check"></i>';
+                    }
+
+                    const progressBar = document.getElementById('courseProgressBar');
+                    if (progressBar) {
+                        progressBar.style.width = result.progress + '%';
+                        document.getElementById('progressText').textContent = result.progress + '% complete';
+                    }
+
+                    if (result.isCourseCompleted) {
+                        document.getElementById('certificateBtn').classList.remove('d-none');
+                        if (!hasReviewed) {
+                            new bootstrap.Modal(document.getElementById('reviewModal')).show();
+                        }
+                    } else {
+                        // Auto-play Next Logic
+                        const lessons = Array.from(document.querySelectorAll('.lesson-item'));
+                        const currentIndex = lessons.findIndex(l => l.id === 'lesson-' + currentLessonId);
+                        if (currentIndex !== -1 && currentIndex < lessons.length - 1) {
+                            const nextLesson = lessons[currentIndex + 1];
+                            setTimeout(() => {
+                                nextLesson.click();
+                                // Scroller feedback
+                                nextLesson.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                            }, 1500);
+                        }
+                    }
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
-            btn.disabled = false;
         }
 
         async function submitReview() {

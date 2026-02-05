@@ -61,26 +61,30 @@
 
                         <!-- Category Filter -->
                         <div class="col-lg-3 col-md-6">
-                            <select name="CategoryId" id="categoryFilter" class="form-select">
-                                <option value="">All Categories</option>
-                                @foreach (var category in Model.Categories)
-                                {
-                                    <option value="@category.Id" selected="@(Model.CategoryId == category.Id)">
-                                        @category.Name
-                                    </option>
-                                }
-                            </select>
+                            <div class="filter-dropdown">
+                                <select name="CategoryId" id="categoryFilter" class="form-select">
+                                    <option value="">All Categories</option>
+                                    @foreach (var category in Model.Categories)
+                                    {
+                                        <option value="@category.Id" selected="@(Model.CategoryId == category.Id)">
+                                            @category.Name
+                                        </option>
+                                    }
+                                </select>
+                            </div>
                         </div>
 
                         <!-- Sort Options -->
                         <div class="col-lg-3 col-md-6">
-                            <select name="SortBy" id="sortFilter" class="form-select">
-                                <option value="newest" selected="@(Model.SortBy == "newest")">Newest First</option>
-                                <option value="title" selected="@(Model.SortBy == "title")">Title A-Z</option>
-                                <option value="price_low" selected="@(Model.SortBy == "price_low")">Price: Low to High</option>
-                                <option value="price_high" selected="@(Model.SortBy == "price_high")">Price: High to Low</option>
-                                <option value="rating" selected="@(Model.SortBy == "rating")">Highest Rated</option>
-                            </select>
+                            <div class="filter-dropdown">
+                                <select name="SortBy" id="sortFilter" class="form-select">
+                                    <option value="newest" selected="@(Model.SortBy == "newest")">Newest First</option>
+                                    <option value="title" selected="@(Model.SortBy == "title")">Title A-Z</option>
+                                    <option value="price_low" selected="@(Model.SortBy == "price_low")">Price: Low to High</option>
+                                    <option value="price_high" selected="@(Model.SortBy == "price_high")">Price: High to Low</option>
+                                    <option value="rating" selected="@(Model.SortBy == "rating")">Highest Rated</option>
+                                </select>
+                            </div>
                         </div>
 
                         <!-- Results Count -->
@@ -158,7 +162,7 @@
 
                 const params = new URLSearchParams({
                     handler: 'CourseGrid',
-                    SearchTerm: searchInput.value,
+                    SearchTerm: searchInput.value.trim(),
                     CategoryId: categoryFilter.value,
                     SortBy: sortFilter.value
                 });
