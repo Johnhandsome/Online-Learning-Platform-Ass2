@@ -144,6 +144,7 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script>
         // AJAX-based filtering
         document.addEventListener('DOMContentLoaded', () => {
@@ -215,6 +216,44 @@
             window.addEventListener('popstate', () => {
                 location.reload(); // Simplest way to handle history for now
             });
+
+            // ===== SignalR Real-time Updates =====
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/hubs/course")
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on("ReceiveCourseAdded", (course) => {
+                console.log("New course added in real-time:", course.title);
+                showToast(`New course added: ${course.title}`, 'success');
+                updateGrid(); // Refresh the grid
+            });
+
+            connection.on("ReceiveCourseUpdated", (course) => {
+                console.log("Course updated in real-time:", course.title);
+                showToast(`Course updated: ${course.title}`, 'info');
+                updateGrid();
+            });
+
+            connection.on("ReceiveCourseDeleted", (courseId) => {
+                console.log("Course deleted:", courseId);
+                showToast("A course has been removed.", 'warning');
+                updateGrid();
+            });
+
+            connection.start()
+                .then(() => console.log("SignalR CourseHub connected."))
+                .catch(err => console.error("SignalR connection error:", err));
+
+            // Toast notification helper
+            function showToast(message, type) {
+                const toast = document.createElement('div');
+                toast.className = `alert alert-${type} position-fixed bottom-0 end-0 m-3 shadow-lg`;
+                toast.style.zIndex = 9999;
+                toast.innerHTML = `<i class="bi bi-bell-fill me-2"></i>${message}`;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 4000);
+            }
         });
 
         // Add clearAllFilters to global scope for the partial view

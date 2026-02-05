@@ -33,6 +33,7 @@ public class OnlineLearningContext(DbContextOptions<OnlineLearningContext> optio
     public DbSet<Wishlist> Wishlists { get; set; }
     public DbSet<LessonComment> LessonComments { get; set; }
     public DbSet<Notification> Notifications { get; set; }
+    public DbSet<ChatMessage> ChatMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
