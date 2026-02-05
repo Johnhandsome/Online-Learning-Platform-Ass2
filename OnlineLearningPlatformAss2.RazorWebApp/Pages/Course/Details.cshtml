@@ -136,7 +136,10 @@
                                     <li><i class="bi bi-play-circle"></i> @Model.Course.FormattedDuration of on-demand video</li>
                                     <li><i class="bi bi-file-earmark-text"></i> @Model.Course.TotalLessons lessons</li>
                                     <li><i class="bi bi-download"></i> Downloadable resources</li>
-                                    <li><i class="bi bi-phone"></i> Access on mobile and TV</li>
+                                    @if (Model.Course.Level != "Advanced") 
+                                    {
+                                        <li><i class="bi bi-phone"></i> Access on mobile and TV</li>
+                                    }
                                     <li><i class="bi bi-infinity"></i> Full lifetime access</li>
                                     @if (Model.Course.HasCertificate)
                                     {

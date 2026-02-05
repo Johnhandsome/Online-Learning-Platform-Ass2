@@ -92,6 +92,26 @@
                                                 <span asp-validation-for="CourseForm.Price" class="text-danger small"></span>
                                             </div>
 
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-bold">Difficulty Level</label>
+                                                <select asp-for="CourseForm.Level" class="form-select">
+                                                    <option value="All Levels">All Levels</option>
+                                                    <option value="Beginner">Beginner</option>
+                                                    <option value="Intermediate">Intermediate</option>
+                                                    <option value="Advanced">Advanced</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label small fw-bold">Language</label>
+                                                <select asp-for="CourseForm.Language" class="form-select">
+                                                    <option value="English">English</option>
+                                                    <option value="Vietnamese">Vietnamese</option>
+                                                    <option value="Spanish">Spanish</option>
+                                                    <option value="French">French</option>
+                                                </select>
+                                            </div>
+
                                             <div class="form-check form-switch mb-0">
                                                 <input asp-for="CourseForm.IsFeatured" class="form-check-input" type="checkbox">
                                                 <label class="form-check-label small fw-bold">Featured Course</label>

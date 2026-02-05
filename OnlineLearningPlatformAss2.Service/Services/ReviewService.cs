@@ -22,8 +22,14 @@ public class ReviewService : IReviewService
         if (exists) return false;
 
         // Verify enrollment and completion (best practice)
-        bool isCompleted = await _context.Enrollments.AnyAsync(e => e.UserId == userId && e.CourseId == request.CourseId && e.Status == "Completed");
-        if (!isCompleted) return false;
+        var enrollment = await _context.Enrollments
+            .Include(e => e.Course)
+            .FirstOrDefaultAsync(e => e.UserId == userId && e.CourseId == request.CourseId && e.Status == "Completed");
+        
+        if (enrollment == null) return false;
+
+        // Prevent instructor from reviewing their own course
+        if (enrollment.Course.InstructorId == userId) return false;
 
         var review = new CourseReview
         {

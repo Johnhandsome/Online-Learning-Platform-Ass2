@@ -9,4 +9,6 @@ public class CourseUpdateDto
     public string? ImageUrl { get; set; }
     public Guid CategoryId { get; set; }
     public bool IsFeatured { get; set; }
+    public string Level { get; set; } = "All Levels";
+    public string Language { get; set; } = "English";
 }

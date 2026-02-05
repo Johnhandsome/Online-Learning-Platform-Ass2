@@ -18,12 +18,23 @@ public class CourseService : ICourseService
         _reviewService = reviewService;
     }
 
-    public async Task<IEnumerable<CourseViewModel>> GetFeaturedCoursesAsync()
+    public async Task<IEnumerable<CourseViewModel>> GetFeaturedCoursesAsync(int? limit = null)
     {
-        var courses = await _context.Courses
+        var query = _context.Courses
             .Include(c => c.Category)
             .Include(c => c.Instructor)
-            .Take(6)
+            .Where(c => c.IsFeatured && c.Status == "Published");
+
+        if (limit.HasValue)
+        {
+            query = query.Take(limit.Value);
+        }
+        else
+        {
+            query = query.Take(6);
+        }
+
+        var courses = await query
             .Select(c => new CourseViewModel
             {
                 Id = c.Id,
@@ -42,7 +53,7 @@ public class CourseService : ICourseService
         return courses;
     }
 
-    public async Task<IEnumerable<CourseViewModel>> GetAllCoursesAsync(string? searchTerm = null, Guid? categoryId = null)
+    public async Task<IEnumerable<CourseViewModel>> GetAllCoursesAsync(string? searchTerm = null, Guid? categoryId = null, int? limit = null)
     {
         var query = _context.Courses
             .Include(c => c.Category)
@@ -64,6 +75,11 @@ public class CourseService : ICourseService
         if (categoryId.HasValue)
         {
             query = query.Where(c => c.CategoryId == categoryId.Value);
+        }
+
+        if (limit.HasValue)
+        {
+            query = query.Take(limit.Value);
         }
 
         var courses = await query
@@ -126,8 +142,8 @@ public class CourseService : ICourseService
             Rating = (decimal)ratingSummary.AverageRating,
             ReviewCount = ratingSummary.TotalReviews,
             StudentCount = studentCount,
-            Level = "All Levels",
-            Language = "English",
+            Level = course.Level,
+            Language = course.Language,
             IsEnrolled = isEnrolled,
             IsInWishlist = isInWishlist,
             WhatYouWillLearn = new List<string> { "Foundational concepts", "Real-world projects", "Best practices" },
@@ -240,6 +256,8 @@ public class CourseService : ICourseService
         course.ImageUrl = dto.ImageUrl;
         course.CategoryId = dto.CategoryId;
         course.IsFeatured = dto.IsFeatured;
+        course.Level = dto.Level;
+        course.Language = dto.Language;
 
         await _context.SaveChangesAsync();
         return true;

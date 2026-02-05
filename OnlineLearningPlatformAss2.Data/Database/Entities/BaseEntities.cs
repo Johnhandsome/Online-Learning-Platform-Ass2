@@ -46,6 +46,8 @@ public class Course
     public DateTime CreatedAt { get; set; }
     public bool IsFeatured { get; set; }
     public string Status { get; set; } = "Published"; // Pending, Published, Rejected
+    public string Level { get; set; } = "All Levels";
+    public string Language { get; set; } = "English";
     
     // Navigation properties
     public Category Category { get; set; } = null!;

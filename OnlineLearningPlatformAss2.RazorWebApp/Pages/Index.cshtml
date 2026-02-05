@@ -208,7 +208,7 @@
             <div class="courses-grid">
                 @foreach (var course in Model.Courses)
                 {
-                    <div class="course-card">
+                    <div class="course-card hover-lift">
                         <div class="course-image">
                             @if (!string.IsNullOrEmpty(course.ImageUrl))
                             {
@@ -258,7 +258,7 @@
         }
         else
         {
-            <div class="empty-state">
+            <div class="empty-state fade-in">
                 <div class="empty-icon">
                     <i class="bi bi-search"></i>
                 </div>
@@ -289,7 +289,7 @@
             {
                 @foreach (var path in Model.FeaturedPaths.Take(2))
                 {
-                    <div class="learning-path-card">
+                    <div class="learning-path-card hover-lift">
                         <div class="path-header">
                             <div class="path-badge">Featured</div>
                             <h4 class="path-title">@path.Title</h4>

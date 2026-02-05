@@ -367,7 +367,18 @@
             const list = document.getElementById('commentsList');
             const response = await fetch(`?handler=Comments&lessonId=${currentLessonId}`);
             const comments = await response.json();
-            list.innerHTML = comments.length ? comments.map(c => `<div class="mb-3"><strong>${c.username}</strong>: ${c.content}</div>`).join('') : '<p>No comments yet.</p>';
+            list.innerHTML = comments.length ? comments.map(c => `
+                <div class="comment-item mb-4 border-bottom pb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <div>
+                            <strong class="me-2">${c.username}</strong>
+                            ${c.isInstructor ? '<span class="badge bg-primary rounded-pill smaller">Instructor</span>' : ''}
+                        </div>
+                        <span class="text-muted smaller">${new Date(c.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div class="comment-text">${c.content}</div>
+                </div>
+            `).join('') : '<p class="text-center text-muted py-3">No questions yet. Be the first to ask!</p>';
         }
 
         loadComments();

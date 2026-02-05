@@ -19,4 +19,7 @@ public class CourseViewModel
     
     // Helper properties
     public string FormattedPrice => Price == 0 ? "Free" : Price.ToString("C");
+    public int TotalLessons { get; set; }
+    public string FormattedDuration { get; set; } = "0h 0m";
+    public string Language { get; set; } = "English";
 }

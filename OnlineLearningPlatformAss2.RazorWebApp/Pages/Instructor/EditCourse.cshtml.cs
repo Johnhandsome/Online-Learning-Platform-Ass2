@@ -50,7 +50,9 @@ public class EditCourseModel : PageModel
                 Price = course.Price,
                 ImageUrl = course.ImageUrl,
                 CategoryId = Categories.FirstOrDefault(c => c.Name == course.CategoryName)?.Id ?? Guid.Empty,
-                IsFeatured = course.IsFeatured // Use real value
+                IsFeatured = course.IsFeatured,
+                Level = course.Level,
+                Language = course.Language
             };
         }
 

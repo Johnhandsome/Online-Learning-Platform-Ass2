@@ -5,8 +5,8 @@ namespace OnlineLearningPlatformAss2.Service.Services.Interfaces;
 
 public interface ICourseService
 {
-    Task<IEnumerable<CourseViewModel>> GetFeaturedCoursesAsync();
-    Task<IEnumerable<CourseViewModel>> GetAllCoursesAsync(string? searchTerm = null, Guid? categoryId = null);
+    Task<IEnumerable<CourseViewModel>> GetFeaturedCoursesAsync(int? limit = null);
+    Task<IEnumerable<CourseViewModel>> GetAllCoursesAsync(string? searchTerm = null, Guid? categoryId = null, int? limit = null);
     Task<CourseDetailViewModel?> GetCourseDetailsAsync(Guid id, Guid? userId = null);
     Task<IEnumerable<CourseViewModel>> GetEnrolledCoursesAsync(Guid userId);
     Task<IEnumerable<CategoryViewModel>> GetAllCategoriesAsync();

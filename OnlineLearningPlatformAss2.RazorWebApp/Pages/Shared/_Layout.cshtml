@@ -1,14 +1,5 @@
 @using OnlineLearningPlatformAss2.Service.Services.Interfaces
 @using System.Security.Claims
-@inject IUserService UserService
-@{
-    var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-    bool hasCompletedAssessment = false;
-    if (!string.IsNullOrEmpty(userIdString) && Guid.TryParse(userIdString, out var userId))
-    {
-        hasCompletedAssessment = UserService.HasCompletedAssessmentAsync(userId).GetAwaiter().GetResult();
-    }
-}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -35,7 +26,16 @@
   <link rel="stylesheet" href="~/css/modern-design-system.css" asp-append-version="true"/>
   <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true"/>
   <link rel="stylesheet" href="~/css/components.css" asp-append-version="true"/>
-  <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+  <link rel="stylesheet" href="~/css/animations.css" asp-append-version="true"/>
+  <style>
+    .search-spinner { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); pointer-events: none; }
+    .search-preview-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-top: 0.5rem; z-index: 1000; overflow: hidden; }
+    .search-preview-item { display: flex; align-items: center; padding: 0.75rem 1rem; text-decoration: none; color: inherit; transition: background 0.2s; border-bottom: 1px solid #f8f9fa; }
+    .search-preview-item:hover { background: #f0f7ff; }
+    .search-preview-item img { width: 60px; height: 34px; object-fit: cover; border-radius: 4px; margin-right: 1rem; }
+    .search-preview-item .item-title { font-weight: 600; font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    .search-preview-item .item-meta { font-size: 0.75rem; color: #6c757d; }
+  </style>
   
   <!-- Page-specific styles -->
   @await RenderSectionAsync("Styles", required: false)
@@ -45,18 +45,7 @@
 </head>
 
 <body>
-<!-- Top Banner -->
-@if (!hasCompletedAssessment)
-{
-    <div class="top-banner">
-      <div class="container">
-        <div class="d-flex align-items-center justify-content-center">
-          <i class="bi bi-stars me-2"></i>
-          <span>New to learning? <a href="/Assessment/Start">Take our skill assessment</a> to get personalized recommendations!</span>
-        </div>
-      </div>
-    </div>
-}
+@await Component.InvokeAsync("UserStatus")
 
 <!-- Navigation -->
 <header>
@@ -111,6 +100,9 @@
                      id="globalSearchInput"
                      placeholder="What do you want to learn?"
                      autocomplete="off">
+              <div id="searchLoadingSpinner" class="search-spinner d-none">
+                <div class="spinner-small"></div>
+              </div>
             </div>
           </form>
           <div id="searchPreviewResults" class="search-preview-dropdown d-none">
@@ -295,13 +287,16 @@ document.addEventListener('DOMContentLoaded', function() {
     if (globalSearchInput) {
         globalSearchInput.addEventListener('input', function() {
             const searchTerm = this.value.trim();
+            const spinner = document.getElementById('searchLoadingSpinner');
             
             clearTimeout(debounceTimer);
             if (searchTerm.length < 2) {
                 searchPreviewResults.classList.add('d-none');
+                spinner?.classList.add('d-none');
                 return;
             }
 
+            spinner?.classList.remove('d-none');
             debounceTimer = setTimeout(async () => {
                 try {
                     const response = await fetch(`/Course/Browse?handler=SearchPreview&searchTerm=${encodeURIComponent(searchTerm)}`);
@@ -317,9 +312,48 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 } catch (error) {
                     console.error('Search preview error:', error);
+                } finally {
+                    spinner?.classList.add('d-none');
                 }
             }, 300);
         });
+
+    // Intersection Observer for section animations
+    const observerOptions = {
+        threshold: 0.1
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, observerOptions);
+        function renderEmptyPreview() {
+            searchPreviewResults.innerHTML = `
+                <div class="p-3 text-center text-muted">
+                    <i class="bi bi-search mb-2 d-block fs-4"></i>
+                    <p class="mb-0 small">No matching courses found</p>
+                </div>
+            `;
+        }
+
+        function renderSearchPreview(courses) {
+            searchPreviewResults.innerHTML = courses.map(course => `
+                <a href="/Course/Details/${course.id}" class="search-preview-item">
+                    <img src="${course.imageUrl || 'https://via.placeholder.com/60x34'}" alt="${course.title}">
+                    <div class="item-info">
+                        <div class="item-title">${course.title}</div>
+                        <div class="item-meta">${course.categoryName} • ${course.instructorName}</div>
+                    </div>
+                </a>
+            `).join('');
+        }
+
+    document.querySelectorAll('section').forEach(section => {
+        observer.observe(section);
+    });
 
         globalSearchInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {

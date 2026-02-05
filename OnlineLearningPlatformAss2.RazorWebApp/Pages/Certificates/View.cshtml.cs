@@ -37,7 +37,10 @@ public class ViewModel : PageModel
         InstructorName = cert.Course.Instructor.Username;
         IssuedDate = cert.IssuedAt;
         CertificateId = cert.Id;
+        VerificationCode = cert.Id.ToString().Split('-')[0].ToUpper();
 
         return Page();
     }
+
+    public string VerificationCode { get; set; } = "";
 }

@@ -160,6 +160,9 @@ public class AssessmentService : IAssessmentService
             var skillLevels = AnalyzeSkillLevels(selectedOptions);
             var recommendedCategories = AnalyzeRecommendedCategories(selectedOptions);
 
+            // Get the dominant skill level (e.g., Programming) or default
+            var userLevel = skillLevels.ContainsKey("Programming") ? skillLevels["Programming"] : "Beginner";
+
             // Get courses based on recommendations
             var courses = await _context.Courses
                 .Include(c => c.Category)
@@ -172,13 +175,13 @@ public class AssessmentService : IAssessmentService
                     Title = c.Title,
                     Description = c.Description,
                     Category = c.Category.Name,
-                    Level = "Intermediate", 
+                    Level = userLevel, 
                     Price = c.Price,
                     ImageUrl = c.ImageUrl,
                     InstructorName = c.Instructor.Username,
                     // Match score based on interest rank
                     MatchScore = 95 - (recommendedCategories.IndexOf(c.Category.Name) * 10),
-                    MatchReason = $"This course aligns with your interest in {c.Category.Name}."
+                    MatchReason = $"This course aligns with your interest in {c.Category.Name} and your {userLevel.ToLower()} skill level."
                 })
                 .OrderByDescending(c => c.MatchScore)
                 .ToListAsync();

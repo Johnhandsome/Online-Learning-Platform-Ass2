@@ -60,7 +60,7 @@ public class BrowseModel : PageModel
             return new JsonResult(new { courses = new List<object>() });
         }
 
-        var courses = await _courseService.GetAllCoursesAsync(cleanedTerm);
+        var courses = await _courseService.GetAllCoursesAsync(cleanedTerm, null, 5);
         var preview = courses.Take(5).Select(c => new
         {
             id = c.Id,
