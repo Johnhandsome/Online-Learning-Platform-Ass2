@@ -7,11 +7,11 @@
 
 /* Hero Section */
 .browse-hero {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 4rem 0 3rem;
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-primary);
+    padding: var(--space-12) 0;
     position: relative;
-    overflow: hidden;
 }
 
 .browse-hero::before {
@@ -61,12 +61,12 @@
     display: block;
     font-size: 2rem;
     font-weight: 700;
-    color: #ffd700;
+    color: var(--primary-500);
 }
 
 .search-stats .label {
     font-size: 0.875rem;
-    opacity: 0.8;
+    color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -74,8 +74,8 @@
 /* Filters Section */
 .browse-filters {
     background: white;
-    padding: 1.5rem 0;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    padding: var(--space-4) 0;
+    border-bottom: 1px solid var(--border-light);
     position: sticky;
     top: 0;
     z-index: 100;
@@ -242,9 +242,9 @@
 
 .course-card {
     background: white;
-    border-radius: 16px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border-light);
+    transition: all var(--transition-normal);
     overflow: hidden;
     height: 100%;
     display: flex;
@@ -280,8 +280,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: var(--bg-tertiary);
+    color: var(--text-tertiary);
     font-size: 3rem;
 }
 

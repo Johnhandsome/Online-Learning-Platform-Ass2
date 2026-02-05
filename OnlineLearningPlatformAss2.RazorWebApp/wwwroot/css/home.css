@@ -4,11 +4,11 @@
 
 /* Hero Section */
 .hero-section {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 100px 0;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-primary);
+  padding: var(--space-20) 0;
   position: relative;
-  overflow: hidden;
 }
 
 .hero-section::before {
@@ -69,7 +69,7 @@
 .stat-number {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--primary-500);
 }
 
 .stat-label {
@@ -112,12 +112,12 @@
 .floating-card .card-icon {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--primary-50);
+  color: var(--primary-500);
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
   font-size: 1.1rem;
 }
 
@@ -136,9 +136,9 @@
 
 /* Assessment Banner */
 .assessment-banner {
-  background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
+  background: var(--primary-50);
   padding: 1.5rem 0;
-  border-bottom: 1px solid #f59e0b;
+  border-bottom: 1px solid var(--primary-100);
 }
 
 .banner-content {
@@ -149,18 +149,18 @@
 
 .banner-icon {
   font-size: 2rem;
-  color: #f59e0b;
+  color: var(--primary-500);
 }
 
 .banner-content h4 {
   margin: 0 0 0.5rem;
-  color: #92400e;
+  color: var(--primary-700);
   font-weight: 700;
 }
 
 .banner-content p {
   margin: 0;
-  color: #92400e;
+  color: var(--text-secondary);
   font-size: 0.95rem;
 }
 
@@ -263,11 +263,11 @@
 .course-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--bg-tertiary);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--text-tertiary);
   font-size: 2rem;
 }
 
@@ -403,10 +403,10 @@
 
 .path-badge {
   display: inline-block;
-  background: linear-gradient(135deg, #16a34a, #15803d);
+  background: var(--primary-500);
   color: white;
   padding: 0.25rem 0.75rem;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   font-size: 0.75rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
@@ -611,14 +611,31 @@
 
 /* Animations */
 @keyframes float {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  33% { transform: translate(30px, -30px) rotate(1deg); }
-  66% { transform: translate(-20px, 20px) rotate(-1deg); }
+
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+
+  33% {
+    transform: translate(30px, -30px) rotate(1deg);
+  }
+
+  66% {
+    transform: translate(-20px, 20px) rotate(-1deg);
+  }
 }
 
 @keyframes floatCard {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 /* Responsive Design */
@@ -626,7 +643,7 @@
   .courses-grid {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   }
-  
+
   .learning-paths-grid {
     grid-template-columns: 1fr;
   }
@@ -636,65 +653,65 @@
   .hero-title {
     font-size: 2.5rem;
   }
-  
+
   .hero-buttons {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .hero-buttons .btn {
     width: 100%;
     justify-content: center;
   }
-  
+
   .trust-stats {
     justify-content: center;
   }
-  
+
   .section-title {
     font-size: 2rem;
   }
-  
+
   .section-header-with-action {
     flex-direction: column;
     align-items: center;
     text-align: center;
   }
-  
+
   .courses-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
-  
+
   .learning-path-card {
     padding: 1.5rem;
   }
-  
+
   .path-footer {
     flex-direction: column;
     gap: 1rem;
     align-items: stretch;
   }
-  
+
   .cta-content h2 {
     font-size: 2rem;
   }
-  
+
   .cta-features {
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .floating-card {
     display: none;
   }
-  
+
   .banner-content {
     flex-direction: column;
     text-align: center;
     gap: 0.5rem;
   }
-  
+
   .assessment-banner .row {
     text-align: center;
   }
@@ -704,15 +721,15 @@
   .hero-section {
     padding: 60px 0;
   }
-  
+
   .hero-title {
     font-size: 2rem;
   }
-  
+
   .courses-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .category-pills {
     justify-content: flex-start;
     overflow-x: auto;
@@ -720,15 +737,15 @@
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
-  
+
   .category-pills::-webkit-scrollbar {
     display: none;
   }
-  
+
   .category-pill {
     flex-shrink: 0;
   }
-  
+
   .path-title {
     font-size: 1.25rem;
   }

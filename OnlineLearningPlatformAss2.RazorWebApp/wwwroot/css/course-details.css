@@ -3,7 +3,7 @@
    ============================================ */
 
 .course-hero {
-  background: #2d3748;
+  background: var(--primary-900);
   color: white;
   padding: 60px 0;
 }
@@ -16,7 +16,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #63b3ed;
+  color: var(--primary-300);
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 16px;
@@ -87,10 +87,10 @@
 /* Course Purchase Card */
 .course-card-preview {
   background: white;
-  border-radius: 8px;
+  border-radius: var(--radius-xl);
   overflow: hidden;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--border-light);
 }
 
 .course-image {
@@ -113,8 +113,8 @@
   align-items: center;
   justify-content: center;
   height: 200px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
 }
 
 .image-placeholder i {
@@ -372,37 +372,38 @@
   .course-hero {
     padding: 40px 0;
   }
-  
+
   .course-info {
     padding-right: 0;
     margin-bottom: 40px;
   }
-  
+
   .course-title {
     font-size: 28px;
   }
-  
+
   .course-meta {
     flex-direction: column;
     gap: 12px;
   }
-  
+
   .instructor-profile {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .rating-overview {
     flex-direction: column;
     text-align: center;
     gap: 20px;
   }
-  
+
   .sticky-course-card {
     position: relative;
     top: auto;
   }
 }
+
 /* Review List */
 .review-item {
   padding: 24px 0;
@@ -479,8 +480,8 @@
   transition: color 0.2s;
 }
 
-.star-rating-input input:checked ~ label,
+.star-rating-input input:checked~label,
 .star-rating-input label:hover,
-.star-rating-input label:hover ~ label {
+.star-rating-input label:hover~label {
   color: #fbbf24;
 }
