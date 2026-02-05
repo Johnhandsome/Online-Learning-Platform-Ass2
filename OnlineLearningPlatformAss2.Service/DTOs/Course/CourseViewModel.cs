@@ -19,5 +19,4 @@ public class CourseViewModel
     
     // Helper properties
     public string FormattedPrice => Price == 0 ? "Free" : Price.ToString("C");
-    public string RatingDisplay => new string('★', (int)Math.Round(Rating)) + new string('☆', 5 - (int)Math.Round(Rating));
 }

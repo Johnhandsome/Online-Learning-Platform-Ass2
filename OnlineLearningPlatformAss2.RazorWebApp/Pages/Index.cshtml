@@ -232,10 +232,7 @@
                             </h3>
                             <p class="course-instructor">@course.InstructorName</p>
                             <div class="course-rating">
-                                <div class="stars">
-                                    <span>@course.RatingDisplay</span>
-                                </div>
-                                <span class="rating-text">(@course.Rating.ToString("F1"))</span>
+                                <partial name="_StarRating" model="course.Rating" />
                             </div>
                             <p class="course-description">@course.Description</p>
                             <div class="course-footer">

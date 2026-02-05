@@ -31,7 +31,7 @@
                         <div class="course-meta">
                             <div class="meta-item">
                                 <div class="rating-display">
-                                    <span class="rating-stars">@Model.Course.RatingDisplay</span>
+                                    <span class="rating-stars"><partial name="_StarRating" model="Model.Course.Rating" /></span>
                                     <span class="rating-number">@Model.Course.Rating.ToString("F1")</span>
                                     <span class="rating-count">(@Model.Course.ReviewCount.ToString("N0") reviews)</span>
                                 </div>
@@ -199,7 +199,9 @@
                             <div class="rating-summary d-flex align-items-center gap-3">
                                 <div class="rating-huge h1 mb-0 text-primary fw-bold">@Model.Course.Rating.ToString("F1")</div>
                                 <div>
-                                    <div class="stars-large text-warning">@Model.Course.RatingDisplay</div>
+                                    <div class="stars-large">
+                                        <partial name="_StarRating" model="Model.Course.Rating" />
+                                    </div>
                                     <div class="small text-muted">Course Rating</div>
                                 </div>
                             </div>
@@ -249,9 +251,8 @@
                                                 </div>
                                                 <div>
                                                     <h6 class="mb-0">@review.Username</h6>
-                                                    <div class="text-warning small">
-                                                        @for(int i=0; i<review.Rating; i++) { <i class="bi bi-star-fill"></i> }
-                                                        @for(int i=review.Rating; i<5; i++) { <i class="bi bi-star"></i> }
+                                                    <div class="small">
+                                                        <partial name="_StarRating" model="(decimal)review.Rating" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -289,9 +290,7 @@
                                             <div class="col-8">
                                                 <div class="card-body p-2">
                                                     <h6 class="card-title mb-1 small"><a asp-page="/Course/Details" asp-route-id="@course.Id" class="text-decoration-none text-dark">@course.Title</a></h6>
-                                                    <div class="text-warning small" style="font-size: 10px;">
-                                                        @course.RatingDisplay <span class="text-muted">(@course.Rating.ToString("F1"))</span>
-                                                    </div>
+                                                    <partial name="_StarRating" model="course.Rating" />
                                                     <div class="fw-bold small text-primary">@course.FormattedPrice</div>
                                                 </div>
                                             </div>

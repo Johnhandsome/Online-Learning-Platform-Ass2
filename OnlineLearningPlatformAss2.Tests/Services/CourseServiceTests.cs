@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using OnlineLearningPlatformAss2.Data.Database;
 using OnlineLearningPlatformAss2.Data.Database.Entities;
 using OnlineLearningPlatformAss2.Service.Services;
+using OnlineLearningPlatformAss2.Service.Services.Interfaces;
+using Moq;
 using FluentAssertions;
 using Xunit;
 
@@ -24,7 +26,7 @@ public class CourseServiceTests
     {
         // Arrange
         using var context = GetDbContext();
-        var service = new CourseService(context);
+        var service = new CourseService(context, new Mock<IReviewService>().Object);
         var user = new User { Id = Guid.NewGuid(), Username = "student", Email = "student@test.com", PasswordHash = "hash" };
         var instructor = new User { Id = Guid.NewGuid(), Username = "teacher", Email = "teacher@test.com", PasswordHash = "hash" };
         var course = new Course { Id = Guid.NewGuid(), Title = "Test Course", Description = "Test Description", InstructorId = instructor.Id, Price = 100 };
@@ -47,7 +49,7 @@ public class CourseServiceTests
     {
         // Arrange
         using var context = GetDbContext();
-        var service = new CourseService(context);
+        var service = new CourseService(context, new Mock<IReviewService>().Object);
         var user = new User { Id = Guid.NewGuid(), Username = "student", Email = "student@test.com", PasswordHash = "hash" };
         var instructor = new User { Id = Guid.NewGuid(), Username = "teacher", Email = "teacher@test.com", PasswordHash = "hash" };
         var course = new Course { Id = Guid.NewGuid(), Title = "Test Course", Description = "Test Description", InstructorId = instructor.Id, Price = 100 };

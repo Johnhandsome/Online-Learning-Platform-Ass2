@@ -17,6 +17,7 @@ public class LearnPageTests
     private readonly Mock<ICourseService> _courseServiceMock;
     private readonly Mock<IQuizService> _quizServiceMock;
     private readonly Mock<IDiscussionService> _discussionServiceMock;
+    private readonly Mock<IReviewService> _reviewServiceMock;
     private readonly LearnModel _pageModel;
 
     public LearnPageTests()
@@ -24,8 +25,9 @@ public class LearnPageTests
         _courseServiceMock = new Mock<ICourseService>();
         _quizServiceMock = new Mock<IQuizService>();
         _discussionServiceMock = new Mock<IDiscussionService>();
+        _reviewServiceMock = new Mock<IReviewService>();
         
-        _pageModel = new LearnModel(_courseServiceMock.Object, _quizServiceMock.Object, _discussionServiceMock.Object);
+        _pageModel = new LearnModel(_courseServiceMock.Object, _quizServiceMock.Object, _discussionServiceMock.Object, _reviewServiceMock.Object);
         
         // Setup HttpContext for User identity
         var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
