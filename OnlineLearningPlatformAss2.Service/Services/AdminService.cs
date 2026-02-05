@@ -69,16 +69,38 @@ public class AdminService : IAdminService
         if (course == null) return false;
 
         course.Status = "Published";
+        course.RejectionReason = null;
         await _context.SaveChangesAsync();
         return true;
     }
 
-    public async Task<bool> RejectCourseAsync(Guid courseId)
+    public async Task<bool> RejectCourseAsync(Guid courseId, string reason)
     {
         var course = await _context.Courses.FindAsync(courseId);
         if (course == null) return false;
 
         course.Status = "Rejected";
+        course.RejectionReason = reason;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> SuspendCourseAsync(Guid courseId)
+    {
+        var course = await _context.Courses.FindAsync(courseId);
+        if (course == null) return false;
+
+        course.Status = "Suspended";
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> UnsuspendCourseAsync(Guid courseId)
+    {
+        var course = await _context.Courses.FindAsync(courseId);
+        if (course == null) return false;
+
+        course.Status = "Published";
         await _context.SaveChangesAsync();
         return true;
     }
@@ -135,8 +157,18 @@ public class AdminService : IAdminService
 
     public async Task<bool> DeleteUserAsync(Guid userId)
     {
-        var user = await _context.Users.FindAsync(userId);
+        var user = await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
         if (user == null || user.Username == "admin") return false;
+
+        // Safety check: Cannot delete instructor with active students
+        if (user.Role?.Name == "Instructor")
+        {
+            var hasStudents = await _context.Enrollments.AnyAsync(e => e.Course.InstructorId == userId);
+            if (hasStudents) return false;
+        }
 
         _context.Users.Remove(user);
         await _context.SaveChangesAsync();

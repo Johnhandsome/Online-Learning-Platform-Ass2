@@ -48,6 +48,7 @@ public class Course
     public string Status { get; set; } = "Published"; // Pending, Published, Rejected
     public string Level { get; set; } = "All Levels";
     public string Language { get; set; } = "English";
+    public string? RejectionReason { get; set; }
     
     // Navigation properties
     public Category Category { get; set; } = null!;
