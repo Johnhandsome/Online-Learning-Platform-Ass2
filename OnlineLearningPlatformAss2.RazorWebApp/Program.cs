@@ -3,6 +3,7 @@ using OnlineLearningPlatformAss2.Data.Database;
 using OnlineLearningPlatformAss2.Service.Services;
 using OnlineLearningPlatformAss2.Service.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using OnlineLearningPlatformAss2.RazorWebApp.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,7 +44,11 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IQuizService, QuizService>();
 builder.Services.AddScoped<IDiscussionService, DiscussionService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<DatabaseSeedService>();
+
+// Add SignalR
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -70,5 +75,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapRazorPages();
+
+// Map SignalR Hubs
+app.MapHub<CourseHub>("/hubs/course");
+app.MapHub<ChatHub>("/hubs/chat");
 
 app.Run();

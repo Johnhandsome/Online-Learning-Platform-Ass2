@@ -8,6 +8,7 @@ public class AdminStatsDto
     public int PendingCourses { get; set; }
     public int TotalEnrollments { get; set; }
     public decimal TotalRevenue { get; set; }
+    public decimal TotalNetProfit { get; set; }
     public List<RecentOrderDto> RecentOrders { get; set; } = new();
 }
 

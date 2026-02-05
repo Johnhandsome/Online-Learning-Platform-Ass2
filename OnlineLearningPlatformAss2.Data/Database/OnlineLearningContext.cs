@@ -32,6 +32,7 @@ public class OnlineLearningContext(DbContextOptions<OnlineLearningContext> optio
     public DbSet<CourseReview> CourseReviews { get; set; }
     public DbSet<Wishlist> Wishlists { get; set; }
     public DbSet<LessonComment> LessonComments { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -140,5 +141,11 @@ public class OnlineLearningContext(DbContextOptions<OnlineLearningContext> optio
             .WithMany(l => l.Progresses)
             .HasForeignKey(lp => lp.LessonId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Notification>()
+            .HasOne(n => n.User)
+            .WithMany()
+            .HasForeignKey(n => n.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

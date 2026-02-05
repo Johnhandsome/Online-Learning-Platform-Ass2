@@ -4,6 +4,8 @@ using OnlineLearningPlatformAss2.Data.Database.Entities;
 using OnlineLearningPlatformAss2.Service.Services;
 using FluentAssertions;
 using Xunit;
+using Moq;
+using OnlineLearningPlatformAss2.Service.Services.Interfaces;
 
 namespace OnlineLearningPlatformAss2.Tests.Services;
 
@@ -22,7 +24,8 @@ public class AdminServiceTests
     {
         // Arrange
         using var context = GetDbContext();
-        var service = new AdminService(context);
+        var mockNotification = new Mock<INotificationService>();
+        var service = new AdminService(context, mockNotification.Object);
         var course = new Course { Id = Guid.NewGuid(), Title = "Pending Course", Description = "Test Description", Status = "Pending", InstructorId = Guid.NewGuid() };
         context.Courses.Add(course);
         await context.SaveChangesAsync();
@@ -41,7 +44,8 @@ public class AdminServiceTests
     {
         // Arrange
         using var context = GetDbContext();
-        var service = new AdminService(context);
+        var mockNotification = new Mock<INotificationService>();
+        var service = new AdminService(context, mockNotification.Object);
         var user = new User { Id = Guid.NewGuid(), Username = "testuser", Email = "test@test.com", PasswordHash = "hash", IsActive = true };
         context.Users.Add(user);
         await context.SaveChangesAsync();

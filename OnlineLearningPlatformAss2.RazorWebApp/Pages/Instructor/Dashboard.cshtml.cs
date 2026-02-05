@@ -11,10 +11,12 @@ namespace OnlineLearningPlatformAss2.RazorWebApp.Pages.Instructor;
 public class DashboardModel : PageModel
 {
     private readonly ICourseService _courseService;
+    private readonly INotificationService _notificationService;
 
-    public DashboardModel(ICourseService courseService)
+    public DashboardModel(ICourseService courseService, INotificationService notificationService)
     {
         _courseService = courseService;
+        _notificationService = notificationService;
     }
 
     public List<CourseViewModel> MyCourses { get; set; } = new();
@@ -35,9 +37,20 @@ public class DashboardModel : PageModel
         TotalStudents = MyCourses.Sum(c => c.StudentCount);
         TotalEarnings = await _courseService.GetInstructorEarningsAsync(userId);
         AverageRating = MyCourses.Any(c => c.Rating > 0) ? MyCourses.Where(c => c.Rating > 0).Average(c => c.Rating) : 0;
+        
+        Notifications = (await _notificationService.GetUserNotificationsAsync(userId)).Take(5).ToList();
+        UnreadNotifications = await _notificationService.GetUnreadCountAsync(userId);
 
         return Page();
     }
 
     public decimal AverageRating { get; set; }
+    public List<OnlineLearningPlatformAss2.Data.Database.Entities.Notification> Notifications { get; set; } = new();
+    public int UnreadNotifications { get; set; }
+
+    public async Task<IActionResult> OnPostMarkAsReadAsync(Guid id)
+    {
+        await _notificationService.MarkAsReadAsync(id);
+        return new JsonResult(new { success = true });
+    }
 }

@@ -325,3 +325,28 @@ public class LessonComment
     public LessonComment? Parent { get; set; }
     public ICollection<LessonComment> Replies { get; set; } = new List<LessonComment>();
 }
+
+public class Notification
+{
+    public Guid Id { get; set; }
+    public Guid UserId { get; set; }
+    public string Message { get; set; } = null!;
+    public string Type { get; set; } = "General"; // Enrollment, Approval, System
+    public bool IsRead { get; set; } = false;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public User User { get; set; } = null!;
+}
+
+public class ChatMessage
+{
+    public Guid Id { get; set; }
+    public Guid SenderId { get; set; }
+    public Guid? ReceiverId { get; set; }
+    public string Content { get; set; } = null!;
+    public bool IsFromAdmin { get; set; }
+    public DateTime SentAt { get; set; } = DateTime.UtcNow;
+
+    public User Sender { get; set; } = null!;
+    public User? Receiver { get; set; }
+}

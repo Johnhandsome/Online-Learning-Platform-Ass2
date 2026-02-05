@@ -10,10 +10,12 @@ namespace OnlineLearningPlatformAss2.Service.Services;
 public class AdminService : IAdminService
 {
     private readonly OnlineLearningContext _context;
+    private readonly INotificationService _notificationService;
 
-    public AdminService(OnlineLearningContext context)
+    public AdminService(OnlineLearningContext context, INotificationService notificationService)
     {
         _context = context;
+        _notificationService = notificationService;
     }
 
     public async Task<AdminStatsDto> GetStatsAsync()
@@ -25,6 +27,7 @@ public class AdminService : IAdminService
         stats.PendingCourses = await _context.Courses.CountAsync(c => c.Status == "Pending");
         stats.TotalEnrollments = await _context.Enrollments.CountAsync();
         stats.TotalRevenue = await _context.Orders.Where(o => o.Status == "Completed").SumAsync(o => o.TotalAmount);
+        stats.TotalNetProfit = stats.TotalRevenue * 0.30m; // 30% platform fee
 
         stats.RecentOrders = await _context.Orders
             .Include(o => o.User)
@@ -73,6 +76,13 @@ public class AdminService : IAdminService
         course.Status = "Published";
         course.RejectionReason = null;
         await _context.SaveChangesAsync();
+
+        await _notificationService.SendNotificationAsync(
+            course.InstructorId,
+            $"Congratulations! Your course '{course.Title}' has been approved and is now live.",
+            "Approval"
+        );
+
         return true;
     }
 
@@ -84,6 +94,13 @@ public class AdminService : IAdminService
         course.Status = "Rejected";
         course.RejectionReason = reason;
         await _context.SaveChangesAsync();
+
+        await _notificationService.SendNotificationAsync(
+            course.InstructorId,
+            $"Action Required: Your course submission '{course.Title}' was rejected. Reason: {reason}",
+            "Rejection"
+        );
+
         return true;
     }
 

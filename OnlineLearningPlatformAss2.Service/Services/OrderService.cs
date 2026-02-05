@@ -9,10 +9,12 @@ namespace OnlineLearningPlatformAss2.Service.Services;
 public class OrderService : IOrderService
 {
     private readonly OnlineLearningContext _context;
+    private readonly INotificationService _notificationService;
 
-    public OrderService(OnlineLearningContext context)
+    public OrderService(OnlineLearningContext context, INotificationService notificationService)
     {
         _context = context;
+        _notificationService = notificationService;
     }
 
     public async Task<IEnumerable<OrderViewModel>> GetUserOrdersAsync(Guid userId)
@@ -186,6 +188,18 @@ public class OrderService : IOrderService
                         EnrolledAt = DateTime.UtcNow,
                         Status = "Active"
                     });
+
+                    // Trigger instructor notification
+                    var course = await _context.Courses.FindAsync(order.CourseId.Value);
+                    if (course != null)
+                    {
+                        var student = await _context.Users.FindAsync(order.UserId);
+                        await _notificationService.SendNotificationAsync(
+                            course.InstructorId, 
+                            $"New Enrollment! Student {student?.Username} has joined your course '{course.Title}'.",
+                            "Enrollment"
+                        );
+                    }
                 }
             }
             else if (order.LearningPathId.HasValue)
@@ -222,6 +236,18 @@ public class OrderService : IOrderService
                                 EnrolledAt = DateTime.UtcNow,
                                 Status = "Active"
                             });
+
+                            // Notification for learning path course enrollment
+                            var course = await _context.Courses.FindAsync(courseId);
+                            if (course != null)
+                            {
+                                var student = await _context.Users.FindAsync(order.UserId);
+                                await _notificationService.SendNotificationAsync(
+                                    course.InstructorId,
+                                    $"Path Enrollment! Student {student?.Username} has joined your course '{course.Title}' via a Learning Path.",
+                                    "Enrollment"
+                                );
+                            }
                         }
                     }
                 }
