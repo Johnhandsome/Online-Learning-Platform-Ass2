@@ -29,9 +29,9 @@ public class CourseModerationModel : PageModel
         return new JsonResult(new { success });
     }
 
-    public async Task<IActionResult> OnPostRejectAsync(Guid id)
+    public async Task<IActionResult> OnPostRejectAsync(Guid id, string reason)
     {
-        var success = await _adminService.RejectCourseAsync(id);
+        var success = await _adminService.RejectCourseAsync(id, reason);
         return new JsonResult(new { success });
     }
 }

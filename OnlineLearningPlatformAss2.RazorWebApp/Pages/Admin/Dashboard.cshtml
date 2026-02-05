@@ -16,11 +16,14 @@
         </div>
         <div class="btn-group">
             <a asp-page="/Admin/CourseModeration" class="btn btn-outline-primary shadow-sm">
-                <i class="bi bi-shield-check me-2"></i>Course Moderation
+                <i class="bi bi-shield-check me-2"></i>Moderation
                 @if (Model.Stats.PendingCourses > 0)
                 {
                     <span class="badge bg-danger ms-2">@Model.Stats.PendingCourses</span>
                 }
+            </a>
+            <a asp-page="/Admin/CourseManagement" class="btn btn-outline-info shadow-sm">
+                <i class="bi bi-collection-play me-2"></i>Courses
             </a>
             <a asp-page="/Admin/UserManagement" class="btn btn-outline-secondary shadow-sm">
                 <i class="bi bi-people me-2"></i>User Management

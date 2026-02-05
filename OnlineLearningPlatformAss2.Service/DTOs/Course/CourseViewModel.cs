@@ -22,4 +22,6 @@ public class CourseViewModel
     public int TotalLessons { get; set; }
     public string FormattedDuration { get; set; } = "0h 0m";
     public string Language { get; set; } = "English";
+    public string Status { get; set; } = "Published";
+    public string? RejectionReason { get; set; }
 }

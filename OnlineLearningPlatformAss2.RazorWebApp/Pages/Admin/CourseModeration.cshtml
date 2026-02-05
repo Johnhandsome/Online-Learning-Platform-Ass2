@@ -103,8 +103,14 @@
     }
 
     async function rejectCourse(id) {
-        if(!confirm('Reject this course submission?')) return;
-        const response = await fetch(`?handler=Reject&id=${id}`, {
+        const reason = prompt('Please provide a reason for rejection:');
+        if (reason === null) return;
+        if (!reason.trim()) {
+            alert('A reason is required to reject a course.');
+            return;
+        }
+
+        const response = await fetch(`?handler=Reject&id=${id}&reason=${encodeURIComponent(reason)}`, {
             method: 'POST',
             headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() }
         });

@@ -240,7 +240,9 @@ public class CourseService : ICourseService
                 InstructorName = c.Instructor.Username,
                 Rating = c.Reviews.Any() ? (decimal)c.Reviews.Average(r => r.Rating) : 0,
                 StudentCount = _context.Enrollments.Count(e => e.CourseId == c.Id),
-                IsFeatured = c.IsFeatured
+                IsFeatured = c.IsFeatured,
+                Status = c.Status,
+                RejectionReason = c.RejectionReason
             })
             .ToListAsync();
     }
@@ -568,6 +570,15 @@ public class CourseService : ICourseService
         _context.Lessons.Remove(lesson);
         await _context.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<decimal> GetInstructorEarningsAsync(Guid instructorId)
+    {
+        var totalAmount = await _context.Orders
+            .Where(o => o.Course.InstructorId == instructorId && o.Status == "Completed")
+            .SumAsync(o => o.TotalAmount);
+
+        return totalAmount * 0.70m; // 70% instructor revenue share
     }
 
     public async Task<bool> IssueCertificateAsync(Guid userId, Guid courseId)

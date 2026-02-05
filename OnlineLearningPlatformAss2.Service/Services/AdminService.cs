@@ -58,7 +58,9 @@ public class AdminService : IAdminService
                 Price = c.Price,
                 CategoryName = c.Category.Name,
                 InstructorName = c.Instructor.Username,
-                ImageUrl = c.ImageUrl
+                ImageUrl = c.ImageUrl,
+                Status = c.Status,
+                RejectionReason = c.RejectionReason
             })
             .ToListAsync();
     }
@@ -103,6 +105,25 @@ public class AdminService : IAdminService
         course.Status = "Published";
         await _context.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<IEnumerable<CourseViewModel>> GetAllCoursesAsync()
+    {
+        return await _context.Courses
+            .Include(c => c.Category)
+            .Include(c => c.Instructor)
+            .Select(c => new CourseViewModel
+            {
+                Id = c.Id,
+                Title = c.Title,
+                Price = c.Price,
+                CategoryName = c.Category.Name,
+                InstructorName = c.Instructor.Username,
+                ImageUrl = c.ImageUrl,
+                Status = c.Status,
+                StudentCount = _context.Enrollments.Count(e => e.CourseId == c.Id)
+            })
+            .ToListAsync();
     }
 
     public async Task<IEnumerable<AdminUserDto>> GetAllUsersAsync(string searchTerm = null)

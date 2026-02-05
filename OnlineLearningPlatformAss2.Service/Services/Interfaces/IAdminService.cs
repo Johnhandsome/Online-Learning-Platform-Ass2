@@ -11,6 +11,7 @@ public interface IAdminService
     Task<bool> RejectCourseAsync(Guid courseId, string reason);
     Task<bool> SuspendCourseAsync(Guid courseId);
     Task<bool> UnsuspendCourseAsync(Guid courseId);
+    Task<IEnumerable<CourseViewModel>> GetAllCoursesAsync();
     Task<IEnumerable<AdminUserDto>> GetAllUsersAsync(string searchTerm = null);
     Task<bool> ToggleUserStatusAsync(Guid userId);
     Task<bool> ChangeUserRoleAsync(Guid userId, string roleName);

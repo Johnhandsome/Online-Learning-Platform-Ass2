@@ -31,5 +31,6 @@ public interface ICourseService
     Task<IEnumerable<CourseViewModel>> GetWishlistAsync(Guid userId);
     Task<IEnumerable<CourseViewModel>> GetInstructorCoursesAsync(Guid instructorId);
     Task<bool> UpdateCourseAsync(Guid courseId, CourseUpdateDto dto, Guid instructorId);
+    Task<decimal> GetInstructorEarningsAsync(Guid instructorId);
     Task<bool> IssueCertificateAsync(Guid userId, Guid courseId);
 }
