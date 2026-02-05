@@ -49,6 +49,7 @@ builder.Services.AddScoped<DatabaseSeedService>();
 
 // Add SignalR
 builder.Services.AddSignalR();
+builder.Services.AddScoped<ICourseUpdateBroadcaster, OnlineLearningPlatformAss2.RazorWebApp.Services.SignalRCourseUpdateBroadcaster>();
 
 var app = builder.Build();
 

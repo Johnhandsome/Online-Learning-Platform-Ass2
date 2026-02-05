@@ -11,11 +11,13 @@ public class AdminService : IAdminService
 {
     private readonly OnlineLearningContext _context;
     private readonly INotificationService _notificationService;
+    private readonly ICourseUpdateBroadcaster? _broadcaster;
 
-    public AdminService(OnlineLearningContext context, INotificationService notificationService)
+    public AdminService(OnlineLearningContext context, INotificationService notificationService, ICourseUpdateBroadcaster? broadcaster = null)
     {
         _context = context;
         _notificationService = notificationService;
+        _broadcaster = broadcaster;
     }
 
     public async Task<AdminStatsDto> GetStatsAsync()
@@ -83,6 +85,13 @@ public class AdminService : IAdminService
             "Approval"
         );
 
+        // Broadcast real-time update to all connected clients
+        if (_broadcaster != null)
+        {
+            var courseVm = await GetCourseViewModelAsync(courseId);
+            if (courseVm != null) await _broadcaster.BroadcastCourseUpdatedAsync(courseVm);
+        }
+
         return true;
     }
 
@@ -100,6 +109,13 @@ public class AdminService : IAdminService
             $"Action Required: Your course submission '{course.Title}' was rejected. Reason: {reason}",
             "Rejection"
         );
+
+        // Broadcast real-time update
+        if (_broadcaster != null)
+        {
+            var courseVm = await GetCourseViewModelAsync(courseId);
+            if (courseVm != null) await _broadcaster.BroadcastCourseUpdatedAsync(courseVm);
+        }
 
         return true;
     }
@@ -218,12 +234,15 @@ public class AdminService : IAdminService
         var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == roleName);
         if (role == null) return false;
 
+        // SECURITY FIX: Hash password with BCrypt before storing
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
+
         var user = new User
         {
             Id = Guid.NewGuid(),
             Username = username,
             Email = email,
-            PasswordHash = password, // In a real app, hash this properly.
+            PasswordHash = hashedPassword,
             RoleId = role.Id,
             CreateAt = DateTime.UtcNow,
             IsActive = true
@@ -232,5 +251,25 @@ public class AdminService : IAdminService
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
         return true;
+    }
+
+    private async Task<CourseViewModel?> GetCourseViewModelAsync(Guid courseId)
+    {
+        return await _context.Courses
+            .Include(c => c.Category)
+            .Include(c => c.Instructor)
+            .Where(c => c.Id == courseId)
+            .Select(c => new CourseViewModel
+            {
+                Id = c.Id,
+                Title = c.Title,
+                Price = c.Price,
+                CategoryName = c.Category.Name,
+                InstructorName = c.Instructor.Username,
+                ImageUrl = c.ImageUrl,
+                Status = c.Status,
+                RejectionReason = c.RejectionReason
+            })
+            .FirstOrDefaultAsync();
     }
 }
