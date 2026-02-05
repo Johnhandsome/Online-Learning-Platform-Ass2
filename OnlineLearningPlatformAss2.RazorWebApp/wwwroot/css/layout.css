@@ -20,6 +20,8 @@
 .navbar {
   padding: 16px 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  position: relative;
+  z-index: 1050;
 }
 
 .navbar-brand {

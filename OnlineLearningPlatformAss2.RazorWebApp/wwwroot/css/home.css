@@ -9,17 +9,11 @@
   color: var(--text-primary);
   padding: var(--space-20) 0;
   position: relative;
+  overflow: hidden;
 }
 
 .hero-section::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-  animation: float 20s ease-in-out infinite;
+  display: none;
 }
 
 .hero-content {
@@ -481,7 +475,7 @@
 
 /* CTA Section */
 .cta-section {
-  background: linear-gradient(135deg, #0056d2 0%, #004bb5 100%);
+  background: var(--primary-900);
   color: white;
   padding: 4rem 0;
   position: relative;
@@ -489,14 +483,7 @@
 }
 
 .cta-section::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-  animation: float 25s ease-in-out infinite;
+  display: none;
 }
 
 .cta-content h2 {
