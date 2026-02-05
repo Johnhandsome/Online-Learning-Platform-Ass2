@@ -83,10 +83,20 @@ public class AdminService : IAdminService
         return true;
     }
 
-    public async Task<IEnumerable<AdminUserDto>> GetAllUsersAsync()
+    public async Task<IEnumerable<AdminUserDto>> GetAllUsersAsync(string searchTerm = null)
     {
-        return await _context.Users
+        var query = _context.Users
             .Include(u => u.Role)
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            searchTerm = searchTerm.ToLower();
+            query = query.Where(u => u.Username.ToLower().Contains(searchTerm) || 
+                                     u.Email.ToLower().Contains(searchTerm));
+        }
+
+        return await query
             .OrderByDescending(u => u.CreateAt)
             .Select(u => new AdminUserDto
             {
@@ -119,6 +129,37 @@ public class AdminService : IAdminService
         if (role == null) return false;
 
         user.RoleId = role.Id;
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> DeleteUserAsync(Guid userId)
+    {
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null || user.Username == "admin") return false;
+
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> AddInternalUserAsync(string username, string email, string password, string roleName)
+    {
+        var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name == roleName);
+        if (role == null) return false;
+
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Username = username,
+            Email = email,
+            PasswordHash = password, // In a real app, hash this properly.
+            RoleId = role.Id,
+            CreateAt = DateTime.UtcNow,
+            IsActive = true
+        };
+
+        _context.Users.Add(user);
         await _context.SaveChangesAsync();
         return true;
     }
